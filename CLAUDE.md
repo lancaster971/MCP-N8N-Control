@@ -59,6 +59,40 @@ Variabili d'ambiente necessarie:
 - Mock di axios per test isolati delle chiamate API
 - Setup globale in `tests/test-setup.ts`
 
+### API n8n Utilizzate
+Il client implementa le seguenti API n8n (tutte con prefisso `/api/v1`):
+
+**Workflow API**:
+- `GET /workflows` - Lista tutti i workflow
+- `GET /workflows/{id}` - Ottiene workflow con tutti i dettagli (nodi, connessioni, settings)
+- `POST /workflows` - Crea nuovo workflow
+- `PUT /workflows/{id}` - Aggiorna workflow esistente
+- `DELETE /workflows/{id}` - Elimina workflow
+- `POST /workflows/{id}/activate` - Attiva workflow
+- `POST /workflows/{id}/deactivate` - Disattiva workflow
+- `POST /workflows/{id}/execute` - Esegue workflow
+
+**Execution API**:
+- `GET /executions` - Lista tutte le esecuzioni
+- `GET /executions/{id}` - Ottiene esecuzione specifica
+- `DELETE /executions/{id}` - Elimina esecuzione
+
+Autenticazione tramite header `X-N8N-API-KEY`.
+
+### Elaborazione Dati da Claude
+Quando Claude Desktop utilizza questi tools, elabora e filtra i dati grezzi JSON:
+
+**Esempio con `get_workflow`**:
+- L'API restituisce un oggetto JSON complesso con tutti i dettagli
+- La proprietà `nodes` contiene array completo di tutti i nodi del workflow
+- Claude analizza e presenta i dati in formato leggibile:
+  - Raggruppa nodi per categoria (Form, AI, Processing, etc.)
+  - Estrae informazioni rilevanti (nome, tipo, parametri chiave)
+  - Nasconde dettagli tecnici non necessari
+  - Crea strutture organizzate e comprensibili
+
+Questo permette di trasformare dati JSON complessi in informazioni utili e actionable.
+
 ### Note Tecniche
 - TypeScript target ES2020 con module NodeNext
 - Usa ESM modules (type: "module" in package.json)
