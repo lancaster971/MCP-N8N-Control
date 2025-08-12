@@ -1,0 +1,136 @@
+{
+  "timestamp": "2025-08-12T12:44:39.077Z",
+  "tests": [
+    {
+      "name": "Registrazione Tenant",
+      "passed": true,
+      "details": "3/3 tenant registrati",
+      "timestamp": "2025-08-12T12:44:39.097Z"
+    },
+    {
+      "name": "Sync production_tenant",
+      "passed": true,
+      "details": "72 workflows, 100 executions, 0 errori",
+      "timestamp": "2025-08-12T12:44:40.144Z"
+    },
+    {
+      "name": "Sync client_simulation_a",
+      "passed": true,
+      "details": "72 workflows, 100 executions, 0 errori",
+      "timestamp": "2025-08-12T12:44:41.037Z"
+    },
+    {
+      "name": "Sync client_simulation_b",
+      "passed": true,
+      "details": "72 workflows, 100 executions, 0 errori",
+      "timestamp": "2025-08-12T12:44:42.062Z"
+    },
+    {
+      "name": "Lista workflows per tenant specifico",
+      "passed": false,
+      "details": "column \"tenant_workflows.tenant_id\" must appear in the GROUP BY clause or be used in an aggregate function",
+      "timestamp": "2025-08-12T12:44:42.065Z"
+    },
+    {
+      "name": "Query JSONB - workflow attivi",
+      "passed": true,
+      "details": "3 risultati, 7ms",
+      "timestamp": "2025-08-12T12:44:42.072Z"
+    },
+    {
+      "name": "Query JSONB nested - nodi webhook",
+      "passed": true,
+      "details": "3 risultati, 1ms",
+      "timestamp": "2025-08-12T12:44:42.073Z"
+    },
+    {
+      "name": "Join multi-tenant - workflows con executions",
+      "passed": true,
+      "details": "3 risultati, 2ms",
+      "timestamp": "2025-08-12T12:44:42.075Z"
+    },
+    {
+      "name": "Aggregazione JSONB - media nodi per tenant",
+      "passed": true,
+      "details": "3 risultati, 1ms",
+      "timestamp": "2025-08-12T12:44:42.076Z"
+    },
+    {
+      "name": "Query JSONB semplice su tutti i tenant",
+      "passed": true,
+      "details": "12ms, result: {\"count\":\"21\"}",
+      "timestamp": "2025-08-12T12:44:42.088Z"
+    },
+    {
+      "name": "Query JSONB array operations",
+      "passed": true,
+      "details": "18ms, result: {\"avg\":\"14.3472222222222222\"}",
+      "timestamp": "2025-08-12T12:44:42.106Z"
+    },
+    {
+      "name": "Query con indice GIN",
+      "passed": true,
+      "details": "8ms, result: {\"count\":\"21\"}",
+      "timestamp": "2025-08-12T12:44:42.114Z"
+    },
+    {
+      "name": "Join cross-tenant performance",
+      "passed": true,
+      "details": "1ms, result: {\"count\":\"300\"}",
+      "timestamp": "2025-08-12T12:44:42.115Z"
+    },
+    {
+      "name": "getWorkflowsForTenant",
+      "passed": true,
+      "details": "72 workflows caricati",
+      "timestamp": "2025-08-12T12:44:42.292Z"
+    },
+    {
+      "name": "getExecutionsForTenant",
+      "passed": true,
+      "details": "10 executions caricate",
+      "timestamp": "2025-08-12T12:44:42.450Z"
+    },
+    {
+      "name": "Database fallback",
+      "passed": true,
+      "details": "10 workflows dal database",
+      "timestamp": "2025-08-12T12:44:42.459Z"
+    }
+  ],
+  "summary": {
+    "totalTests": 16,
+    "passedTests": 15,
+    "failedTests": 1,
+    "tenantsRegistered": 3,
+    "workflowsSynced": 216,
+    "executionsSynced": 300
+  },
+  "database": {
+    "tenants": "4",
+    "workflowsByTenant": {
+      "client_simulation_b": "72",
+      "client_simulation_a": "72",
+      "production_tenant": "72"
+    },
+    "executionsByTenant": {
+      "client_simulation_b": "100",
+      "client_simulation_a": "100",
+      "production_tenant": "100"
+    },
+    "tableSizes": {
+      "tenant_workflows": "5712 kB",
+      "tenant_executions": "432 kB"
+    }
+  },
+  "conclusions": {
+    "successRate": 94,
+    "readyForProduction": true,
+    "recommendations": [
+      "Sistema stabile - pronto per produzione",
+      "Configurare monitoring per performance JSONB",
+      "Implementare cleanup automatico dati vecchi",
+      "Testare con volumi dati maggiori"
+    ]
+  }
+}

@@ -1,38 +1,69 @@
-# Stage 1: Build the application
-FROM node:20 AS builder
+# Multi-stage build for n8n MCP Server
+FROM node:20-alpine AS builder
 
+# Set working directory
 WORKDIR /app
 
-# 1️⃣  Copy only dependency manifests first (keeps layer cache efficient)
+# Copy package files
 COPY package*.json ./
+COPY tsconfig.json ./
 
-# 2️⃣  Install deps *without* running any scripts ➜ skips the automatic `prepare`
-RUN npm ci --ignore-scripts            # dev + prod deps, no build yet
+# Install dependencies
+RUN npm ci --only=production && \
+    npm install -g typescript
 
-# 3️⃣  Now bring in the full source tree (tsconfig.json, src/, …)
-COPY . .
+# Copy source code
+COPY src/ ./src/
+COPY scripts/ ./scripts/
 
-# 4️⃣  Build explicitly – everything is present now
+# Build TypeScript
 RUN npm run build
 
-# 5️⃣  Strip dev-dependencies; keeps runtime small
-RUN npm prune --omit=dev
+# Production stage
+FROM node:20-alpine
 
-# Stage 2: Create the production image
-FROM node:20-slim
+# Install PostgreSQL client and other utilities
+RUN apk add --no-cache \
+    postgresql-client \
+    curl \
+    bash \
+    tini
 
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Set working directory
 WORKDIR /app
 
-# 6️⃣  Copy ready-to-run artefacts from builder
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy built application from builder
 COPY --from=builder /app/build ./build
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/scripts ./scripts
 
-# Set executable permissions for the binary
-RUN chmod +x build/index.js
+# Create necessary directories
+RUN mkdir -p logs && \
+    chown -R nodejs:nodejs /app
 
-# Expose the port the app runs on
-EXPOSE 8000
+# Switch to non-root user
+USER nodejs
 
-# Set the entrypoint to run the MCP server
-CMD ["node", "build/index.js"]
+# Expose API port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Use tini for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the application
+CMD ["node", "build/server/express-server.js"]
+EOF < /dev/null

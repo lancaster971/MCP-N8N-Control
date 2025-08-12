@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-08-12T12:42:54.873Z",
+  "migration": {
+    "startTime": "2025-08-12T12:42:54.796Z",
+    "durationSeconds": -1755002575,
+    "success": true
+  },
+  "results": {
+    "workflowsMigrated": 0,
+    "executionsMigrated": 0,
+    "totalRecordsMigrated": 0
+  },
+  "errors": [],
+  "recommendations": [
+    "Testare le query JSONB per verificare performance",
+    "Configurare backup incrementali",
+    "Monitorare utilizzo storage JSONB",
+    "Implementare cleanup automatico vecchie executions",
+    "Testare API client con nuovo schema"
+  ]
+}

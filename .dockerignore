@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Build outputs
+build/
+dist/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+tests/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Scripts (except needed ones)
+scripts/test-*.js
+scripts/*.json
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Misc
+.eslintrc*
+.prettierrc*
+jest.config.*
+EOF < /dev/null

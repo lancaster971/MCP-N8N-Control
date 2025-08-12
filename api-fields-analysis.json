@@ -1,0 +1,200 @@
+{
+  "timestamp": "2025-08-12T11:55:56.617Z",
+  "totalWorkflows": 72,
+  "fieldsFound": [
+    {
+      "name": "createdAt",
+      "type": "string",
+      "nullable": false,
+      "examples": [
+        "2025-06-20T13:50:12.556Z",
+        "2025-06-13T19:13:11.999Z",
+        "2025-06-10T15:35:32.542Z"
+      ]
+    },
+    {
+      "name": "updatedAt",
+      "type": "string",
+      "nullable": false,
+      "examples": [
+        "2025-06-28T14:35:35.000Z",
+        "2025-06-13T21:41:59.000Z",
+        "2025-06-13T22:28:00.000Z"
+      ]
+    },
+    {
+      "name": "id",
+      "type": "string",
+      "nullable": false,
+      "examples": [
+        "053vrF50XdC1ciOA",
+        "0BHv8Kqy4TxBfoud",
+        "1LreJWx0H8iEqkgn"
+      ]
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "nullable": false,
+      "examples": [
+        "RETURN VALIDATION & INTAKE",
+        "My workflow 4",
+        "ERROR-HANDLING"
+      ]
+    },
+    {
+      "name": "active",
+      "type": "boolean",
+      "nullable": false,
+      "examples": [
+        true,
+        false
+      ]
+    },
+    {
+      "name": "isArchived",
+      "type": "boolean",
+      "nullable": false,
+      "examples": [
+        false,
+        true
+      ]
+    },
+    {
+      "name": "nodes",
+      "type": "array",
+      "nullable": false,
+      "examples": []
+    },
+    {
+      "name": "connections",
+      "type": "object",
+      "nullable": false,
+      "examples": []
+    },
+    {
+      "name": "settings",
+      "type": "object",
+      "nullable": false,
+      "examples": []
+    },
+    {
+      "name": "staticData",
+      "type": "object",
+      "nullable": true,
+      "examples": []
+    },
+    {
+      "name": "meta",
+      "type": "object",
+      "nullable": false,
+      "examples": [
+        "{\"templateCredsSetupCompleted\":true}"
+      ]
+    },
+    {
+      "name": "pinData",
+      "type": "object",
+      "nullable": false,
+      "examples": []
+    },
+    {
+      "name": "versionId",
+      "type": "string",
+      "nullable": false,
+      "examples": [
+        "f696720d-965e-4727-823e-a38652a9db49",
+        "b8e147e8-5a04-4079-ac62-b5c2ccd9d0b8",
+        "96dd4d06-fa35-4908-858e-b700202d9174"
+      ]
+    },
+    {
+      "name": "triggerCount",
+      "type": "number",
+      "nullable": false,
+      "examples": [
+        1
+      ]
+    },
+    {
+      "name": "shared",
+      "type": "array",
+      "nullable": false,
+      "examples": [
+        "[{\"createdAt\":\"2025-06-20T13:50:12.562Z\",\"updatedAt\":\"2025-06-20T13:50:12.562Z\",\"role\":\"workflow:owner\",\"workflowId\":\"053vrF50XdC1ciOA\",\"projectId\":\"faRAVziI0wwHAtrH\",\"project\":{\"createdAt\":\"2025-05-08T14:10:38.888Z\",\"updatedAt\":\"2025-05-08T14:14:47.889Z\",\"id\":\"faRAVziI0wwHAtrH\",\"name\":\"Tiziano Annicchiarico <tiziano.annicchiarico@tecsolutions.org>\",\"type\":\"personal\",\"icon\":null,\"description\":null,\"projectRelations\":[{\"createdAt\":\"2025-05-08T14:10:38.888Z\",\"updatedAt\":\"2025-05-08T14:10:38.888Z\",\"role\":\"project:personalOwner\",\"userId\":\"d2011ea3-1757-483b-807c-1a1cadfe7618\",\"projectId\":\"faRAVziI0wwHAtrH\",\"user\":{\"createdAt\":\"2025-05-08T14:10:38.611Z\",\"updatedAt\":\"2025-08-11T22:01:00.000Z\",\"id\":\"d2011ea3-1757-483b-807c-1a1cadfe7618\",\"email\":\"tiziano.annicchiarico@tecsolutions.org\",\"firstName\":\"Tiziano\",\"lastName\":\"Annicchiarico\",\"personalizationAnswers\":{\"version\":\"v4\",\"personalization_survey_submitted_at\":\"2025-05-08T14:15:03.626Z\",\"personalization_survey_n8n_version\":\"1.91.3\",\"companyType\":\"personal\",\"reportedSource\":\"google\"},\"settings\":{\"userActivated\":true,\"easyAIWorkflowOnboarded\":true,\"firstSuccessfulWorkflowId\":\"43vTbwmNKzDK3knK\",\"userActivatedAt\":1746743405019,\"npsSurvey\":{\"responded\":true,\"lastShownAt\":1747066778901}},\"role\":\"global:owner\",\"disabled\":false,\"mfaEnabled\":false,\"lastActiveAt\":\"2025-08-11\",\"isPending\":false}}]}}]",
+        "[{\"createdAt\":\"2025-06-13T19:13:12.004Z\",\"updatedAt\":\"2025-06-13T19:13:12.004Z\",\"role\":\"workflow:owner\",\"workflowId\":\"0BHv8Kqy4TxBfoud\",\"projectId\":\"faRAVziI0wwHAtrH\",\"project\":{\"createdAt\":\"2025-05-08T14:10:38.888Z\",\"updatedAt\":\"2025-05-08T14:14:47.889Z\",\"id\":\"faRAVziI0wwHAtrH\",\"name\":\"Tiziano Annicchiarico <tiziano.annicchiarico@tecsolutions.org>\",\"type\":\"personal\",\"icon\":null,\"description\":null,\"projectRelations\":[{\"createdAt\":\"2025-05-08T14:10:38.888Z\",\"updatedAt\":\"2025-05-08T14:10:38.888Z\",\"role\":\"project:personalOwner\",\"userId\":\"d2011ea3-1757-483b-807c-1a1cadfe7618\",\"projectId\":\"faRAVziI0wwHAtrH\",\"user\":{\"createdAt\":\"2025-05-08T14:10:38.611Z\",\"updatedAt\":\"2025-08-11T22:01:00.000Z\",\"id\":\"d2011ea3-1757-483b-807c-1a1cadfe7618\",\"email\":\"tiziano.annicchiarico@tecsolutions.org\",\"firstName\":\"Tiziano\",\"lastName\":\"Annicchiarico\",\"personalizationAnswers\":{\"version\":\"v4\",\"personalization_survey_submitted_at\":\"2025-05-08T14:15:03.626Z\",\"personalization_survey_n8n_version\":\"1.91.3\",\"companyType\":\"personal\",\"reportedSource\":\"google\"},\"settings\":{\"userActivated\":true,\"easyAIWorkflowOnboarded\":true,\"firstSuccessfulWorkflowId\":\"43vTbwmNKzDK3knK\",\"userActivatedAt\":1746743405019,\"npsSurvey\":{\"responded\":true,\"lastShownAt\":1747066778901}},\"role\":\"global:owner\",\"disabled\":false,\"mfaEnabled\":false,\"lastActiveAt\":\"2025-08-11\",\"isPending\":false}}]}}]",
+        "[{\"createdAt\":\"2025-06-10T15:35:32.548Z\",\"updatedAt\":\"2025-06-10T15:35:32.548Z\",\"role\":\"workflow:owner\",\"workflowId\":\"1LreJWx0H8iEqkgn\",\"projectId\":\"faRAVziI0wwHAtrH\",\"project\":{\"createdAt\":\"2025-05-08T14:10:38.888Z\",\"updatedAt\":\"2025-05-08T14:14:47.889Z\",\"id\":\"faRAVziI0wwHAtrH\",\"name\":\"Tiziano Annicchiarico <tiziano.annicchiarico@tecsolutions.org>\",\"type\":\"personal\",\"icon\":null,\"description\":null,\"projectRelations\":[{\"createdAt\":\"2025-05-08T14:10:38.888Z\",\"updatedAt\":\"2025-05-08T14:10:38.888Z\",\"role\":\"project:personalOwner\",\"userId\":\"d2011ea3-1757-483b-807c-1a1cadfe7618\",\"projectId\":\"faRAVziI0wwHAtrH\",\"user\":{\"createdAt\":\"2025-05-08T14:10:38.611Z\",\"updatedAt\":\"2025-08-11T22:01:00.000Z\",\"id\":\"d2011ea3-1757-483b-807c-1a1cadfe7618\",\"email\":\"tiziano.annicchiarico@tecsolutions.org\",\"firstName\":\"Tiziano\",\"lastName\":\"Annicchiarico\",\"personalizationAnswers\":{\"version\":\"v4\",\"personalization_survey_submitted_at\":\"2025-05-08T14:15:03.626Z\",\"personalization_survey_n8n_version\":\"1.91.3\",\"companyType\":\"personal\",\"reportedSource\":\"google\"},\"settings\":{\"userActivated\":true,\"easyAIWorkflowOnboarded\":true,\"firstSuccessfulWorkflowId\":\"43vTbwmNKzDK3knK\",\"userActivatedAt\":1746743405019,\"npsSurvey\":{\"responded\":true,\"lastShownAt\":1747066778901}},\"role\":\"global:owner\",\"disabled\":false,\"mfaEnabled\":false,\"lastActiveAt\":\"2025-08-11\",\"isPending\":false}}]}}]"
+      ]
+    },
+    {
+      "name": "tags",
+      "type": "array",
+      "nullable": false,
+      "examples": [
+        "[]"
+      ]
+    }
+  ],
+  "recommendations": [
+    {
+      "field": "createdAt",
+      "type": "string",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "updatedAt",
+      "type": "string",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "isArchived",
+      "type": "boolean",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "nodes",
+      "type": "array",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "connections",
+      "type": "object",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "staticData",
+      "type": "object",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "meta",
+      "type": "object",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "pinData",
+      "type": "object",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "versionId",
+      "type": "string",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "triggerCount",
+      "type": "number",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "shared",
+      "type": "array",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    },
+    {
+      "field": "tags",
+      "type": "array",
+      "reason": "Campo disponibile nell'API ma non nel database"
+    }
+  ]
+}

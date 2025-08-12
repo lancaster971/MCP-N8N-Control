@@ -1,0 +1,972 @@
+{
+  "tenantId": "current_tenant",
+  "discoveryDate": "2025-08-12T12:41:57.353Z",
+  "n8nVersion": "unknown",
+  "instanceType": "unknown",
+  "availableEndpoints": [
+    "/executions",
+    "/tags",
+    "/users",
+    "/workflows"
+  ],
+  "workflowFields": [
+    {
+      "path": "workflows.list",
+      "type": "object",
+      "example": "Object with 15 keys"
+    },
+    {
+      "path": "workflows.list.createdAt",
+      "type": "string",
+      "example": "2025-06-20T13:50:12.556Z"
+    },
+    {
+      "path": "workflows.list.updatedAt",
+      "type": "string",
+      "example": "2025-06-28T14:35:35.000Z"
+    },
+    {
+      "path": "workflows.list.id",
+      "type": "string",
+      "example": "053vrF50XdC1ciOA"
+    },
+    {
+      "path": "workflows.list.name",
+      "type": "string",
+      "example": "RETURN VALIDATION & INTAKE"
+    },
+    {
+      "path": "workflows.list.active",
+      "type": "boolean",
+      "example": "true"
+    },
+    {
+      "path": "workflows.list.isArchived",
+      "type": "boolean",
+      "example": "false"
+    },
+    {
+      "path": "workflows.list.nodes",
+      "type": "array",
+      "example": "Array with 32 items"
+    },
+    {
+      "path": "workflows.list.nodes[]",
+      "type": "object",
+      "example": "Object with 6 keys"
+    },
+    {
+      "path": "workflows.list.nodes[].parameters",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.nodes[].id",
+      "type": "string",
+      "example": "38eac349-913b-4304-91f6-77e2762aa33e"
+    },
+    {
+      "path": "workflows.list.nodes[].name",
+      "type": "string",
+      "example": "Prepara Dati"
+    },
+    {
+      "path": "workflows.list.nodes[].type",
+      "type": "string",
+      "example": "n8n-nodes-base.code"
+    },
+    {
+      "path": "workflows.list.nodes[].typeVersion",
+      "type": "number",
+      "example": "1"
+    },
+    {
+      "path": "workflows.list.nodes[].position",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.list.connections",
+      "type": "object",
+      "example": "Object with 24 keys"
+    },
+    {
+      "path": "workflows.list.connections.Genera RMA",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Genera RMA.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Prepara Email",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Prepara Email.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.On form submission",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.On form submission.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Prepara Dati",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Prepara Dati.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Genera RMA1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Genera RMA1.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Convert to File1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Convert to File1.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Estrai Testo",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Estrai Testo.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Validazione File",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Validazione File.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Mappa Dati",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Mappa Dati.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Formatta Dati",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Formatta Dati.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Merge",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Merge.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Google Gemini Chat Model",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Google Gemini Chat Model.ai_languageModel",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Call n8n Workflow Tool",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Call n8n Workflow Tool.ai_tool",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Supabase",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Supabase.ai_tool",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Carica immagini Merce",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Carica immagini Merce.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.If",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.If.main",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.list.connections.Mappa nome File",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Mappa nome File.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.MAPPA NUMERO ORDINE",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.MAPPA NUMERO ORDINE.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.INSERT CAMPI RMA",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.INSERT CAMPI RMA.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Execute Workflow",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Execute Workflow.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.Merge1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Merge1.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.connections.numero ordine esiste?",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.numero ordine esiste?.main",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.list.connections.If1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.If1.main",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.list.connections.Validazione ed RMA",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.connections.Validazione ed RMA.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.settings",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.settings.executionOrder",
+      "type": "string",
+      "example": "v1"
+    },
+    {
+      "path": "workflows.list.meta",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.meta.templateCredsSetupCompleted",
+      "type": "boolean",
+      "example": "true"
+    },
+    {
+      "path": "workflows.list.pinData",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.pinData.Form1",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.list.pinData.Form1[]",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.list.versionId",
+      "type": "string",
+      "example": "f696720d-965e-4727-823e-a38652a9db49"
+    },
+    {
+      "path": "workflows.list.triggerCount",
+      "type": "number",
+      "example": "1"
+    },
+    {
+      "path": "workflows.list.tags",
+      "type": "array",
+      "example": "Empty array"
+    },
+    {
+      "path": "workflows.detail",
+      "type": "object",
+      "example": "Object with 16 keys"
+    },
+    {
+      "path": "workflows.detail.createdAt",
+      "type": "string",
+      "example": "2025-06-20T13:50:12.556Z"
+    },
+    {
+      "path": "workflows.detail.updatedAt",
+      "type": "string",
+      "example": "2025-06-28T14:35:35.000Z"
+    },
+    {
+      "path": "workflows.detail.id",
+      "type": "string",
+      "example": "053vrF50XdC1ciOA"
+    },
+    {
+      "path": "workflows.detail.name",
+      "type": "string",
+      "example": "RETURN VALIDATION & INTAKE"
+    },
+    {
+      "path": "workflows.detail.active",
+      "type": "boolean",
+      "example": "true"
+    },
+    {
+      "path": "workflows.detail.isArchived",
+      "type": "boolean",
+      "example": "false"
+    },
+    {
+      "path": "workflows.detail.nodes",
+      "type": "array",
+      "example": "Array with 32 items"
+    },
+    {
+      "path": "workflows.detail.nodes[]",
+      "type": "object",
+      "example": "Object with 6 keys"
+    },
+    {
+      "path": "workflows.detail.nodes[].parameters",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.nodes[].id",
+      "type": "string",
+      "example": "38eac349-913b-4304-91f6-77e2762aa33e"
+    },
+    {
+      "path": "workflows.detail.nodes[].name",
+      "type": "string",
+      "example": "Prepara Dati"
+    },
+    {
+      "path": "workflows.detail.nodes[].type",
+      "type": "string",
+      "example": "n8n-nodes-base.code"
+    },
+    {
+      "path": "workflows.detail.nodes[].typeVersion",
+      "type": "number",
+      "example": "1"
+    },
+    {
+      "path": "workflows.detail.nodes[].position",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.detail.connections",
+      "type": "object",
+      "example": "Object with 24 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Genera RMA",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Genera RMA.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Prepara Email",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Prepara Email.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.On form submission",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.On form submission.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Prepara Dati",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Prepara Dati.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Genera RMA1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Genera RMA1.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Convert to File1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Convert to File1.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Estrai Testo",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Estrai Testo.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Validazione File",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Validazione File.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Mappa Dati",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Mappa Dati.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Formatta Dati",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Formatta Dati.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Merge",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Merge.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Google Gemini Chat Model",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Google Gemini Chat Model.ai_languageModel",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Call n8n Workflow Tool",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Call n8n Workflow Tool.ai_tool",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Supabase",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Supabase.ai_tool",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Carica immagini Merce",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Carica immagini Merce.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.If",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.If.main",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.detail.connections.Mappa nome File",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Mappa nome File.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.MAPPA NUMERO ORDINE",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.MAPPA NUMERO ORDINE.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.INSERT CAMPI RMA",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.INSERT CAMPI RMA.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Execute Workflow",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Execute Workflow.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Merge1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Merge1.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.numero ordine esiste?",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.numero ordine esiste?.main",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.detail.connections.If1",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.If1.main",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.detail.connections.Validazione ed RMA",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Validazione ed RMA.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.settings",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.settings.executionOrder",
+      "type": "string",
+      "example": "v1"
+    },
+    {
+      "path": "workflows.detail.meta",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.meta.templateCredsSetupCompleted",
+      "type": "boolean",
+      "example": "true"
+    },
+    {
+      "path": "workflows.detail.pinData",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.pinData.Form1",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.pinData.Form1[]",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.versionId",
+      "type": "string",
+      "example": "f696720d-965e-4727-823e-a38652a9db49"
+    },
+    {
+      "path": "workflows.detail.triggerCount",
+      "type": "number",
+      "example": "1"
+    },
+    {
+      "path": "workflows.detail.shared",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.shared[]",
+      "type": "object",
+      "example": "Object with 6 keys"
+    },
+    {
+      "path": "workflows.detail.shared[].createdAt",
+      "type": "string",
+      "example": "2025-06-20T13:50:12.562Z"
+    },
+    {
+      "path": "workflows.detail.shared[].updatedAt",
+      "type": "string",
+      "example": "2025-06-20T13:50:12.562Z"
+    },
+    {
+      "path": "workflows.detail.shared[].role",
+      "type": "string",
+      "example": "workflow:owner"
+    },
+    {
+      "path": "workflows.detail.shared[].workflowId",
+      "type": "string",
+      "example": "053vrF50XdC1ciOA"
+    },
+    {
+      "path": "workflows.detail.shared[].projectId",
+      "type": "string",
+      "example": "faRAVziI0wwHAtrH"
+    },
+    {
+      "path": "workflows.detail.shared[].project",
+      "type": "object",
+      "example": "Object with 8 keys"
+    },
+    {
+      "path": "workflows.detail.tags",
+      "type": "array",
+      "example": "Empty array"
+    },
+    {
+      "path": "workflows.detail.connections.Schedule",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Schedule.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Aggregate Report",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Aggregate Report.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.TASK",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.TASK.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.MAIL",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.MAIL.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Send Report",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Send Report.main",
+      "type": "array",
+      "example": "Array with 2 items"
+    },
+    {
+      "path": "workflows.detail.settings.callerPolicy",
+      "type": "string",
+      "example": "workflowsFromSameOwner"
+    },
+    {
+      "path": "workflows.detail.settings.errorWorkflow",
+      "type": "string",
+      "example": "1LreJWx0H8iEqkgn"
+    },
+    {
+      "path": "workflows.detail.connections.Mappa Campi",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Mappa Campi.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    },
+    {
+      "path": "workflows.detail.connections.Error Trigger",
+      "type": "object",
+      "example": "Object with 1 keys"
+    },
+    {
+      "path": "workflows.detail.connections.Error Trigger.main",
+      "type": "array",
+      "example": "Array with 1 items"
+    }
+  ],
+  "executionFields": [
+    {
+      "path": "executions.list",
+      "type": "object",
+      "example": "Object with 9 keys"
+    },
+    {
+      "path": "executions.list.id",
+      "type": "string",
+      "example": "110424"
+    },
+    {
+      "path": "executions.list.finished",
+      "type": "boolean",
+      "example": "true"
+    },
+    {
+      "path": "executions.list.mode",
+      "type": "string",
+      "example": "trigger"
+    },
+    {
+      "path": "executions.list.startedAt",
+      "type": "string",
+      "example": "2025-08-12T12:40:28.028Z"
+    },
+    {
+      "path": "executions.list.stoppedAt",
+      "type": "string",
+      "example": "2025-08-12T12:40:28.157Z"
+    },
+    {
+      "path": "executions.list.workflowId",
+      "type": "string",
+      "example": "KKSqAvsx6IO89YIJ"
+    },
+    {
+      "path": "executions.detail",
+      "type": "object",
+      "example": "Object with 12 keys"
+    },
+    {
+      "path": "executions.detail.id",
+      "type": "string",
+      "example": "110424"
+    },
+    {
+      "path": "executions.detail.finished",
+      "type": "boolean",
+      "example": "true"
+    },
+    {
+      "path": "executions.detail.mode",
+      "type": "string",
+      "example": "trigger"
+    },
+    {
+      "path": "executions.detail.status",
+      "type": "string",
+      "example": "success"
+    },
+    {
+      "path": "executions.detail.createdAt",
+      "type": "string",
+      "example": "2025-08-12T12:40:28.005Z"
+    },
+    {
+      "path": "executions.detail.startedAt",
+      "type": "string",
+      "example": "2025-08-12T12:40:28.028Z"
+    },
+    {
+      "path": "executions.detail.stoppedAt",
+      "type": "string",
+      "example": "2025-08-12T12:40:28.157Z"
+    },
+    {
+      "path": "executions.detail.workflowId",
+      "type": "string",
+      "example": "KKSqAvsx6IO89YIJ"
+    }
+  ],
+  "customNodes": [],
+  "capabilities": {
+    "supportsWebhooks": true,
+    "supportsCredentials": false,
+    "supportsTags": true,
+    "supportsProjects": false,
+    "supportsUsers": true,
+    "supportsVariables": false,
+    "supportsAudit": false
+  },
+  "stats": {
+    "totalWorkflowsAnalyzed": 10,
+    "totalExecutionsAnalyzed": 5,
+    "customNodesDetected": 0
+  },
+  "schemaSignature": "fd52b192a422709d3b4144656f873194"
+}

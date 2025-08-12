@@ -13,6 +13,7 @@ import {
 import { getEnvConfig } from './environment.js';
 import { setupWorkflowTools } from '../tools/workflow/index.js';
 import { setupExecutionTools } from '../tools/execution/index.js';
+import { setupAnalyticsTools } from '../tools/analytics/index.js';
 import { setupResourceHandlers } from '../resources/index.js';
 import { createApiService } from '../api/n8n-client.js';
 
@@ -70,12 +71,13 @@ export async function configureServer(): Promise<Server> {
  */
 function setupToolListRequestHandler(server: Server): void {
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    // Combine tools from workflow and execution modules
+    // Combina tools da workflow, execution e analytics modules
     const workflowTools = await setupWorkflowTools();
     const executionTools = await setupExecutionTools();
+    const analyticsTools = await setupAnalyticsTools();
 
     return {
-      tools: [...workflowTools, ...executionTools],
+      tools: [...workflowTools, ...executionTools, ...analyticsTools],
     };
   });
 }
@@ -102,7 +104,7 @@ function setupToolCallRequestHandler(server: Server): void {
         };
       }
 
-      // Import handlers
+      // Importa handlers
       const { 
         ListWorkflowsHandler, 
         GetWorkflowHandler,
@@ -119,6 +121,13 @@ function setupToolCallRequestHandler(server: Server): void {
         DeleteExecutionHandler,
         RunWebhookHandler
       } = await import('../tools/execution/index.js');
+      
+      const {
+        DashboardOverviewHandler,
+        WorkflowAnalyticsHandler,
+        ErrorAnalyticsHandler,
+        ExecutionHeatmapHandler
+      } = await import('../tools/analytics/index.js');
       
       // Route the tool call to the appropriate handler
       if (toolName === 'list_workflows') {
@@ -153,6 +162,18 @@ function setupToolCallRequestHandler(server: Server): void {
         result = await handler.execute(args);
       } else if (toolName === 'run_webhook') {
         const handler = new RunWebhookHandler();
+        result = await handler.execute(args);
+      } else if (toolName === 'get_dashboard_overview') {
+        const handler = new DashboardOverviewHandler();
+        result = await handler.execute(args);
+      } else if (toolName === 'get_workflow_analytics') {
+        const handler = new WorkflowAnalyticsHandler();
+        result = await handler.execute(args);
+      } else if (toolName === 'get_error_analytics') {
+        const handler = new ErrorAnalyticsHandler();
+        result = await handler.execute(args);
+      } else if (toolName === 'get_execution_heatmap') {
+        const handler = new ExecutionHeatmapHandler();
         result = await handler.execute(args);
       } else {
         throw new Error(`Unknown tool: ${toolName}`);

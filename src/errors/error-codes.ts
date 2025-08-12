@@ -13,4 +13,5 @@ export enum ErrorCode {
   InvalidRequest = 1003,
   InternalError = 1004,
   NotImplemented = 1005,
+  InvalidParams = 1006,
 }

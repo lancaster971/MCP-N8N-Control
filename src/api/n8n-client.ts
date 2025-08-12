@@ -121,6 +121,37 @@ export class N8nApiService {
   }
 
   /**
+   * Alias per getWorkflows per compatibilità
+   */
+  async listWorkflows(): Promise<Workflow[]> {
+    return this.getWorkflows();
+  }
+
+  /**
+   * Lista esecuzioni con filtri opzionali
+   * 
+   * @param options - Opzioni per filtrare le esecuzioni
+   * @returns Array di esecuzioni
+   */
+  async listExecutions(options?: { workflowId?: string; limit?: number }): Promise<Execution[]> {
+    // Per ora restituisce tutte le esecuzioni
+    // In futuro potremmo implementare filtri lato client o API
+    const allExecutions = await this.getExecutions();
+    
+    let filtered = allExecutions;
+    
+    if (options?.workflowId) {
+      filtered = filtered.filter((e: any) => e.workflowId === options.workflowId);
+    }
+    
+    if (options?.limit) {
+      filtered = filtered.slice(0, options.limit);
+    }
+    
+    return filtered;
+  }
+
+  /**
    * Get a specific execution by ID
    * 
    * @param id Execution ID

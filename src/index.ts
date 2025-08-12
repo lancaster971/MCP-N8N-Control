@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * n8n MCP Server - Main Entry Point
+ * PilotPro MCP Server - Main Entry Point
  * 
- * This file serves as the entry point for the n8n MCP Server,
- * which allows AI assistants to interact with n8n workflows through the MCP protocol.
+ * This file serves as the entry point for the PilotPro MCP Server,
+ * which allows AI assistants to interact with PilotPro workflows through the MCP protocol.
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -14,11 +14,11 @@ import { configureServer } from './config/server.js';
 loadEnvironmentVariables();
 
 /**
- * Main function to start the n8n MCP Server
+ * Main function to start the PilotPro MCP Server
  */
 async function main() {
   try {
-    console.error('Starting n8n MCP Server...');
+    console.error('Starting PilotPro MCP Server...');
 
     // Create and configure the MCP server
     const server = await configureServer();
@@ -28,7 +28,7 @@ async function main() {
 
     // Set up clean shutdown
     process.on('SIGINT', async () => {
-      console.error('Shutting down n8n MCP Server...');
+      console.error('Shutting down PilotPro MCP Server...');
       await server.close();
       process.exit(0);
     });
@@ -37,9 +37,9 @@ async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
 
-    console.error('n8n MCP Server running on stdio');
+    console.error('PilotPro MCP Server running on stdio');
   } catch (error) {
-    console.error('Failed to start n8n MCP Server:', error);
+    console.error('Failed to start PilotPro MCP Server:', error);
     process.exit(1);
   }
 }
