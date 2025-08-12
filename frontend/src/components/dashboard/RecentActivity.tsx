@@ -1,6 +1,6 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, AlertCircle, Clock, Users, GitBranch } from 'lucide-react'
+import { CheckCircle, AlertCircle, Clock, Users } from 'lucide-react'
 import { tenantAPI } from '../../services/api'
 import { formatDate, cn } from '../../lib/utils'
 import { useAuthStore } from '../../store/authStore'

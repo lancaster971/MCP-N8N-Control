@@ -91,6 +91,43 @@ export const statsAPI = {
   realtime: () => api.get('/api/stats'),
 }
 
+// Security API - per sostituire mock data
+export const securityAPI = {
+  // Get tenant security logs (deriva dai tenant logs esistenti)
+  logs: (tenantId: string = 'default_tenant', params?: any) => 
+    api.get('/api/logs', { params: { tenantId, ...params } }),
+  
+  // Get system metrics from scheduler endpoint
+  metrics: () => api.get('/api/stats'),
+  
+  // Mock API keys (non implementato nel backend, usa dati fittizi)
+  apiKeys: () => Promise.resolve({ data: { apiKeys: [] } }),
+}
+
+// Database API - per sostituire mock data
+export const databaseAPI = {
+  // Get system database stats from main stats endpoint
+  stats: () => api.get('/api/stats'),
+  
+  // Get table information from database (non implementato, usa mock)
+  tables: () => Promise.resolve({ data: { tables: [] } }),
+  
+  // Get recent database activity from sync logs
+  recentActivity: (params?: any) => api.get('/api/logs', { params }),
+}
+
+// Alerts API - per sostituire mock data
+export const alertsAPI = {
+  // Get system alerts from scheduler health
+  list: () => api.get('/api/scheduler/status'),
+  
+  // Get monitoring metrics from system stats
+  metrics: () => api.get('/api/stats'),
+  
+  // Get health status
+  health: () => api.get('/api/scheduler/status'),
+}
+
 // Tenant-specific API - SOLO DATI DEL TUO TENANT!
 export const tenantAPI = {
   // Dashboard con tutti i dati del tenant
@@ -108,6 +145,21 @@ export const tenantAPI = {
   // Executions del tenant
   executions: (tenantId: string = 'default_tenant', params?: any) => 
     api.get(`/api/tenant/${tenantId}/executions`, { params }),
+    
+  // Advanced analytics per Stats page
+  analytics: {
+    // Performance data derivato dalle stats esistenti
+    performance: (tenantId: string = 'default_tenant') => 
+      api.get(`/api/tenant/${tenantId}/stats`),
+    
+    // Top workflows da stats endpoint
+    topWorkflows: (tenantId: string = 'default_tenant') => 
+      api.get(`/api/tenant/${tenantId}/stats`),
+    
+    // Time series data (non ancora implementato, usa stats base)
+    timeSeries: (tenantId: string = 'default_tenant') => 
+      api.get(`/api/tenant/${tenantId}/stats`),
+  },
 }
 
 // Users API

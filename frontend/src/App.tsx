@@ -8,6 +8,9 @@ import { WorkflowsPage } from './components/workflows/WorkflowsPage'
 import { ExecutionsPage } from './components/executions/ExecutionsPage'
 import { StatsPage } from './components/stats/StatsPage'
 import { DatabasePage } from './components/database/DatabasePage'
+import { AlertsPage } from './components/alerts/AlertsPage'
+import { SchedulerPage } from './components/scheduler/SchedulerPage'
+import { SecurityPage } from './components/security/SecurityPage'
 import { LoginPage } from './components/auth/LoginPage'
 import { useAuthStore } from './store/authStore'
 
@@ -36,9 +39,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 // Placeholder components for routes
 const TenantsPage = () => <div className="control-card p-6 text-white">Tenants Management (Coming Soon)</div>
 const UsersPage = () => <div className="control-card p-6 text-white">Users Management (Coming Soon)</div>
-const SchedulerPage = () => <div className="control-card p-6 text-white">Scheduler Control (Coming Soon)</div>
-const AlertsPage = () => <div className="control-card p-6 text-white">Alerts & Monitoring (Coming Soon)</div>
-const SecurityPage = () => <div className="control-card p-6 text-white">Security Settings (Coming Soon)</div>
 const SettingsPage = () => <div className="control-card p-6 text-white">System Settings (Coming Soon)</div>
 
 function App() {

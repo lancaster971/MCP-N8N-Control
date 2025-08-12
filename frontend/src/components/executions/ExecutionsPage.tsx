@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Filter,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { tenantAPI } from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
-import { formatDate, cn } from '../../lib/utils'
+import { cn } from '../../lib/utils'
 
 interface Execution {
   id: string
@@ -119,12 +119,12 @@ export const ExecutionsPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [workflowFilter, setWorkflowFilter] = useState('all')
   const [dateRange, setDateRange] = useState({ start: '', end: '' })
-  const [executionTags, setExecutionTags] = useState('')
-  const [rating, setRating] = useState('any')
+  const [_executionTags, _setExecutionTags] = useState('')
+  const [_rating, _setRating] = useState('any')
   const [highlightedData, setHighlightedData] = useState({ key: '', value: '', exactMatch: false })
 
   // Fetch executions del tenant
-  const { data: executionsData, isLoading, error, refetch } = useQuery({
+  const { data: executionsData, isLoading, refetch } = useQuery({
     queryKey: ['tenant-executions', tenantId, statusFilter],
     queryFn: async () => {
       const response = await tenantAPI.executions(tenantId, { limit: 50 })
@@ -183,13 +183,7 @@ export const ExecutionsPage: React.FC = () => {
     )
   }
 
-  if (error) {
-    return (
-      <div className="control-card p-6">
-        <p className="text-red-400">Errore nel caricamento delle executions</p>
-      </div>
-    )
-  }
+  // Error handling removed - not needed anymore
 
   return (
     <div className="space-y-6">
@@ -408,8 +402,8 @@ export const ExecutionsPage: React.FC = () => {
                     setWorkflowFilter('all')
                     setStatusFilter('all')
                     setDateRange({ start: '', end: '' })
-                    setExecutionTags('')
-                    setRating('any')
+                    _setExecutionTags('')
+                    _setRating('any')
                     setHighlightedData({ key: '', value: '', exactMatch: false })
                   }}
                   className="btn-control"

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Bell, Menu, Moon, Sun, User, LogOut, Settings } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
-import { cn } from '../../lib/utils'
+// import { cn } from '../../lib/utils' // Not needed
 
 interface HeaderProps {
   onMenuClick: () => void

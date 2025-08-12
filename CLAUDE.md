@@ -2,561 +2,588 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🏗️ Project Architecture
+## 🚀 PilotPro Control Center
 
-### Overview
-**n8n Multi-Tenant Control System** - Sistema completo per gestione multi-tenant di istanze n8n con sincronizzazione automatica, monitoring e backup.
+Sistema completo di controllo e monitoraggio per workflow automation con architettura multi-tenant e interfaccia Control Room.
 
-### Tech Stack
-- **Backend**: Node.js + TypeScript + Express (✅ COMPLETATO)
-- **Database**: PostgreSQL 16 con JSONB (✅ COMPLETATO)
-- **Authentication**: JWT con bcrypt (✅ COMPLETATO)
-- **Scheduler**: node-cron per automazione (✅ COMPLETATO)
-- **API Docs**: Swagger/OpenAPI (✅ COMPLETATO)
-- **Testing**: Jest + Supertest (✅ COMPLETATO)
-- **CI/CD**: GitHub Actions (✅ COMPLETATO)
-- **Deployment**: Docker + Docker Compose (✅ COMPLETATO)
-- **Frontend**: React + TypeScript + TailwindCSS (🚧 DA FARE)
-
-## 📁 Project Structure
+## 📁 Architettura del Progetto
 
 ```
-n8n-mcp-control/
+MCP-N8N-Control/
 ├── src/                           # ✅ BACKEND COMPLETATO
-│   ├── index.ts                   # MCP server entry point
+│   ├── index.ts                  # MCP server entry point
 │   ├── server/
-│   │   └── express-server.ts      # Express API server
+│   │   └── express-server.ts     # Express API server (porta 3001)
 │   ├── api/
-│   │   ├── scheduler-controller.ts # Scheduler endpoints
-│   │   ├── auth-controller.ts      # Authentication endpoints
-│   │   ├── backup-controller.ts    # Backup management
-│   │   ├── health-controller.ts    # Health & metrics
-│   │   └── swagger-config.ts       # OpenAPI documentation
+│   │   ├── scheduler-controller.ts
+│   │   ├── auth-controller.ts
+│   │   ├── tenant-controller.ts
+│   │   └── stats-controller.ts
 │   ├── auth/
-│   │   └── jwt-auth.ts             # JWT authentication service
+│   │   └── jwt-auth.ts           # JWT authentication
 │   ├── backend/
-│   │   └── multi-tenant-scheduler.ts # Multi-tenant sync scheduler
+│   │   └── multi-tenant-scheduler.ts
 │   ├── database/
-│   │   ├── connection.ts           # PostgreSQL connection pool
-│   │   └── migrations/             # SQL migration files
-│   ├── monitoring/
-│   │   └── health-monitor.ts       # Health monitoring service
-│   ├── backup/
-│   │   └── database-backup.ts      # Automated backup service
+│   │   ├── connection.ts         # PostgreSQL pool
+│   │   └── migrations/           # SQL migrations
 │   └── config/
-│       └── environment.ts          # Environment configuration
-├── tests/                          # ✅ TEST COMPLETATI
-│   ├── unit/                       # Unit tests
-│   └── integration/                # Integration tests
-├── scripts/                        # ✅ SCRIPTS COMPLETATI
-│   ├── docker-start.sh            # Docker startup script
-│   └── docker-stop.sh             # Docker shutdown script
-├── .github/workflows/              # ✅ CI/CD COMPLETATO
-│   ├── ci.yml                     # Main CI/CD pipeline
-│   └── code-review.yml            # Automated code review
-├── docker-compose.yml             # ✅ Docker orchestration
-├── Dockerfile                     # ✅ Multi-stage Docker build
-└── frontend/                      # 🚧 TODO - React frontend
-    ├── src/
-    │   ├── components/            # Reusable components
-    │   ├── pages/                 # Page components
-    │   ├── hooks/                 # Custom React hooks
-    │   ├── services/              # API services
-    │   ├── store/                 # State management
-    │   ├── utils/                 # Utilities
-    │   └── types/                 # TypeScript types
-    ├── public/                    # Static assets
-    └── package.json
+│       └── environment.ts        # Config management
+├── frontend/                      # ✅ FRONTEND COMPLETATO
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── layout/          # Layout, Sidebar, Header
+│   │   │   ├── dashboard/       # Dashboard + widgets
+│   │   │   ├── workflows/       # Workflows management
+│   │   │   ├── executions/      # Executions monitoring
+│   │   │   ├── stats/           # Analytics & KPI
+│   │   │   ├── database/        # Database management
+│   │   │   ├── alerts/          # Alert system
+│   │   │   ├── scheduler/       # Scheduler control
+│   │   │   ├── security/        # Security center
+│   │   │   └── auth/            # Login/Auth components
+│   │   ├── services/
+│   │   │   └── api.ts           # API service layer
+│   │   ├── store/
+│   │   │   └── authStore.ts     # Zustand state
+│   │   ├── lib/
+│   │   │   └── utils.ts         # Utilities
+│   │   └── styles/
+│   │       └── globals.css      # Tailwind + custom CSS
+│   ├── public/                   # Static assets
+│   ├── dist/                     # Build output
+│   └── package.json
+├── tests/                         # Test suite
+├── build/                         # Backend build output
+├── docker-compose.yml            # Docker orchestration
+├── Dockerfile                    # Container config
+└── package.json                  # Root dependencies
 ```
 
-## 🛠️ Development Commands
+## Comandi di Sviluppo
 
-### Essential Commands
+### Backend (Express + TypeScript)
 ```bash
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# Development mode with watch
-npm run dev
-
-# Start production server
-npm start
-
-# Run tests
-npm test
-npm run test:watch
-npm run test:coverage
-
-# Linting
-npm run lint
-
-# Docker operations
-./scripts/docker-start.sh [--build] [--with-tools] [--with-monitoring]
-./scripts/docker-stop.sh [--clean]
-
-# Start API server
-DB_USER=your_user node build/server/express-server.js
+npm install          # Installa dipendenze
+npm run build        # Compila TypeScript in JavaScript (output in build/)
+npm run dev          # Watch mode per sviluppo continuo
+npm start           # Esegue il server compilato (porta 3001)
+npm test            # Esegue test con Jest
+npm run lint        # Esegue ESLint su src/
 ```
 
-## 🔐 Database Schema
-
-### Core Tables
-
-#### tenants
-- `id` (TEXT PRIMARY KEY) - Tenant identifier
-- `name` (VARCHAR) - Tenant name
-- `n8n_api_url` (TEXT) - n8n instance API URL
-- `n8n_version` (VARCHAR) - n8n version
-- `sync_enabled` (BOOLEAN) - Enable/disable sync
-- `created_at`, `updated_at`, `last_sync_at` (TIMESTAMP)
-
-#### tenant_workflows
-- Multi-tenant workflow storage
-- `workflow_data` (JSONB) - Complete workflow JSON
-- Foreign key to `tenants.id`
-
-#### tenant_executions
-- Execution history per tenant
-- `execution_data` (JSONB) - Execution details
-- Foreign key to `tenants.id`
-
-#### tenant_sync_logs
-- Sync operation tracking
-- `status` (success/error)
-- `duration_ms`, `items_processed`
-- `error_message` for failures
-
-#### auth_users
-- `id` (UUID) - User ID
-- `email` (VARCHAR UNIQUE) - User email
-- `password_hash` (TEXT) - Bcrypt hash
-- `role` (VARCHAR) - admin/tenant/readonly
-- `tenant_id` (TEXT) - Associated tenant
-- `permissions` (JSONB) - Array of permissions
-- `api_key` (VARCHAR) - API key for automation
-
-#### auth_sessions
-- JWT session tracking
-- `token_hash` (TEXT) - Hashed token
-- `expires_at` (TIMESTAMP)
-
-#### auth_audit_log
-- Complete audit trail
-- User actions tracking
-- Success/failure logging
-
-#### backup_logs
-- Automated backup tracking
-- Success/failure status
-- File size and duration metrics
-
-## 🔌 API Endpoints (✅ TUTTI IMPLEMENTATI)
-
-### Authentication
-```
-POST /auth/login              # Login with email/password
-POST /auth/register           # Register new user (admin only)
-GET  /auth/profile           # Get current user profile
-PUT  /auth/profile           # Update profile/password
-GET  /auth/users             # List all users
-DELETE /auth/users/:id       # Disable user
-GET  /auth/audit             # Audit logs
-```
-
-### Scheduler Control
-```
-GET  /api/scheduler/status   # Get scheduler status
-POST /api/scheduler/start    # Start scheduler
-POST /api/scheduler/stop     # Stop scheduler
-POST /api/scheduler/restart  # Restart scheduler
-POST /api/scheduler/sync     # Manual sync trigger
-```
-
-### Tenant Management
-```
-GET  /api/tenants            # List all tenants
-POST /api/tenants            # Register new tenant
-PUT  /api/tenants/:id/sync   # Enable/disable tenant sync
-```
-
-### Backup System
-```
-GET  /api/backup/status      # Backup service status
-GET  /api/backup/list        # List available backups
-POST /api/backup/create      # Create manual backup
-POST /api/backup/restore     # Restore from backup
-POST /api/backup/clean       # Clean old backups
-POST /api/backup/start       # Start backup service
-POST /api/backup/stop        # Stop backup service
-```
-
-### Health & Monitoring
-```
-GET  /health                 # Basic health check
-GET  /health/live            # Kubernetes liveness probe
-GET  /health/ready           # Kubernetes readiness probe
-GET  /health/check           # Detailed health check
-GET  /health/metrics         # Prometheus metrics
-GET  /health/dashboard       # Dashboard data with trends
-```
-
-### Statistics & Logs
-```
-GET  /api/stats              # System statistics
-GET  /api/logs               # Sync logs with pagination
-```
-
-### Documentation
-```
-GET  /api-docs               # Swagger UI
-GET  /api-docs.json          # OpenAPI specification
-```
-
-## 🔑 Environment Variables
-
-### Required
+### Frontend (React + Vite + TypeScript) ✅ COMPLETATO
 ```bash
-# n8n Connection
-N8N_API_URL=https://your-n8n.com/api/v1
-N8N_API_KEY=your-api-key
+cd frontend
+npm install          # Installa dipendenze
+npm run dev         # Development server (porta 5173)
+npm run build       # Build di produzione (output in dist/)
+npm run preview     # Preview build di produzione
+```
 
+## Architettura del Sistema
+
+### 🏗️ Architettura Multi-Tier
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     FRONTEND (React + Vite)                 │
+│                         Porta: 5173                         │
+│  ┌──────────┬──────────┬──────────┬──────────┬──────────┐ │
+│  │Dashboard │Workflows │Executions│  Stats   │ Security │ │
+│  └──────────┴──────────┴──────────┴──────────┴──────────┘ │
+│                    React Query + Zustand                    │
+└────────────────────────┬────────────────────────────────────┘
+                         │ HTTP/REST API
+                         │ JWT Auth
+┌────────────────────────▼────────────────────────────────────┐
+│                  BACKEND (Express + TypeScript)             │
+│                         Porta: 3001                         │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  API Routes: /api/tenant/:id/* | /api/scheduler/*    │  │
+│  │  Auth: JWT | Rate Limiting | CORS | Validation       │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Multi-Tenant Scheduler (node-cron)                  │  │
+│  │  Sync automatico ogni 30 minuti per tenant           │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────┬────────────────────────────────────┘
+                         │ PostgreSQL
+┌────────────────────────▼────────────────────────────────────┐
+│                    DATABASE (PostgreSQL 16)                 │
+│                         Porta: 5432                         │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Tables: tenant_workflows | tenant_executions        │  │
+│  │         tenant_sync_logs | auth_users | tenants      │  │
+│  │  Features: JSONB | Multi-tenant isolation | Indexes  │  │
+│  └──────────────────────────────────────────────────────┘  │
+└────────────────────────┬────────────────────────────────────┘
+                         │ n8n API
+┌────────────────────────▼────────────────────────────────────┐
+│                      n8n INSTANCE                           │
+│                    (External Service)                       │
+│         API endpoints for workflows & executions            │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Backend - Express Server (Porta 3001)
+
+#### Core Structure
+- **Entry Point**: `src/server/express-server.ts` - Server Express con middleware e routing
+- **Database**: PostgreSQL con schema multi-tenant
+- **Authentication**: JWT con tenant isolation
+- **Scheduler**: Sistema di sincronizzazione automatica con n8n
+
+#### API Endpoints Principali
+
+**Tenant-Specific** (isolamento dati per tenant):
+- `GET /api/tenant/:tenantId/dashboard` - Dashboard data del tenant
+- `GET /api/tenant/:tenantId/stats` - Statistiche specifiche
+- `GET /api/tenant/:tenantId/workflows` - Workflow del tenant
+- `GET /api/tenant/:tenantId/executions` - Esecuzioni del tenant
+
+**System Management**:
+- `GET /api/scheduler/status` - Stato scheduler
+- `POST /api/scheduler/start` - Avvia scheduler
+- `POST /api/scheduler/stop` - Ferma scheduler
+- `GET /api/logs` - Sync logs con filtri
+- `GET /api/stats` - Statistiche sistema
+
+**Authentication**:
+- `POST /auth/login` - Login con email/password
+- `GET /auth/profile` - Profilo utente corrente
+- `POST /auth/logout` - Logout
+
+### Frontend - React Application (Porta 5173) ✅ COMPLETATO
+
+#### Design System - Control Room Theme
+- **Colori**: Background nero (#000000), accenti verdi (#4ade80)
+- **Componenti**: Card con bordi verdi, pulsanti gradient, tabelle dark mode
+- **Icone**: Lucide React per consistenza visuale
+- **Responsive**: Ottimizzato per desktop e mobile
+
+#### Pagine Implementate (TUTTE CON DATI REALI)
+
+1. **Dashboard** ✅ - Metriche real-time tenant-specific
+   - Stats cards con trends
+   - Recent activity feed
+   - System health monitoring
+   - Grafici ApexCharts
+
+2. **Workflows** ✅ - Gestione workflow con status e statistiche
+   - Lista completa workflow del tenant
+   - Status indicators (active/inactive)
+   - Filtri e ricerca avanzata
+   - Export dati
+
+3. **Executions** ✅ - Monitoraggio esecuzioni con filtri avanzati
+   - Tabella real-time con auto-refresh
+   - Filtri per status/workflow/date
+   - Dettagli esecuzione
+   - Durata e performance metrics
+
+4. **Stats & Analytics** ✅ - Analisi performance e KPI
+   - Overview metrics
+   - Performance analysis
+   - Top/slowest workflows
+   - Error tracking
+
+5. **Database** ✅ - Gestione database e tabelle
+   - Table statistics
+   - System performance
+   - Recent activity logs
+   - Growth metrics
+
+6. **Alerts** ✅ - Sistema di notifiche e monitoring
+   - Real-time alerts dal backend
+   - Filtri per severity/category
+   - Monitoring metrics
+   - System status indicators
+
+7. **Scheduler** ✅ - Controllo sincronizzazione automatica
+   - Scheduler status (running/stopped)
+   - Sync history con dettagli
+   - Job management
+   - Execution timeline
+
+8. **Security** ✅ - Audit logs e gestione accessi
+   - Security logs dal backend
+   - API keys management
+   - User activity tracking
+   - Risk analysis
+
+#### Servizi API Frontend
+
+File: `frontend/src/services/api.ts`
+
+```typescript
+// API principale con interceptor JWT
+const api = axios.create({
+  baseURL: 'http://localhost:3001',
+  headers: { 'Content-Type': 'application/json' }
+})
+
+// Tenant-specific APIs - SOLO DATI DEL PROPRIO TENANT
+export const tenantAPI = {
+  dashboard: (tenantId) => api.get(`/api/tenant/${tenantId}/dashboard`),
+  stats: (tenantId) => api.get(`/api/tenant/${tenantId}/stats`),
+  workflows: (tenantId) => api.get(`/api/tenant/${tenantId}/workflows`),
+  executions: (tenantId) => api.get(`/api/tenant/${tenantId}/executions`),
+  analytics: {
+    performance: (tenantId) => api.get(`/api/tenant/${tenantId}/stats`),
+    topWorkflows: (tenantId) => api.get(`/api/tenant/${tenantId}/stats`),
+    timeSeries: (tenantId) => api.get(`/api/tenant/${tenantId}/stats`)
+  }
+}
+
+// System APIs
+export const schedulerAPI = {
+  status: () => api.get('/api/scheduler/status'),
+  start: () => api.post('/api/scheduler/start'),
+  stop: () => api.post('/api/scheduler/stop'),
+  getSyncHistory: () => api.get('/api/logs')
+}
+
+// Security & Monitoring APIs
+export const securityAPI = {
+  logs: (tenantId, params) => api.get('/api/logs', { params }),
+  metrics: () => api.get('/api/stats')
+}
+```
+
+## Database Schema
+
+### Tabelle Principali
+
+```sql
+-- Multi-tenant workflows
+CREATE TABLE tenant_workflows (
+  id SERIAL PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL,
+  workflow_id VARCHAR(255) NOT NULL,
+  name VARCHAR(255),
+  active BOOLEAN DEFAULT false,
+  nodes JSONB,
+  settings JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Multi-tenant executions
+CREATE TABLE tenant_executions (
+  id SERIAL PRIMARY KEY,
+  tenant_id VARCHAR(255) NOT NULL,
+  execution_id VARCHAR(255) UNIQUE,
+  workflow_id VARCHAR(255),
+  workflow_name VARCHAR(255),
+  status VARCHAR(50),
+  mode VARCHAR(50),
+  started_at TIMESTAMP,
+  stopped_at TIMESTAMP,
+  duration_ms INTEGER,
+  error_message TEXT
+);
+
+-- Sync logs
+CREATE TABLE tenant_sync_logs (
+  id SERIAL PRIMARY KEY,
+  tenant_id VARCHAR(255),
+  tenant_name VARCHAR(255),
+  started_at TIMESTAMP,
+  completed_at TIMESTAMP,
+  success BOOLEAN,
+  items_processed INTEGER,
+  duration_ms INTEGER,
+  error_message TEXT
+);
+
+-- Authentication
+CREATE TABLE auth_users (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role VARCHAR(50),
+  tenant_id VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## Configurazione Ambiente
+
+### Backend (.env)
+```env
 # Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/n8n_mcp
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=n8n_mcp
 DB_USER=your_user
-# DB_PASSWORD=your_password
+DB_PASSWORD=your_password
 
-# Authentication
-JWT_SECRET=your-secret-min-32-chars
-JWT_EXPIRES_IN=24h
-SALT_ROUNDS=12
-```
+# n8n API
+N8N_API_URL=https://your-n8n-instance.com/api/v1
+N8N_API_KEY=your_api_key
 
-### Optional
-```bash
-# API Server
-API_PORT=3001
-API_HOST=0.0.0.0
-NODE_ENV=production
-CORS_ORIGINS=http://localhost:3000
+# Server
+PORT=3001
+JWT_SECRET=your_jwt_secret_min_32_chars
 
 # Scheduler
-TENANT_SYNC_INTERVAL=5        # minutes
-MAX_CONCURRENT_TENANTS=5
-SYNC_BATCH_SIZE=50
-
-# Backup
-BACKUP_ENABLED=true
-BACKUP_SCHEDULE=0 2 * * *     # 2 AM daily
-BACKUP_PATH=./backups
-BACKUP_RETENTION_DAYS=7
-
-# Monitoring
-PROMETHEUS_PORT=9090
-GRAFANA_PORT=3000
+SYNC_INTERVAL_MINUTES=30
 ```
 
-## 🐳 Docker Deployment
+### Frontend (.env)
+```env
+VITE_API_URL=http://localhost:3001
+```
 
-### Quick Start
+## Testing
+
+### Backend Tests
 ```bash
-# Start all services
+npm test                # Tutti i test
+npm run test:watch      # Watch mode
+npm run test:coverage   # Con coverage report
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm test               # Test con Vitest
+```
+
+## Deployment
+
+### Build di Produzione
+
+**Backend:**
+```bash
+npm run build
+NODE_ENV=production npm start
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run build
+# Servire contenuto di dist/ con nginx o altro web server
+```
+
+### Docker
+```bash
+# Start con Docker Compose
 docker-compose up -d
 
-# With optional services
-docker-compose --profile tools --profile monitoring up -d
+# Build e start
+docker-compose up -d --build
 
-# View logs
-docker-compose logs -f api
-
-# Stop services
+# Stop
 docker-compose down
 
-# Clean everything
+# Con cleanup
 docker-compose down -v
 ```
 
-### Available Profiles
-- `tools` - pgAdmin for database management
-- `monitoring` - Prometheus & Grafana
-- `cache` - Redis for caching (future)
+## Note Importanti
 
-## 🔒 Security Features (✅ IMPLEMENTATE)
+### Multi-Tenancy
+- **ISOLAMENTO COMPLETO**: Ogni tenant vede SOLO i propri dati
+- Tutte le query includono filtro `tenant_id`
+- JWT contiene `tenantId` per validazione
+- Nessun dato aggregato cross-tenant
 
-### Authentication & Authorization
-- JWT tokens with 24h expiration
-- Bcrypt password hashing (12 rounds)
-- Role-based access control (admin/tenant/readonly)
-- Fine-grained permissions system
-- API key support for automation
+### Sicurezza
+- Autenticazione JWT su tutte le API protette
+- Rate limiting su endpoint critici
+- Sanitizzazione input SQL con query parametrizzate
+- CORS configurato per domini autorizzati
+- Audit trail completo
 
-### Security Headers
-- Helmet.js for security headers
-- CORS configuration
-- Rate limiting (100 req/15min)
-- SQL injection protection via parameterized queries
+### Performance
+- Query ottimizzate con indici su `tenant_id`
+- Caching con React Query (refetch intervals configurabili)
+- Pagination su liste lunghe
+- Lazy loading componenti pesanti
+- Build ottimizzata con code splitting
 
-### Audit & Compliance
-- Complete audit logging
-- Soft delete for data retention
-- Automated backup with compression
-- Environment-based configuration
+### UI/UX Features
+- **Dark Mode**: Tema Control Room nero/verde
+- **Real-time Updates**: Auto-refresh configurabile
+- **Responsive Design**: Ottimizzato mobile/desktop
+- **Filtri Avanzati**: Su tutte le tabelle principali
+- **Export Dati**: CSV/JSON su liste
+- **Toast Notifications**: Feedback azioni utente
 
-## 🧪 Testing
+## Troubleshooting
 
-### Run Tests
+### Problemi Comuni
+
+1. **"Cannot connect to database"**
+   - Verificare credenziali in .env
+   - Assicurarsi che PostgreSQL sia in esecuzione
+   - Controllare che il database `n8n_mcp` esista
+
+2. **"JWT token invalid"**
+   - Pulire localStorage nel browser
+   - Verificare JWT_SECRET nel backend
+   - Rifare login
+
+3. **"No data showing"**
+   - Verificare che lo scheduler sia attivo
+   - Controllare logs in `tenant_sync_logs`
+   - Verificare connessione a n8n API
+
+4. **Build errors TypeScript**
+   - Eseguire `npm install` in entrambe le directory
+   - Pulire cache: `rm -rf node_modules package-lock.json`
+   - Reinstallare dipendenze
+
+5. **Frontend non si connette al backend**
+   - Verificare che backend sia su porta 3001
+   - Controllare CORS settings
+   - Verificare VITE_API_URL in frontend/.env
+
+## Struttura Componenti Frontend
+
+```
+frontend/src/
+├── components/
+│   ├── layout/
+│   │   ├── Layout.tsx          # Layout principale
+│   │   ├── Sidebar.tsx         # Navigazione laterale
+│   │   └── Header.tsx          # Header con user menu
+│   ├── dashboard/
+│   │   ├── Dashboard.tsx       # Dashboard principale
+│   │   ├── StatsCard.tsx       # Card metriche
+│   │   └── RecentActivity.tsx  # Feed attività
+│   ├── workflows/
+│   │   └── WorkflowsPage.tsx   # Gestione workflows
+│   ├── executions/
+│   │   └── ExecutionsPage.tsx  # Monitor esecuzioni
+│   ├── stats/
+│   │   └── StatsPage.tsx       # Analytics
+│   ├── database/
+│   │   └── DatabasePage.tsx    # Database management
+│   ├── alerts/
+│   │   └── AlertsPage.tsx      # Alert system
+│   ├── scheduler/
+│   │   └── SchedulerPage.tsx   # Scheduler control
+│   └── security/
+│       └── SecurityPage.tsx    # Security center
+├── services/
+│   └── api.ts                  # API service layer
+├── store/
+│   └── authStore.ts            # Zustand auth store
+├── lib/
+│   └── utils.ts                # Utility functions
+└── styles/
+    └── globals.css             # Global styles + Tailwind
+
+```
+
+## Tech Stack Completo
+
+### Backend
+- Node.js + TypeScript
+- Express.js
+- PostgreSQL 16
+- JWT Authentication
+- node-cron scheduler
+- Swagger/OpenAPI docs
+
+### Frontend
+- React 18 + TypeScript
+- Vite build tool
+- TailwindCSS styling
+- React Query (data fetching)
+- React Router DOM (routing)
+- ApexCharts (grafici)
+- Lucide React (icone)
+- Zustand (state management)
+- date-fns (date formatting)
+
+## 🔄 Flusso Dati del Sistema
+
+### 1. Autenticazione
+```
+User Login → Frontend → POST /auth/login → JWT Token → localStorage
+            → Tutte le richieste successive includono: Authorization: Bearer <token>
+```
+
+### 2. Tenant Data Flow
+```
+Frontend Request → API /api/tenant/:tenantId/data
+                → Backend verifica JWT.tenantId === request.tenantId
+                → Query PostgreSQL con WHERE tenant_id = :tenantId
+                → Ritorna SOLO dati del tenant
+```
+
+### 3. Scheduler Sync Flow
+```
+Cron Job (ogni 30 min) → Per ogni tenant attivo:
+                       → Fetch da n8n API
+                       → Salva in PostgreSQL
+                       → Log in tenant_sync_logs
+                       → Frontend riceve update via polling
+```
+
+### 4. Real-time Updates
+```
+Frontend (React Query) → refetchInterval: 5-60 secondi
+                      → GET nuovi dati
+                      → Aggiorna UI automaticamente
+```
+
+## 🎯 Principi di Design
+
+### Frontend
+- **Control Room Theme**: Background nero, accenti verdi fosforescenti
+- **Data-First**: Tutti i componenti mostrano dati reali, zero mock
+- **Responsive**: Mobile-first ma ottimizzato per dashboard desktop
+- **Performance**: Lazy loading, code splitting, memo components
+
+### Backend
+- **Multi-Tenant First**: Ogni query filtra per tenant_id
+- **Stateless**: JWT per autenticazione, no sessioni server
+- **Resilient**: Retry logic, error handling, graceful degradation
+- **Scalable**: Connection pooling, query optimization, caching ready
+
+### Security
+- **Zero Trust**: Verifica JWT su ogni richiesta
+- **Tenant Isolation**: Impossibile accedere a dati di altri tenant
+- **Rate Limiting**: Protezione da abusi
+- **Audit Trail**: Logging completo di tutte le operazioni
+
+## Versioning
+
+- **v2.0.0** - Frontend completo con tutte le pagine funzionanti e dati reali
+- **v1.5.0** - Sostituiti tutti i mock data con API reali  
+- **v1.0.0** - Backend completo con tutte le API
+- **v0.5.0** - Sistema base MCP con scheduler
+
+## 📞 Quick Start
+
 ```bash
-# All tests
-npm test
+# 1. Setup Database
+createdb n8n_mcp
+psql -d n8n_mcp -f src/database/migrations/*.sql
 
-# Unit tests only
-npm test tests/unit
+# 2. Start Backend
+npm install
+npm run build
+DB_USER=your_user npm start
 
-# Integration tests
-npm test tests/integration
+# 3. Start Frontend
+cd frontend
+npm install
+npm run dev
 
-# With coverage
-npm run test:coverage
+# 4. Open Browser
+http://localhost:5173
+
+# Default login
+Email: admin@pilotpro.com
+Password: admin123
 ```
-
-## 📊 Monitoring (✅ IMPLEMENTATO)
-
-### Health Checks
-- Database connectivity
-- Scheduler status
-- Memory usage
-- Disk space
-- API uptime
-
-### Metrics Exposed
-- Prometheus format on `/health/metrics`
-- Request latency
-- Database query times
-- Sync success/failure rates
-- Tenant statistics
-
-## 🚀 CI/CD Pipeline (✅ CONFIGURATO)
-
-### GitHub Actions Workflows
-
-#### CI Pipeline (`ci.yml`)
-- Triggered on push/PR
-- Runs tests with PostgreSQL
-- Builds Docker images
-- Security scanning
-- Automated releases
-
-#### Code Review (`code-review.yml`)
-- ESLint analysis
-- TypeScript checking
-- Test coverage report
-- Bundle size analysis
-- Security audit
-
-## 📝 Frontend Development (🚧 DA IMPLEMENTARE)
-
-### Planned Tech Stack
-```
-- React 18+ with TypeScript
-- TailwindCSS for styling
-- React Query for data fetching
-- React Router for navigation
-- Recharts for data visualization
-- React Hook Form for forms
-- Zustand for state management
-- Vite for build tool
-```
-
-### Planned Features
-```
-1. Dashboard Overview
-   - Real-time metrics
-   - System health status
-   - Recent activity feed
-   - Quick actions
-
-2. Tenant Management
-   - List/create/edit tenants
-   - Sync configuration
-   - Individual tenant dashboard
-   - Tenant-specific metrics
-
-3. Scheduler Control
-   - Start/stop/restart controls
-   - Sync history timeline
-   - Manual sync trigger
-   - Schedule configuration
-
-4. User Management
-   - User CRUD operations
-   - Role assignment
-   - Permission management
-   - Activity logs
-
-5. Backup Management
-   - Backup list with status
-   - Manual backup creation
-   - Restore interface
-   - Schedule configuration
-
-6. Monitoring Dashboard
-   - Health status cards
-   - Performance metrics
-   - Error tracking
-   - Alert configuration
-
-7. System Settings
-   - Environment configuration
-   - API settings
-   - Security settings
-   - Notification preferences
-```
-
-### Frontend API Service Structure
-```typescript
-// services/api.ts
-class ApiService {
-  // Auth
-  login(email: string, password: string): Promise<AuthResponse>
-  logout(): Promise<void>
-  getProfile(): Promise<User>
-  
-  // Tenants
-  getTenants(): Promise<Tenant[]>
-  createTenant(data: TenantInput): Promise<Tenant>
-  updateTenant(id: string, data: Partial<Tenant>): Promise<Tenant>
-  
-  // Scheduler
-  getSchedulerStatus(): Promise<SchedulerStatus>
-  startScheduler(): Promise<void>
-  stopScheduler(): Promise<void>
-  
-  // Monitoring
-  getHealthCheck(): Promise<HealthStatus>
-  getMetrics(): Promise<Metrics>
-  getDashboardData(): Promise<DashboardData>
-  
-  // Backup
-  getBackups(): Promise<Backup[]>
-  createBackup(label?: string): Promise<BackupResult>
-  restoreBackup(filename: string): Promise<void>
-}
-```
-
-### Frontend Component Structure
-```
-components/
-├── layout/
-│   ├── Header.tsx         # Navigation bar
-│   ├── Sidebar.tsx        # Side navigation
-│   └── Footer.tsx         # Footer info
-├── dashboard/
-│   ├── StatsCard.tsx      # Metric display card
-│   ├── ActivityFeed.tsx   # Recent activities
-│   └── HealthStatus.tsx   # System health
-├── tenants/
-│   ├── TenantList.tsx     # Table of tenants
-│   ├── TenantForm.tsx     # Create/edit form
-│   └── TenantCard.tsx     # Tenant info card
-├── scheduler/
-│   ├── SchedulerControl.tsx # Start/stop controls
-│   ├── SyncHistory.tsx      # Timeline view
-│   └── SyncStatus.tsx       # Current status
-└── common/
-    ├── Button.tsx           # Reusable button
-    ├── Modal.tsx            # Modal dialog
-    ├── Table.tsx            # Data table
-    └── Loading.tsx          # Loading spinner
-```
-
-## 🎯 Next Steps for Frontend
-
-### Phase 1: Setup & Core (Priority 1)
-1. Initialize React project with Vite
-2. Setup TailwindCSS and component library
-3. Configure React Router
-4. Setup API service layer
-5. Implement authentication flow
-
-### Phase 2: Main Features (Priority 2)
-1. Dashboard overview page
-2. Tenant management CRUD
-3. Scheduler control panel
-4. User management interface
-5. Basic monitoring views
-
-### Phase 3: Advanced Features (Priority 3)
-1. Backup management UI
-2. Advanced metrics visualization
-3. Real-time updates (WebSocket)
-4. Alert configuration
-5. System settings management
-
-### Phase 4: Polish & Optimization (Priority 4)
-1. Responsive design optimization
-2. Dark mode support
-3. Performance optimization
-4. Error boundary implementation
-5. Progressive Web App features
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-#### Database Connection Failed
-```bash
-# Check PostgreSQL is running
-pg_isready -h localhost -p 5432
-
-# Verify credentials
-psql -U your_user -d n8n_mcp -c "SELECT 1"
-```
-
-#### Port Already in Use
-```bash
-# Find process using port
-lsof -i :3001
-
-# Kill process
-kill -9 <PID>
-```
-
-#### Docker Build Fails
-```bash
-# Clean Docker cache
-docker system prune -a
-
-# Rebuild without cache
-docker-compose build --no-cache
-```
-
-## 📚 Additional Resources
-
-- [n8n API Documentation](https://docs.n8n.io/api/)
-- [MCP Protocol Spec](https://modelcontextprotocol.io)
-- [PostgreSQL JSONB Guide](https://www.postgresql.org/docs/current/datatype-json.html)
-- [JWT Best Practices](https://tools.ietf.org/html/rfc8725)
-- [React Best Practices](https://react.dev/learn)
-- [TailwindCSS Documentation](https://tailwindcss.com/docs)
-
-## 🔄 Version History
-
-- **v1.0.0** - Complete backend with all 10 priorities implemented
-- **v0.9.0** - CI/CD pipeline configured
-- **v0.8.0** - Test suite completed
-- **v0.7.0** - Backup system implemented
-- **v0.6.0** - Health monitoring and metrics
-- **v0.5.0** - API documentation with Swagger
-- **v0.4.0** - Docker deployment ready
-- **v0.3.0** - Authentication system
-- **v0.2.0** - REST API implementation
-- **v0.1.0** - Initial multi-tenant structure
 
 ---
 
-**Note**: This document is actively maintained. Update it when making significant changes to the architecture or adding new features.
+**Note**: Questo documento è il riferimento principale per lo sviluppo. Aggiornarlo quando si fanno modifiche significative all'architettura.

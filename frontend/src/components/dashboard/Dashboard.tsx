@@ -2,13 +2,12 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   TrendingUp,
-  Users,
   GitBranch,
   Play,
   CheckCircle,
 } from 'lucide-react'
 import ApexCharts from 'react-apexcharts'
-import { statsAPI, tenantAPI } from '../../services/api'
+import { tenantAPI } from '../../services/api'
 import { formatNumber, cn } from '../../lib/utils'
 import { RecentActivity } from './RecentActivity'
 import { SystemHealth } from './SystemHealth'
@@ -28,7 +27,7 @@ export const Dashboard: React.FC = () => {
   
   
   // USA DATI DEL TUO TENANT, NON AGGREGATI!
-  const { data: dashboardData, isLoading: statsLoading, error } = useQuery({
+  const { data: dashboardData, isLoading: statsLoading } = useQuery({
     queryKey: ['tenant-dashboard', tenantId],
     queryFn: async () => {
       const response = await tenantAPI.dashboard(tenantId)

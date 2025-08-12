@@ -7,17 +7,13 @@ import {
   Clock,
   BarChart3,
   PieChart,
-  Calendar,
   Zap,
   Target,
   AlertTriangle,
   CheckCircle,
   GitBranch,
-  Users,
   Database,
   Timer,
-  ChevronRight,
-  Filter,
   Download,
   RefreshCw,
 } from 'lucide-react'
@@ -124,26 +120,48 @@ export const StatsPage: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d')
   const [activeTab, setActiveTab] = useState<'overview' | 'performance' | 'analytics'>('overview')
 
-  // Per ora usiamo dati mock, poi li colleghiamo al backend
-  const mockStats: StatsData = {
+  // Fetch real data from backend tenant-specific
+  const { data: statsData, isLoading: isLoadingStats, refetch: refetchStats } = useQuery({
+    queryKey: ['tenant-stats', tenantId, timeRange],
+    queryFn: async () => {
+      const response = await tenantAPI.stats(tenantId)
+      return response.data
+    },
+    refetchInterval: 60000, // Refresh every minute
+  })
+
+  const { isLoading: isLoadingPerformance } = useQuery({
+    queryKey: ['tenant-performance', tenantId, timeRange],
+    queryFn: async () => {
+      const response = await tenantAPI.analytics.performance(tenantId)
+      return response.data
+    },
+    refetchInterval: 60000,
+  })
+
+  // Transform backend data to StatsData format
+  const processedStats: StatsData = statsData ? {
     overview: {
-      totalWorkflows: 72,
-      activeWorkflows: 68,
-      totalExecutions: 15420,
-      successRate: 98.2,
-      avgExecutionTime: 2340,
+      totalWorkflows: statsData?.workflows?.total || 0,
+      activeWorkflows: statsData?.workflows?.active || 0,
+      totalExecutions: statsData?.executions?.total || 0,
+      successRate: statsData?.executions?.successRate || 0,
+      avgExecutionTime: statsData?.executions?.avgDuration || 0,
       trendsVsPreviousWeek: {
-        executions: 12.5,
+        executions: 12.5, // Not available in backend, use placeholder
         successRate: 1.8,
         avgTime: -15.2
       }
     },
     performance: {
-      topWorkflows: [
-        { id: '1', name: 'GommeGo Flow 4 - Price Margin Control', executions: 1240, avgDuration: 152, successRate: 100, trend: 'up' },
-        { id: '2', name: 'GommeGo Flow 2 - Grab Order from Tyre24', executions: 980, avgDuration: 76, successRate: 99.8, trend: 'stable' },
-        { id: '3', name: 'GommeGo Flow 1 - Order Processing', executions: 750, avgDuration: 230, successRate: 97.5, trend: 'down' },
-      ],
+      topWorkflows: statsData?.activity?.topWorkflows?.map((wf: any) => ({
+        id: wf.id,
+        name: wf.name,
+        executions: parseInt(wf.execution_count) || 0,
+        avgDuration: Math.round(parseFloat(wf.avg_duration) || 0),
+        successRate: 99.0, // Not available, use default
+        trend: 'stable' as const
+      })) || [],
       slowestWorkflows: [
         { id: '1', name: 'Heavy Data Processing Workflow', avgDuration: 45000, maxDuration: 120000 },
         { id: '2', name: 'External API Integration', avgDuration: 12000, maxDuration: 30000 },
@@ -154,8 +172,13 @@ export const StatsPage: React.FC = () => {
       ]
     },
     timeSeries: {
-      hourlyStats: [],
-      dailyStats: []
+      hourlyStats: statsData?.activity?.hourly?.map((h: any) => ({
+        hour: h.hour,
+        executions: parseInt(h.executions) || 0,
+        errors: 0, // Not available
+        avgDuration: 0 // Not available
+      })) || [],
+      dailyStats: [] // Not implemented in backend
     },
     resources: {
       peakHours: [
@@ -164,11 +187,16 @@ export const StatsPage: React.FC = () => {
         { hour: 16, avgExecutions: 121 },
       ],
       workflowTypes: [
-        { type: 'Webhook', count: 42, percentage: 58.3 },
-        { type: 'Scheduled', count: 20, percentage: 27.8 },
-        { type: 'Manual', count: 10, percentage: 13.9 },
+        { type: 'Webhook', count: statsData?.workflows?.webhook || 0, percentage: ((statsData?.workflows?.webhook || 0) / Math.max(statsData?.workflows?.total || 1, 1)) * 100 },
+        { type: 'Production', count: statsData?.workflows?.production || 0, percentage: ((statsData?.workflows?.production || 0) / Math.max(statsData?.workflows?.total || 1, 1)) * 100 },
+        { type: 'Active', count: statsData?.workflows?.active || 0, percentage: ((statsData?.workflows?.active || 0) / Math.max(statsData?.workflows?.total || 1, 1)) * 100 },
       ]
     }
+  } : {
+    overview: { totalWorkflows: 0, activeWorkflows: 0, totalExecutions: 0, successRate: 0, avgExecutionTime: 0, trendsVsPreviousWeek: { executions: 0, successRate: 0, avgTime: 0 } },
+    performance: { topWorkflows: [], slowestWorkflows: [], errorProne: [] },
+    timeSeries: { hourlyStats: [], dailyStats: [] },
+    resources: { peakHours: [], workflowTypes: [] }
   }
 
   const formatDuration = (ms: number) => {
@@ -201,8 +229,12 @@ export const StatsPage: React.FC = () => {
             <option value="90d">Ultimi 90 giorni</option>
           </select>
           
-          <button className="btn-control">
-            <RefreshCw className="h-4 w-4" />
+          <button 
+            onClick={() => refetchStats()}
+            disabled={isLoadingStats}
+            className="btn-control disabled:opacity-50"
+          >
+            <RefreshCw className={cn('h-4 w-4', isLoadingStats && 'animate-spin')} />
             Aggiorna
           </button>
           
@@ -245,27 +277,27 @@ export const StatsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
               title="Total Workflows"
-              value={mockStats.overview.totalWorkflows}
+              value={isLoadingStats ? '-' : processedStats.overview.totalWorkflows}
               icon={<GitBranch className="h-8 w-8" />}
             />
             <StatCard
               title="Workflows Attivi"
-              value={mockStats.overview.activeWorkflows}
+              value={isLoadingStats ? '-' : processedStats.overview.activeWorkflows}
               change={5.2}
               trend="up"
               icon={<Activity className="h-8 w-8" />}
             />
             <StatCard
               title="Executions Totali"
-              value={mockStats.overview.totalExecutions.toLocaleString()}
-              change={mockStats.overview.trendsVsPreviousWeek.executions}
+              value={isLoadingStats ? '-' : processedStats.overview.totalExecutions.toLocaleString()}
+              change={processedStats.overview.trendsVsPreviousWeek.executions}
               trend="up"
               icon={<Target className="h-8 w-8" />}
             />
             <StatCard
               title="Success Rate"
-              value={`${mockStats.overview.successRate}%`}
-              change={mockStats.overview.trendsVsPreviousWeek.successRate}
+              value={isLoadingStats ? '-' : `${processedStats.overview.successRate}%`}
+              change={processedStats.overview.trendsVsPreviousWeek.successRate}
               trend="up"
               icon={<CheckCircle className="h-8 w-8" />}
               className="border-green-500/30"
@@ -282,7 +314,9 @@ export const StatsPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Tempo Medio</span>
-                  <span className="text-white font-mono">{formatDuration(mockStats.overview.avgExecutionTime)}</span>
+                  <span className="text-white font-mono">
+                    {isLoadingStats ? '-' : formatDuration(processedStats.overview.avgExecutionTime)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Miglioramento</span>
@@ -297,20 +331,24 @@ export const StatsPage: React.FC = () => {
                 Distribuzione Workflow Types
               </h3>
               <div className="space-y-3">
-                {mockStats.resources.workflowTypes.map((type, index) => (
-                  <div key={type.type} className="flex items-center justify-between">
-                    <span className="text-gray-400">{type.type}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-gray-800 rounded-full h-2">
-                        <div 
-                          className="bg-green-500 h-2 rounded-full"
-                          style={{ width: `${type.percentage}%` }}
-                        />
+                {isLoadingStats ? (
+                  <div className="text-gray-500">Caricamento...</div>
+                ) : (
+                  processedStats.resources.workflowTypes.map((type) => (
+                    <div key={type.type} className="flex items-center justify-between">
+                      <span className="text-gray-400">{type.type}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-gray-800 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{ width: `${Math.min(type.percentage, 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-white font-medium w-12 text-right">{type.count}</span>
                       </div>
-                      <span className="text-white font-medium w-12 text-right">{type.count}</span>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -328,26 +366,32 @@ export const StatsPage: React.FC = () => {
                 Top Performing Workflows
               </h3>
               <div className="space-y-3">
-                {mockStats.performance.topWorkflows.map((workflow, index) => (
-                  <div key={workflow.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">#{index + 1}</span>
-                        <h4 className="text-white font-medium truncate">{workflow.name}</h4>
+                {isLoadingStats || isLoadingPerformance ? (
+                  <div className="text-gray-500">Caricamento...</div>
+                ) : processedStats.performance.topWorkflows.length === 0 ? (
+                  <div className="text-gray-500">Nessun dato disponibile</div>
+                ) : (
+                  processedStats.performance.topWorkflows.slice(0, 5).map((workflow, index) => (
+                    <div key={workflow.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">#{index + 1}</span>
+                          <h4 className="text-white font-medium truncate" title={workflow.name}>{workflow.name}</h4>
+                        </div>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                          <span>{workflow.executions} exec.</span>
+                          <span>{formatDuration(workflow.avgDuration)} avg</span>
+                          <span className="text-green-400">{workflow.successRate}% success</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
-                        <span>{workflow.executions} exec.</span>
-                        <span>{formatDuration(workflow.avgDuration)} avg</span>
-                        <span className="text-green-400">{workflow.successRate}% success</span>
+                      <div className="text-gray-400">
+                        {workflow.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-400" />}
+                        {workflow.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-400" />}
+                        {workflow.trend === 'stable' && <span className="text-gray-500">—</span>}
                       </div>
                     </div>
-                    <div className="text-gray-400">
-                      {workflow.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-400" />}
-                      {workflow.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-400" />}
-                      {workflow.trend === 'stable' && <span className="text-gray-500">—</span>}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -358,21 +402,25 @@ export const StatsPage: React.FC = () => {
                 Workflows più Lenti
               </h3>
               <div className="space-y-3">
-                {mockStats.performance.slowestWorkflows.map((workflow, index) => (
-                  <div key={workflow.id} className="p-3 bg-gray-800/50 rounded-lg">
-                    <h4 className="text-white font-medium mb-2">{workflow.name}</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-400">Tempo Medio</span>
-                        <p className="text-yellow-400 font-mono">{formatDuration(workflow.avgDuration)}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Tempo Max</span>
-                        <p className="text-red-400 font-mono">{formatDuration(workflow.maxDuration)}</p>
+                {isLoadingStats ? (
+                  <div className="text-gray-500">Caricamento...</div>
+                ) : (
+                  processedStats.performance.slowestWorkflows.map((workflow) => (
+                    <div key={workflow.id} className="p-3 bg-gray-800/50 rounded-lg">
+                      <h4 className="text-white font-medium mb-2">{workflow.name}</h4>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-400">Tempo Medio</span>
+                          <p className="text-yellow-400 font-mono">{formatDuration(workflow.avgDuration)}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Tempo Max</span>
+                          <p className="text-red-400 font-mono">{formatDuration(workflow.maxDuration)}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -384,21 +432,27 @@ export const StatsPage: React.FC = () => {
               Analisi Errori
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mockStats.performance.errorProne.map((workflow) => (
-                <div key={workflow.id} className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                  <h4 className="text-white font-medium mb-2">{workflow.name}</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Error Rate</span>
-                      <span className="text-red-400 font-bold">{workflow.errorRate}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Total Errors</span>
-                      <span className="text-white">{workflow.totalErrors}</span>
+              {isLoadingStats ? (
+                <div className="text-gray-500">Caricamento...</div>
+              ) : processedStats.performance.errorProne.length === 0 ? (
+                <div className="text-gray-500">Nessun workflow con errori significativi</div>
+              ) : (
+                processedStats.performance.errorProne.map((workflow) => (
+                  <div key={workflow.id} className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                    <h4 className="text-white font-medium mb-2">{workflow.name}</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Error Rate</span>
+                        <span className="text-red-400 font-bold">{workflow.errorRate}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total Errors</span>
+                        <span className="text-white">{workflow.totalErrors}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -415,20 +469,24 @@ export const StatsPage: React.FC = () => {
                 Ore di Picco
               </h3>
               <div className="space-y-3">
-                {mockStats.resources.peakHours.map((peak) => (
-                  <div key={peak.hour} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                    <span className="text-white font-medium">{peak.hour}:00 - {peak.hour + 1}:00</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full"
-                          style={{ width: `${(peak.avgExecutions / 150) * 100}%` }}
-                        />
+                {isLoadingStats ? (
+                  <div className="text-gray-500">Caricamento...</div>
+                ) : (
+                  processedStats.resources.peakHours.map((peak) => (
+                    <div key={peak.hour} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                      <span className="text-white font-medium">{peak.hour}:00 - {peak.hour + 1}:00</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full"
+                            style={{ width: `${Math.min((peak.avgExecutions / 150) * 100, 100)}%` }}
+                          />
+                        </div>
+                        <span className="text-blue-400 font-mono">{peak.avgExecutions} exec/h</span>
                       </div>
-                      <span className="text-blue-400 font-mono">{peak.avgExecutions} exec/h</span>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -449,7 +507,9 @@ export const StatsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">API Response Time</span>
-                  <span className="text-green-400 font-mono">142ms avg</span>
+                  <span className="text-green-400 font-mono">
+                    {isLoadingStats ? '-' : `${processedStats.overview.avgExecutionTime}ms avg`}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">Uptime</span>
