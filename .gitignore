@@ -61,3 +61,7 @@ build/
 *.embedding
 embeddings/
 mcp-config.json
+
+# GitHub Workflows (require workflow scope permissions)
+.github/workflows/ci.yml
+.github/workflows/code-review.yml
