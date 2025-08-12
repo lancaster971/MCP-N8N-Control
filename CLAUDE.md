@@ -139,6 +139,7 @@ npm run preview     # Preview build di produzione
 - `GET /api/tenant/:tenantId/dashboard` - Dashboard data del tenant
 - `GET /api/tenant/:tenantId/stats` - Statistiche specifiche
 - `GET /api/tenant/:tenantId/workflows` - Workflow del tenant
+- `GET /api/tenant/:tenantId/workflows/:workflowId/details` - Dettagli completi workflow con analisi nodi
 - `GET /api/tenant/:tenantId/executions` - Esecuzioni del tenant
 
 **System Management**:
@@ -174,6 +175,12 @@ npm run preview     # Preview build di produzione
    - Status indicators (active/inactive)
    - Filtri e ricerca avanzata
    - Export dati
+   - **WorkflowDetailModal** ✅ - Modal dettagliato con 5 tabs:
+     - Overview: Descrizione, AI agents, tools, sub-workflows
+     - Executions: Storico esecuzioni con grafici trend
+     - Nodes: Analisi nodi con distribuzione per tipo
+     - Performance: Metriche performance e errori comuni
+     - Activity: Log attività recenti
 
 3. **Executions** ✅ - Monitoraggio esecuzioni con filtri avanzati
    - Tabella real-time con auto-refresh
@@ -390,6 +397,13 @@ docker-compose down -v
 - JWT contiene `tenantId` per validazione
 - Nessun dato aggregato cross-tenant
 
+### Workflow Analysis Features ✅
+- **AI Agent Detection**: Rileva automaticamente agenti AI LangChain nei workflow
+- **Tools Mapping**: Identifica e mappa tools collegati agli agents
+- **Sub-Workflow Detection**: Identifica workflow chiamati come sub-processi
+- **Sticky Notes Extraction**: Estrae documentazione da sticky notes n8n
+- **Auto-Description**: Genera descrizioni automatiche basate su componenti workflow
+
 ### Sicurezza
 - Autenticazione JWT su tutte le API protette
 - Rate limiting su endpoint critici
@@ -455,7 +469,8 @@ frontend/src/
 │   │   ├── StatsCard.tsx       # Card metriche
 │   │   └── RecentActivity.tsx  # Feed attività
 │   ├── workflows/
-│   │   └── WorkflowsPage.tsx   # Gestione workflows
+│   │   ├── WorkflowsPage.tsx   # Gestione workflows
+│   │   └── WorkflowDetailModal.tsx # Modal dettagli workflow
 │   ├── executions/
 │   │   └── ExecutionsPage.tsx  # Monitor esecuzioni
 │   ├── stats/
@@ -539,6 +554,7 @@ Frontend (React Query) → refetchInterval: 5-60 secondi
 - **Data-First**: Tutti i componenti mostrano dati reali, zero mock
 - **Responsive**: Mobile-first ma ottimizzato per dashboard desktop
 - **Performance**: Lazy loading, code splitting, memo components
+- **NO EMOJI**: Mai usare icone pittografiche, solo Lucide React icons
 
 ### Backend
 - **Multi-Tenant First**: Ogni query filtra per tenant_id
@@ -554,6 +570,7 @@ Frontend (React Query) → refetchInterval: 5-60 secondi
 
 ## Versioning
 
+- **v2.1.0** - WorkflowDetailModal con analisi AI agents, tools, sub-workflows e sticky notes
 - **v2.0.0** - Frontend completo con tutte le pagine funzionanti e dati reali
 - **v1.5.0** - Sostituiti tutti i mock data con API reali  
 - **v1.0.0** - Backend completo con tutte le API

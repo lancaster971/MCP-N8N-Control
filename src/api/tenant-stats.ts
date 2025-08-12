@@ -253,6 +253,381 @@ router.get('/tenant/:tenantId/executions', authMiddleware, async (req: Request, 
 
 /**
  * @swagger
+ * /api/tenant/{tenantId}/workflows/{workflowId}/details:
+ *   get:
+ *     summary: Dettagli completi workflow
+ *     description: Ottieni tutti i dettagli di un workflow specifico con analisi nodi e performance
+ *     tags: [Workflows]
+ */
+router.get('/tenant/:tenantId/workflows/:workflowId/details', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { tenantId, workflowId } = req.params;
+    const user = (req as any).user;
+    
+    // Verifica permessi
+    if (user.role !== 'admin' && user.tenantId !== tenantId) {
+      return res.status(403).json({ error: 'Access denied to this tenant' });
+    }
+    
+    // Ottieni dettagli workflow
+    const workflow = await db.getOne(`
+      SELECT 
+        id,
+        name,
+        active,
+        has_webhook,
+        is_archived,
+        created_at,
+        updated_at,
+        node_count,
+        raw_data,
+        raw_data->'nodes' as nodes,
+        raw_data->'connections' as connections,
+        raw_data->'settings' as settings,
+        raw_data->'pinData' as pinned_data,
+        (SELECT COUNT(*) FROM tenant_executions WHERE workflow_id = tw.id) as execution_count,
+        (SELECT MAX(started_at) FROM tenant_executions WHERE workflow_id = tw.id) as last_execution
+      FROM tenant_workflows tw
+      WHERE id = $1 AND tenant_id = $2
+    `, [workflowId, tenantId]);
+    
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+    
+    // Analisi nodi
+    let nodeAnalysis = {
+      totalNodes: workflow.node_count || 0,
+      nodesByType: {} as Record<string, number>,
+      triggers: [] as any[],
+      outputs: [] as any[],
+      aiAgents: [] as any[],
+      tools: [] as any[],
+      subWorkflows: [] as any[],
+      connections: [] as any[],
+      stickyNotes: [] as any[],
+      description: null as string | null
+    };
+    
+    if (workflow.nodes) {
+      // nodes è già un oggetto JSON dal database PostgreSQL
+      const nodes = Array.isArray(workflow.nodes) ? workflow.nodes : [];
+      
+      // Count nodes by type - simplified categories
+      let simplifiedCategories = {
+        'Triggers': 0,
+        'Data Processing': 0,
+        'External Services': 0,
+        'Output/Response': 0,
+        'AI/ML': 0,
+        'Other': 0
+      };
+      
+      nodes.forEach((node: any) => {
+        const nodeType = node.type || 'unknown';
+        const nodeName = node.name || 'Unnamed';
+        const nodeParameters = node.parameters || {};
+        
+        // Capture Sticky Notes (documentation nodes)
+        if (nodeType === 'n8n-nodes-base.stickyNote') {
+          nodeAnalysis.stickyNotes.push({
+            content: nodeParameters.content || '',
+            height: nodeParameters.height,
+            width: nodeParameters.width,
+            color: nodeParameters.color
+          });
+        }
+        // Identify AI Agents specifically
+        else
+        if (nodeType.includes('.agent') || 
+            nodeType.includes('aiAgent') ||
+            nodeName.toLowerCase().includes('agent') ||
+            nodeName.toLowerCase().includes('assistente')) {
+          
+          // Estrai informazioni dettagliate sull'agente
+          const agentInfo: any = {
+            name: nodeName,
+            type: nodeType.split('.').pop() || nodeType,
+            model: nodeParameters.model || nodeParameters.modelId || 'unknown',
+            temperature: nodeParameters.temperature,
+            systemPrompt: nodeParameters.systemPrompt ? 'Configured' : 'Default',
+            tools: []
+          };
+          
+          // Cerca i tools connessi all'agente nelle connections
+          if (workflow.connections && workflow.connections[nodeName]) {
+            const agentConnections = workflow.connections[nodeName];
+            if (agentConnections.ai_tool) {
+              agentInfo.toolCount = agentConnections.ai_tool.length;
+            }
+          }
+          
+          nodeAnalysis.aiAgents.push(agentInfo);
+          simplifiedCategories['AI/ML']++;
+        }
+        // Identify AI Tools (used by agents)
+        else if (nodeType.includes('toolWorkflow') || 
+                 nodeType.includes('tool') && nodeType.includes('langchain')) {
+          nodeAnalysis.tools.push({
+            name: nodeName,
+            type: nodeType.split('.').pop() || nodeType,
+            description: nodeParameters.description || nodeParameters.name || nodeName
+          });
+          simplifiedCategories['AI/ML']++;
+        }
+        // Identify Sub-Workflows
+        else if (nodeType.includes('executeWorkflow') || 
+                 nodeType.includes('subworkflow')) {
+          nodeAnalysis.subWorkflows.push({
+            name: nodeName,
+            workflowId: nodeParameters.workflowId || nodeParameters.id || 'unknown',
+            mode: nodeParameters.mode || 'default'
+          });
+          simplifiedCategories['External Services']++;
+        }
+        // Identify triggers (input)
+        else if (nodeType.toLowerCase().includes('trigger') || 
+            nodeType.toLowerCase().includes('webhook') ||
+            nodeType === 'n8n-nodes-base.formTrigger' ||
+            nodeType === 'n8n-nodes-base.scheduleTrigger') {
+          nodeAnalysis.triggers.push({
+            name: nodeName,
+            type: nodeType.split('.').pop() || nodeType,
+            triggerType: nodeType.includes('webhook') ? 'webhook' : 
+                  nodeType.includes('form') ? 'form' : 
+                  nodeType.includes('schedule') ? 'schedule' : 
+                  nodeType.includes('email') ? 'email' : 'manual'
+          });
+          simplifiedCategories['Triggers']++;
+        } 
+        // Identify outputs (where data goes)
+        else if (nodeType.toLowerCase().includes('email') || 
+                 nodeType.toLowerCase().includes('outlook') ||
+                 nodeType.toLowerCase().includes('gmail') ||
+                 nodeType.toLowerCase().includes('slack') ||
+                 nodeType.toLowerCase().includes('telegram') ||
+                 nodeType.toLowerCase().includes('response') ||
+                 nodeType.toLowerCase().includes('webhook.respond') ||
+                 nodeName.toLowerCase().includes('respond') ||
+                 nodeName.toLowerCase().includes('reply') ||
+                 nodeName.toLowerCase().includes('send')) {
+          nodeAnalysis.outputs.push({
+            name: nodeName,
+            type: nodeType.split('.').pop() || nodeType,
+            outputType: nodeType.includes('email') || nodeType.includes('outlook') ? 'email' :
+                  nodeType.includes('slack') ? 'slack' :
+                  nodeType.includes('telegram') ? 'telegram' :
+                  nodeType.includes('response') ? 'response' : 'send'
+          });
+          simplifiedCategories['Output/Response']++;
+        }
+        // Other AI/ML nodes (embeddings, vector stores, etc)
+        else if (nodeType.includes('langchain') || 
+                 nodeType.includes('openai') || 
+                 nodeType.includes('embedding') ||
+                 nodeType.includes('vectorStore')) {
+          simplifiedCategories['AI/ML']++;
+        }
+        // External services
+        else if (nodeType.includes('http') || 
+                 nodeType.includes('api') ||
+                 nodeType.includes('postgres') ||
+                 nodeType.includes('mysql') ||
+                 nodeType.includes('supabase') ||
+                 nodeType.includes('qdrant')) {
+          simplifiedCategories['External Services']++;
+        }
+        // Data processing
+        else if (nodeType.includes('code') || 
+                 nodeType.includes('merge') ||
+                 nodeType.includes('split') ||
+                 nodeType.includes('filter') ||
+                 nodeType.includes('format')) {
+          simplifiedCategories['Data Processing']++;
+        }
+        // Other
+        else {
+          simplifiedCategories['Other']++;
+        }
+      });
+      
+      // Analizza le connessioni per collegare tools agli agents
+      if (workflow.connections) {
+        nodeAnalysis.aiAgents.forEach((agent: any) => {
+          const agentConnections = workflow.connections[agent.name];
+          if (agentConnections) {
+            // Trova i tools connessi a questo agent
+            agent.connectedTools = [];
+            nodes.forEach((node: any) => {
+              if (node.type && node.type.includes('tool')) {
+                // Verifica se questo tool è connesso all'agent
+                const toolConnections = workflow.connections[node.name];
+                if (toolConnections && toolConnections.ai_tool) {
+                  toolConnections.ai_tool.forEach((connections: any) => {
+                    connections.forEach((conn: any) => {
+                      if (conn.node === agent.name) {
+                        agent.connectedTools.push(node.name);
+                      }
+                    });
+                  });
+                }
+              }
+            });
+          }
+        });
+      }
+      
+      // Remove empty categories
+      nodeAnalysis.nodesByType = Object.fromEntries(
+        Object.entries(simplifiedCategories).filter(([_, count]) => count > 0)
+      );
+      
+      // Parse connections if available
+      if (workflow.connections) {
+        const connections = workflow.connections;
+        nodeAnalysis.connections = connections && Object.keys(connections).length > 0 ? connections : [];
+      }
+    }
+    
+    // Extract workflow description from settings or generate one
+    if (workflow.settings && typeof workflow.settings === 'object') {
+      nodeAnalysis.description = workflow.settings.description || null;
+    }
+    
+    // If no description, try to generate one from components
+    if (!nodeAnalysis.description && (nodeAnalysis.triggers.length > 0 || nodeAnalysis.aiAgents.length > 0)) {
+      let autoDescription = 'This workflow ';
+      
+      // Describe triggers
+      if (nodeAnalysis.triggers.length > 0) {
+        const triggerTypes = [...new Set(nodeAnalysis.triggers.map((t: any) => t.triggerType))];
+        autoDescription += `starts from ${triggerTypes.join(' or ')} triggers`;
+      }
+      
+      // Describe AI agents
+      if (nodeAnalysis.aiAgents.length > 0) {
+        autoDescription += nodeAnalysis.triggers.length > 0 ? ', uses ' : 'uses ';
+        autoDescription += `${nodeAnalysis.aiAgents.length} AI agent${nodeAnalysis.aiAgents.length > 1 ? 's' : ''}`;
+        if (nodeAnalysis.tools.length > 0) {
+          autoDescription += ` with ${nodeAnalysis.tools.length} tool${nodeAnalysis.tools.length > 1 ? 's' : ''}`;
+        }
+      }
+      
+      // Describe outputs
+      if (nodeAnalysis.outputs.length > 0) {
+        const outputTypes = [...new Set(nodeAnalysis.outputs.map((o: any) => o.outputType))];
+        autoDescription += `, and sends responses via ${outputTypes.join(', ')}`;
+      }
+      
+      autoDescription += '.';
+      nodeAnalysis.description = autoDescription;
+    }
+    
+    // Stats esecuzioni
+    const executionStats = await db.getOne(`
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE status = 'success') as successful,
+        COUNT(*) FILTER (WHERE status = 'error') as failed,
+        AVG(duration_ms) as average_duration,
+        MIN(duration_ms) as min_duration,
+        MAX(duration_ms) as max_duration
+      FROM tenant_executions
+      WHERE workflow_id = $1 AND tenant_id = $2
+    `, [workflowId, tenantId]);
+    
+    // Esecuzioni recenti
+    const recentExecutions = await db.getMany(`
+      SELECT 
+        id,
+        status,
+        mode,
+        started_at,
+        stopped_at,
+        duration_ms,
+        has_error,
+        CASE 
+          WHEN has_error = true THEN raw_data->>'error' 
+          ELSE NULL 
+        END as error_message
+      FROM tenant_executions
+      WHERE workflow_id = $1 AND tenant_id = $2
+      ORDER BY started_at DESC
+      LIMIT 20
+    `, [workflowId, tenantId]);
+    
+    // Trend giornaliero (ultimi 7 giorni)
+    const dailyTrend = await db.getMany(`
+      SELECT 
+        DATE(started_at) as date,
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE status = 'success') as successful,
+        COUNT(*) FILTER (WHERE status = 'error') as failed
+      FROM tenant_executions
+      WHERE workflow_id = $1 
+        AND tenant_id = $2
+        AND started_at > NOW() - INTERVAL '7 days'
+      GROUP BY DATE(started_at)
+      ORDER BY date DESC
+    `, [workflowId, tenantId]);
+    
+    // Errori comuni
+    const commonErrors = await db.getMany(`
+      SELECT 
+        raw_data->>'error' as error_message,
+        COUNT(*) as count,
+        MAX(started_at) as last_occurred
+      FROM tenant_executions
+      WHERE workflow_id = $1 
+        AND tenant_id = $2 
+        AND has_error = true
+        AND raw_data->>'error' IS NOT NULL
+      GROUP BY raw_data->>'error'
+      ORDER BY count DESC
+      LIMIT 5
+    `, [workflowId, tenantId]);
+    
+    res.json({
+      workflow: {
+        ...workflow,
+        nodes: undefined, // Remove raw JSON
+        connections: undefined, // Remove raw JSON
+        settings: undefined, // Remove raw JSON
+        pinned_data: undefined, // Remove raw JSON
+        raw_data: undefined // Remove raw JSON
+      },
+      nodeAnalysis,
+      executionStats: {
+        total: parseInt(executionStats.total || '0'),
+        successful: parseInt(executionStats.successful || '0'),
+        failed: parseInt(executionStats.failed || '0'),
+        averageDuration: Math.round(executionStats.average_duration || 0),
+        lastExecution: workflow.last_execution,
+        recentExecutions,
+        dailyTrend,
+      },
+      performance: {
+        minExecutionTime: parseInt(executionStats.min_duration || '0'),
+        avgExecutionTime: Math.round(executionStats.average_duration || 0),
+        maxExecutionTime: parseInt(executionStats.max_duration || '0'),
+        errorRate: executionStats.total > 0 
+          ? ((parseInt(executionStats.failed) / parseInt(executionStats.total)) * 100).toFixed(1)
+          : '0',
+        commonErrors: commonErrors.map(err => ({
+          message: err.error_message,
+          count: parseInt(err.count),
+          lastOccurred: err.last_occurred
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting workflow details:', error);
+    res.status(500).json({ error: 'Failed to get workflow details' });
+  }
+});
+
+/**
+ * @swagger
  * /api/tenant/{tenantId}/dashboard:
  *   get:
  *     summary: Dashboard data per tenant

@@ -16,6 +16,7 @@ import {
 import { tenantAPI } from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
 import { formatDate, cn } from '../../lib/utils'
+import { WorkflowDetailModal } from './WorkflowDetailModal'
 
 interface Workflow {
   id: string
@@ -63,6 +64,7 @@ export const WorkflowsPage: React.FC = () => {
   const tenantId = user?.tenantId || 'default_tenant'
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'archived'>('all')
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null)
 
   // Fetch workflows del tenant
   const { data: workflowsData, isLoading, error } = useQuery({
@@ -237,7 +239,11 @@ export const WorkflowsPage: React.FC = () => {
               const statusInfo = getStatusInfo(workflow)
               
               return (
-                <div key={workflow.id} className="control-card p-6 hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200">
+                <div 
+                  key={workflow.id} 
+                  className="control-card p-6 hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200 cursor-pointer"
+                  onClick={() => setSelectedWorkflow(workflow)}
+                >
                   {/* Header con Status */}
                   <div className="flex items-start justify-between mb-4">
                     <span className={cn(
@@ -301,6 +307,10 @@ export const WorkflowsPage: React.FC = () => {
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-800">
                     <button
+                      onClick={(e) => {
+                        e.stopPropagation() // Prevent card click
+                        // TODO: Add toggle active logic
+                      }}
                       className={cn(
                         'flex-1 btn-control text-xs py-2',
                         workflow.is_archived && 'opacity-50 cursor-not-allowed'
@@ -309,7 +319,13 @@ export const WorkflowsPage: React.FC = () => {
                     >
                       {workflow.active ? 'Pausa' : 'Avvia'}
                     </button>
-                    <button className="p-2 text-gray-400 hover:text-white transition-colors">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation() // Prevent card click
+                        setSelectedWorkflow(workflow)
+                      }}
+                      className="p-2 text-gray-400 hover:text-white transition-colors"
+                    >
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
@@ -319,6 +335,15 @@ export const WorkflowsPage: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Workflow Detail Modal */}
+      {selectedWorkflow && (
+        <WorkflowDetailModal
+          workflow={selectedWorkflow}
+          tenantId={tenantId}
+          onClose={() => setSelectedWorkflow(null)}
+        />
+      )}
     </div>
   )
 }
