@@ -61,6 +61,13 @@ export class ExecutionImportService {
   }
 
   /**
+   * Exposes n8n API client for direct access
+   */
+  getN8nClient(): N8nApiService {
+    return this.n8nApi;
+  }
+
+  /**
    * Importa execution data completi per workflow attivi
    * 
    * @param limit Numero massimo di executions da importare
@@ -176,6 +183,25 @@ export class ExecutionImportService {
     try {
       const executionId = execution.id.toString();
       
+      // 🔥 DEBUG: Log execution data per identificare data corruption
+      console.log(`🔍 Processing execution ${executionId} for workflow ${workflow.id}`);
+      const runData = execution.data?.resultData?.runData || {};
+      console.log(`📊 RunData keys for execution ${executionId}:`, Object.keys(runData));
+      
+      // 🔥 DEBUG: Se è l'execution 111051, logga il contenuto del primo nodo
+      if (executionId === '111051') {
+        console.log(`🚨 DEBUGGING EXECUTION 111051:`);
+        const firstNodeName = Object.keys(runData)[0];
+        if (firstNodeName && runData[firstNodeName] && runData[firstNodeName][0]) {
+          const firstNodeData = runData[firstNodeName][0];
+          const emailContent = firstNodeData.data?.main?.[0]?.[0]?.json?.body?.content;
+          if (emailContent) {
+            const preview = emailContent.substring(0, 100);
+            console.log(`📧 Email content preview for 111051: "${preview}..."`);
+          }
+        }
+      }
+      
       // Ottieni workflow completo dall'API per accedere alle note dei nodi
       let workflowDefinition = null;
       try {
@@ -183,6 +209,26 @@ export class ExecutionImportService {
         console.log(`📋 Fetched workflow definition for ${workflow.id}, found ${workflowDefinition?.nodes?.length || 0} nodes`);
       } catch (workflowError) {
         console.warn(`Could not fetch workflow definition for ${workflow.id}:`, workflowError);
+        
+        // 🔥 FALLBACK: Usa note del workflow dal database
+        console.log(`🗂️ FALLBACK: Trying to get workflow notes from database`);
+        const dbWorkflow = await this.db.getOne(`
+          SELECT nodes_notes FROM tenant_workflows 
+          WHERE id = $1 LIMIT 1
+        `, [workflow.id]);
+        
+        if (dbWorkflow?.nodes_notes) {
+          console.log(`✅ Found workflow notes in database:`, dbWorkflow.nodes_notes);
+          // Crea una mock workflow definition con le note dal database
+          workflowDefinition = {
+            id: workflow.id,
+            nodes: Object.keys(dbWorkflow.nodes_notes).map(nodeName => ({
+              name: nodeName,
+              notes: dbWorkflow.nodes_notes[nodeName]
+            }))
+          };
+          console.log(`📋 Created mock workflow definition with ${workflowDefinition.nodes.length} nodes from database`);
+        }
       }
       
       // Crea una mappa delle note dei nodi per determinare la visibilità
@@ -199,8 +245,7 @@ export class ExecutionImportService {
       }
       console.log(`🗂️ Created notes map with ${nodeNotesMap.size} entries`)
       
-      // Debug: Log execution runData node names
-      const runData = execution.data?.resultData?.runData || {};
+      // Debug: Log execution runData node names (reuse existing runData)
       console.log(`🔍 RunData contains nodes:`, Object.keys(runData));
       
       const steps: ExecutionStepData[] = [];
@@ -348,10 +393,18 @@ export class ExecutionImportService {
             successfulNodes++;
           }
 
-          // Determina visibilità basata sulle note del nodo
+          // Determina visibilità basata sulle note del nodo + trigger detection
           const nodeNotes = nodeNotesMap.get(nodeName) || '';
-          const isVisible = nodeNotes.toLowerCase().includes('show');
-          console.log(`🔍 Node "${nodeName}": notes="${nodeNotes}" → visible=${isVisible}`);
+          const isMarkedShow = nodeNotes.toLowerCase().includes('show');
+          
+          // CRITICAL FIX: Forza visibility per trigger nodes anche senza note
+          const isTrigger = nodeName.toLowerCase().includes('ricezione') || 
+                           nodeName.toLowerCase().includes('trigger') ||
+                           nodeName.toLowerCase().includes('webhook') ||
+                           nodeName.toLowerCase().includes('mail');
+          
+          const isVisible = isMarkedShow || isTrigger;
+          console.log(`🔍 Node "${nodeName}": notes="${nodeNotes}" → isMarkedShow=${isMarkedShow}, isTrigger=${isTrigger}, visible=${isVisible}`);
 
           const stepData: ExecutionStepData = {
             nodeId: nodeName,

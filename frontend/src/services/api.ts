@@ -162,6 +162,23 @@ export const tenantAPI = {
     timeSeries: (tenantId: string = 'default_tenant') => 
       api.get(`/api/tenant/${tenantId}/stats`),
   },
+  
+  // 🤖 AI Agents API
+  agents: {
+    // Lista workflow con AI agents
+    workflows: (tenantId: string = 'default_tenant') => 
+      api.get(`/api/tenant/${tenantId}/agents/workflows`),
+    
+    // Timeline workflow specifico
+    timeline: (tenantId: string = 'default_tenant', workflowId: string, forceRefresh: boolean = false) => 
+      api.get(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`, {
+        params: forceRefresh ? { forceRefresh: 'true' } : {}
+      }),
+    
+    // Force refresh workflow
+    refresh: (tenantId: string = 'default_tenant', workflowId: string) => 
+      api.post(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/refresh`),
+  },
 }
 
 // Users API

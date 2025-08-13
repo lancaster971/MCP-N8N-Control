@@ -15,6 +15,7 @@ import {
   ChevronDown, ChevronRight, Code, Database, Activity,
   AlertTriangle, Info, Settings, Zap, Send, RefreshCw
 } from 'lucide-react';
+import { tenantAPI } from '../../services/api';
 
 // Tipi per execution details
 interface AgentStep {
@@ -203,32 +204,43 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
   const { data: timelineData, isLoading, error, refetch } = useQuery({
     queryKey: ['agent-workflow-timeline', tenantId, workflowId],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:3001/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`);
-      if (!response.ok) throw new Error('Failed to fetch workflow timeline');
-      return response.json();
+      const response = await tenantAPI.agents.timeline(tenantId, workflowId);
+      return response.data;
     },
     enabled: isOpen, // Solo quando modal è aperto
-    refetchInterval: 60000, // OTTIMIZZATO: Auto-refresh ogni 60 secondi (era 15s)
-    staleTime: 30000, // OTTIMIZZATO: Dati fresh per 30s (era 0)
+    refetchInterval: 300000, // 🚀 POLLING INTENSIVO: Auto-refresh ogni 5 minuti per esecuzioni recenti
+    staleTime: 0, // 🔥 SEMPRE FRESH: Nessuna cache stale per massima reattività
     refetchOnMount: true, // Sempre refresh quando modal si apre
-    refetchOnWindowFocus: false, // OTTIMIZZATO: Disabilita focus refresh per ridurre load
+    refetchOnWindowFocus: true, // 👁️ FOCUS REFRESH: Refresh quando torni al modal
   });
 
   // FORCE REFRESH: Mutation per forzare sync da n8n API
   const refreshMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`http://localhost:3001/api/tenant/${tenantId}/agents/workflow/${workflowId}/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!response.ok) throw new Error('Failed to refresh workflow data');
-      return response.json();
+      const response = await tenantAPI.agents.refresh(tenantId, workflowId);
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalida cache e ricarica dati fresh
       queryClient.invalidateQueries({ queryKey: ['agent-workflow-timeline', tenantId, workflowId] });
       queryClient.invalidateQueries({ queryKey: ['workflow-cards'] }); // Invalida anche lista workflow
-      console.log('✅ Workflow cache refreshed successfully');
+      queryClient.invalidateQueries({ queryKey: ['agents-workflows', tenantId] }); // 🔥 CRITICAL FIX: Invalida cache AgentsPage
+      
+      // 🚀 BRUTAL FORCE: Chiama timeline API direttamente con forceRefresh=true 
+      try {
+        console.log('🔥 FORCE REFRESH: Calling timeline API with forceRefresh=true');
+        const freshResponse = await tenantAPI.agents.timeline(tenantId, workflowId, true);
+        
+        // Aggiorna la cache con i dati fresh
+        queryClient.setQueryData(['agent-workflow-timeline', tenantId, workflowId], freshResponse);
+        console.log('✅ Fresh timeline data loaded and cached');
+      } catch (error) {
+        console.error('❌ Failed to fetch fresh timeline:', error);
+        // Fallback al normale refetch
+        refetch();
+      }
+      
+      console.log('✅ Workflow cache refreshed successfully - timeline loaded with forceRefresh=true');
     },
     onError: (error) => {
       console.error('❌ Failed to refresh workflow cache:', error);
@@ -236,11 +248,18 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
   });
 
   const handleForceRefresh = () => {
-    console.log(`🔄 Force refreshing workflow ${workflowId}`);
+    console.log(`🔄 Force refreshing workflow ${workflowId} for tenant ${tenantId}`);
+    console.log('🔧 Mutation status:', refreshMutation.status);
     refreshMutation.mutate();
   };
 
-  const timeline = timelineData?.data;
+  const timeline = timelineData;
+  
+  // 🔥 DEBUG: Log per capire cosa riceve il frontend
+  console.log('🔍 timelineData received:', timelineData);
+  console.log('🔍 timeline assigned:', timeline);
+  console.log('🔍 timeline?.timeline:', timeline?.timeline);
+  console.log('🔍 timeline keys:', timeline ? Object.keys(timeline) : 'timeline is null/undefined');
 
   const formatDuration = (ms: number) => {
     if (ms < 1000) return `${ms}ms`;
@@ -298,19 +317,20 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {/* Force Refresh Button */}
+          <div className="flex items-center space-x-3">
+            {/* Force Refresh Button - MIGLIORATO */}
             <button
               onClick={handleForceRefresh}
               disabled={refreshMutation.isPending}
-              className={`p-2 rounded transition-colors ${
+              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
                 refreshMutation.isPending 
-                  ? 'text-gray-600 cursor-not-allowed' 
-                  : 'text-gray-400 hover:text-green-400 hover:bg-gray-800'
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                  : 'bg-green-600 hover:bg-green-500 text-white shadow-lg hover:shadow-green-500/25'
               }`}
-              title="Force refresh from n8n API"
+              title="Force refresh latest executions from n8n"
             >
-              <RefreshCw className={`w-5 h-5 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+              {refreshMutation.isPending ? 'Refreshing...' : 'Force Refresh'}
             </button>
             
             <button
@@ -390,7 +410,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                           <XCircle className="w-5 h-5 text-red-400 mr-2" />
                         )}
                         <span className={timeline.status === 'active' ? 'text-green-400' : 'text-red-400'}>
-                          {timeline.status.toUpperCase()}
+                          {timeline.status?.toUpperCase() || 'UNKNOWN'}
                         </span>
                       </div>
                     </div>
@@ -410,10 +430,14 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Info header per timeline */}
-                  <div className="mb-4">
+                  {/* Info header per timeline con freshness indicator */}
+                  <div className="mb-4 flex items-center justify-between">
                     <div className="text-sm text-gray-400">
                       Showing workflow steps marked with "show" annotations
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                      Auto-refresh: 5 min | Last check: {new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
 

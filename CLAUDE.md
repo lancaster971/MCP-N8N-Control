@@ -792,6 +792,14 @@ Workflow Cards → Click → AgentDetailModal
 
 ## Versioning
 
+- **v2.4.0** ✅ - Polling Intelligente + Webhook System:
+  - Smart Polling: Auto-refresh ogni 5 minuti invece di 60 secondi
+  - Force Refresh Button: Migliorato con UI più visibile e feedback
+  - Focus Refresh: Aggiornamento automatico al ritorno sulla finestra
+  - Freshness Indicator: Mostra timestamp ultimo aggiornamento
+  - Webhook Endpoint: `/api/webhook/n8n/execution-complete` con autenticazione API Key
+  - Security: Header `X-Webhook-Secret` obbligatorio per webhook
+  - **TODO**: Configurare nodo HTTP Request su n8n quando servizio avrà IP pubblico
 - **v2.3.0** ✅ - AI Agent Transparency System Completo:
   - Backend: API `/agents/workflows` e `/agents/workflow/:id/timeline`
   - Frontend: AgentDetailModal con timeline step-by-step
@@ -823,7 +831,7 @@ psql -d n8n_mcp -f src/database/migrations/*.sql
 # 2. Start Backend
 npm install
 npm run build
-DB_USER=your_user npm start
+WEBHOOK_SECRET=pilotpro-webhook-2025-secure DB_USER=your_user npm start
 
 # 3. Start Frontend
 cd frontend
@@ -831,12 +839,47 @@ npm install
 npm run dev
 
 # 4. Open Browser
-http://localhost:5173
+http://localhost:5174
 
 # Default login
 Email: admin@pilotpro.com
 Password: admin123
 ```
+
+## 🚀 Deployment con IP Pubblico
+
+### Configurazione Webhook Real-time per n8n
+
+Quando il servizio sarà deployato con IP pubblico, configurare nei workflow n8n:
+
+**Nodo HTTP Request (ultimo step del workflow):**
+```json
+URL: https://your-public-ip:3001/api/webhook/n8n/execution-complete
+Method: POST
+Headers:
+  Content-Type: application/json
+  X-Webhook-Secret: pilotpro-webhook-2025-secure
+
+Body:
+{
+  "executionId": "{{ $execution.id }}",
+  "workflowId": "{{ $workflow.id }}",
+  "tenantId": "client_simulation_a",
+  "status": "{{ $execution.executionStatus }}",
+  "workflowName": "{{ $workflow.name }}"
+}
+```
+
+**Benefici del Webhook:**
+- ✅ **Refresh immediato**: Modal si aggiorna in 1-2 secondi
+- ✅ **Cache invalidation**: Elimina automaticamente cache stale
+- ✅ **Zero ritardi**: Niente più attesa di 5 minuti
+- ✅ **Background import**: Importa execution data automaticamente
+
+**Sicurezza:**
+- 🔒 **API Key required**: Header `X-Webhook-Secret` obbligatorio
+- 🔍 **Logging security**: Tentativi non autorizzati vengono loggati
+- ⚡ **Rate limiting**: Protezione contro abusi
 
 ---
 

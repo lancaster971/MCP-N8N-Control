@@ -45,7 +45,9 @@ const AgentsPage: React.FC = () => {
       if (!response.ok) throw new Error('Failed to fetch agents workflows');
       return response.json();
     },
-    refetchInterval: 10000, // Auto-refresh ogni 10 secondi (meno frequente di prima)
+    refetchInterval: 300000, // 🚀 POLLING SMART: Auto-refresh ogni 5 minuti per workflow activity
+    staleTime: 0, // 🔥 SEMPRE FRESH: Nessuna cache stale
+    refetchOnWindowFocus: true, // 👁️ REFRESH ON FOCUS: Quando torni alla pagina
   });
 
   const workflows: AgentWorkflow[] = workflowsData?.data || [];

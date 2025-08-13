@@ -126,7 +126,7 @@ export class N8nApiClient {
     try {
       const params = new URLSearchParams();
       
-      if (options?.includeData) {
+      if (options?.includeData !== false) {
         params.append('includeData', 'true');
       }
       if (options?.status) {
@@ -157,7 +157,7 @@ export class N8nApiClient {
    * @param includeData Whether to include detailed execution data
    * @returns Execution object
    */
-  async getExecution(id: string, includeData = false): Promise<any> {
+  async getExecution(id: string, includeData = true): Promise<any> {
     try {
       const url = includeData ? `/executions/${id}?includeData=true` : `/executions/${id}`;
       const response = await this.axiosInstance.get(url);
