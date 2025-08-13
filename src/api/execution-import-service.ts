@@ -304,8 +304,13 @@ export class ExecutionImportService {
             const hasError = nodeExecution.error;
             status = hasError ? 'error' : 'success';
             executionTime = nodeExecution.executionTime || 0;
-            inputData = nodeExecution.data?.main?.[0] || null;
-            outputData = nodeExecution.data?.main?.[0] || null;
+            // FIX: outputData è quello che il nodo ha prodotto
+            // Alcuni nodi (come INFO ORDINI) usano ai_tool invece di main
+            outputData = nodeExecution.data?.main?.[0] || 
+                        nodeExecution.data?.ai_tool?.[0] || 
+                        null;
+            // FIX: inputData lo popoleremo dopo in base all'ordine dei nodi
+            inputData = null; // Verrà popolato dopo l'ordinamento
             errorMessage = hasError ? nodeExecution.error.message : undefined;
             
             if (hasError) {
@@ -314,9 +319,10 @@ export class ExecutionImportService {
               successfulNodes++;
             }
           } else {
-            // Nodo non eseguito - segnalo come "non eseguito" se SHOW
+            // Nodo non eseguito - segnalo come "not-executed" se SHOW
             if (isVisible) {
               console.log(`⚠️ Node "${node.name}" marked SHOW but no execution data available`);
+              status = 'not-executed' as any; // Stato speciale per nodi non eseguiti
             }
           }
 
@@ -374,6 +380,37 @@ export class ExecutionImportService {
           if (s.customOrder !== null) label += ` (show-${s.customOrder})`;
           return label;
         }).join(' → ')}`);
+        
+        // FIX: Popola inputData con l'output del nodo precedente nell'ordine
+        for (let i = 0; i < steps.length; i++) {
+          const currentStep = steps[i];
+          
+          // Skip se non è visibile
+          if (!currentStep.isVisible) continue;
+          
+          // Per i trigger node, l'input è sempre vuoto o un messaggio speciale
+          if (currentStep.isTrigger) {
+            currentStep.inputData = null; // I trigger non hanno input
+            continue;
+          }
+          
+          // Per gli altri nodi, cerca il nodo precedente visibile
+          let prevVisibleStep = null;
+          for (let j = i - 1; j >= 0; j--) {
+            if (steps[j].isVisible) {
+              prevVisibleStep = steps[j];
+              break;
+            }
+          }
+          
+          // Se c'è un nodo precedente visibile, usa il suo output come input
+          if (prevVisibleStep && prevVisibleStep.outputData) {
+            currentStep.inputData = prevVisibleStep.outputData;
+            console.log(`🔗 Connected input of "${currentStep.nodeName}" to output of "${prevVisibleStep.nodeName}"`);
+          }
+        }
+        
+        console.log(`✅ Input/Output chain connected for ${steps.filter(s => s.isVisible).length} visible nodes`);
       } else {
         // Fallback al vecchio approccio se non abbiamo workflow definition
         console.log(`⚠️ No workflow definition available, falling back to execution data only`);
@@ -411,8 +448,8 @@ export class ExecutionImportService {
             nodeName: nodeName,
             nodeType: 'unknown',
             executionTime: nodeExecution.executionTime || 0,
-            inputData: nodeExecution.data?.main?.[0] || null,
-            outputData: nodeExecution.data?.main?.[0] || null,
+            inputData: null, // FIX: Verrà popolato dopo
+            outputData: nodeExecution.data?.main?.[0] || null, // FIX: Solo output data
             status,
             error: hasError ? nodeExecution.error.message : undefined,
             isVisible

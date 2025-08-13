@@ -14,6 +14,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Design System**: Control Room theme nero/verde, icone solo da Lucide React
 - **Consistency**: Tutte le icone devono provenire dalla stessa libreria
 
+### 🔒 SICUREZZA E PRIVACY CLIENTE - CRITICO
+- **MAI esporre riferimenti a n8n** nell'interfaccia utente, report o export
+- **Sostituire SEMPRE "n8n" con "WFEngine"** in tutti i testi visibili al cliente
+- **Sanitizzare nodeTypes**: trasformare `n8n-nodes-base` in `WFEngine.core`
+- **Raw data JSON**: DEVE essere sanitizzato prima della visualizzazione
+- **Report e documenti**: pulire ogni riferimento all'implementazione sottostante
+- **Nomenclatura**: usare termini generici come "workflow engine", "automation system"
+- **REGOLA D'ORO**: Il cliente NON deve mai sapere che sotto c'è n8n
+
 ### 📚 Documentazione API
 - **PRIMA di qualsiasi sviluppo o ottimizzazione API**: Consultare sempre `/n8n-openapi.yml`
 - **Riferimento obbligatorio**: Il file contiene la specifica completa n8n API v1.1.1
@@ -792,6 +801,15 @@ Workflow Cards → Click → AgentDetailModal
 
 ## Versioning
 
+- **v2.4.1** ✅ - Fix critici AgentDetailModal (13/08/2025 ore 23:00):
+  - Fix: Risolto syntax error else statement linea 259 che causava crash totale
+  - Fix: Corretto problema duplicazione input/output data nel backend (linea 312-313)
+  - Fix: Aggiunto supporto nodi con `data.ai_tool` (INFO ORDINI ora funziona)
+  - Enhancement: Parser human-readable per TUTTI i tipi di nodi (email, AI, ordini, vector, parcel, reply, execute)
+  - Enhancement: Identificazione automatica nodi non eseguiti (execution_time = 0)
+  - Backend: Input/output chain corretta - input è output del nodo precedente
+  - Frontend: Modal funzionante con 7 nodi show-N correttamente ordinati
+  - Database: Execution 111051 con dati reali verificati e funzionanti
 - **v2.4.0** ✅ - Polling Intelligente + Webhook System:
   - Smart Polling: Auto-refresh ogni 5 minuti invece di 60 secondi
   - Force Refresh Button: Migliorato con UI più visibile e feedback

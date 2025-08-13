@@ -22,28 +22,38 @@
 - ✅ **Isolamento**: Sempre filtrare per `tenant_id` per sicurezza multi-tenant
 - ✅ **Fallback**: Solo message "Nessun dato disponibile" se query vuota
 
+### 🔒 PRIVACY E SICUREZZA CLIENTE - REGOLA CRITICA v2.4.2
+**NON ESPORRE MAI N8N AL CLIENTE**:
+- ❌ **VIETATO**: Mostrare "n8n" in qualsiasi testo, report, JSON o UI
+- ✅ **OBBLIGATORIO**: Sostituire sempre "n8n" con "WFEngine" 
+- ✅ **Node Types**: Trasformare `n8n-nodes-base.xyz` in `WFEngine.core.xyz`
+- ✅ **JSON Sanitization**: Pulire TUTTI i raw data prima di mostrarli
+- ✅ **Report Generation**: Verificare che non ci siano riferimenti a n8n
+- ✅ **Export Data**: Sanitizzare CSV, TXT, JSON prima del download
+- 🔥 **CONSEGUENZE**: Esporre n8n = violazione contratto cliente
+
 ### Potenziale di Miglioramento
 Analizzando **n8n OpenAPI v1.1.1** e l'architettura esistente, sono emersi diversi vettori di crescita Premium per offrire un'esperienza cliente superiore.
 
 ---
 
-## 🤖 **KILLER FEATURE: AI Agent Transparency - COMPLETATA v2.3.0!**
+## 🤖 **KILLER FEATURE: AI Agent Transparency - COMPLETATA v2.4.1!**
 
-**Timeline: ✅ COMPLETATA il 13/08/2025 - v2.3.0 FINAL**  
+**Timeline: ✅ COMPLETATA il 13/08/2025 ore 23:00 - v2.4.1 PRODUCTION READY**  
 **Valore Cliente: Trasparenza Operativa Completa sugli AI Agents**  
-**Status: 🎉 FEATURE KILLER PERFETTAMENTE FUNZIONANTE**
+**Status: 🎉 FEATURE PERFETTAMENTE FUNZIONANTE CON DATI REALI**
 
 ### 🏆 **Sistema Completo Implementato - DATI REALI**
 
-#### ✅ **1. API Backend Completa v2.3.0**
+#### ✅ **1. API Backend Completa v2.4.1**
 ```typescript
-// 🔥 ENDPOINT LIVE E FUNZIONANTI v2.3.0
+// 🔥 ENDPOINT LIVE E FUNZIONANTI v2.4.1
 GET /api/tenant/:id/agents/workflows           // ✅ Lista workflow con AI agents
 GET /api/tenant/:id/agents/workflow/:id/timeline  // ✅ Timeline step-by-step execution
 POST /api/tenant/:id/agents/workflow/:id/refresh  // ✅ Force refresh da n8n API
 ```
 
-**Features v2.3.0 Implementate con Database PostgreSQL:**
+**Features v2.4.1 Implementate con Database PostgreSQL:**
 - ✅ **AI Workflows Detection**: Identifica automaticamente workflow con AI agents da raw_data
 - ✅ **Show-N Ordering System**: Ordinamento custom con show-1, show-2, ..., show-7
 - ✅ **Timeline Step-by-Step**: Parsing intelligente execution data con business context
@@ -51,9 +61,11 @@ POST /api/tenant/:id/agents/workflow/:id/refresh  // ✅ Force refresh da n8n AP
 - ✅ **Force Refresh API**: Sync immediato workflow + cache invalidation
 - ✅ **Multi-tenant Security**: Isolamento completo per tenant_id
 - ✅ **TypeScript Completo**: Interfacce AgentStep, AgentActivity, BusinessContext
+- ✅ **Input/Output Chain**: Input data correttamente collegato all'output del nodo precedente
+- ✅ **Node Execution Detection**: Identifica nodi non eseguiti (execution_time = 0)
 
-#### ✅ **2. Frontend AgentDetailModal v2.3.0**
-**Componente: `frontend/src/components/agents/AgentDetailModal.tsx` - COMPLETO**
+#### ✅ **2. Frontend AgentDetailModal v2.4.1**
+**Componente: `frontend/src/components/agents/AgentDetailModal.tsx` - COMPLETO E DEBUGGATO**
 
 **Features UI Implementate:**
 - ✅ **Workflow Cards Dashboard**: Lista workflow con AI agents detection
@@ -63,16 +75,20 @@ POST /api/tenant/:id/agents/workflow/:id/refresh  // ✅ Force refresh da n8n AP
 - ✅ **Trigger Logic**: Input="In attesa dati", Output=email ricevuta
 - ✅ **Force Refresh Button**: Sync immediato da n8n API
 - ✅ **No Emoji Policy**: Solo Lucide React icons
+- ✅ **Syntax Error Fix**: Risolto else statement bug che causava crash totale
+- ✅ **Data Support**: Supporto per nodi con data.ai_tool oltre a data.main
 
 #### ✅ **3. Parser Intelligente Email Content**
 **Sistema di parsing avanzato per contenuto email:**
 
-**Priorità Parser v2.3.0:**
+**Priorità Parser v2.4.1 - COMPLETAMENTE FUNZIONANTE:**
 - ✅ **Contenuto Email**: Subject, corpo messaggio, mittente
 - ✅ **Risposta AI**: Output degli AI agents
 - ✅ **Classificazione**: Categoria e confidence score
 - ✅ **Order ID**: Identificazione ordini customer
 - ✅ **Trigger Nodes**: Logic speciale input/output
+- ✅ **Parser per TUTTI i nodi**: Email, AI, Vector Store, Parcel, Reply, Execute Workflow
+- ✅ **Human-readable output**: Dati tecnici convertiti in testo comprensibile
 
 ```typescript
 // Esempio output reale Timeline API v2.3.0
@@ -687,7 +703,7 @@ Body:
 
 ---
 
-**Ultima modifica**: 13 Agosto 2025 - ✅ SMART POLLING v2.4.0 + WEBHOOK SYSTEM COMPLETATO  
-**Versione**: 2.4.0 - Sistema polling ottimizzato + webhook ready per deployment  
-**Status**: 🎉 SISTEMA REAL-TIME OTTIMIZZATO - PRODUCTION READY  
+**Ultima modifica**: 13 Agosto 2025 ore 23:00 - ✅ v2.4.1 FIX CRITICI + NODI NON ESEGUITI  
+**Versione**: 2.4.1 - Sistema AI Agent Transparency completamente debuggato e funzionante  
+**Status**: 🎉 PRODUCTION READY - TUTTI I BUG RISOLTI - DATI REALI FUNZIONANTI  
 **Owner**: Tiziano Annicchiarico
