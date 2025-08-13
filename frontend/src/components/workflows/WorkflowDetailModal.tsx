@@ -13,6 +13,7 @@ import {
   Pause,
   Copy,
   Download,
+  RefreshCw,
   ExternalLink,
   TrendingUp,
   Calendar,
@@ -33,7 +34,7 @@ import {
   Globe,
   Package,
 } from 'lucide-react'
-import { api } from '../../services/api'
+import { api, schedulerAPI } from '../../services/api'
 import { cn, formatDate } from '../../lib/utils'
 import ReactApexChart from 'react-apexcharts'
 
@@ -72,14 +73,18 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'executions' | 'nodes' | 'performance' | 'activity'>('overview')
 
-  // Fetch detailed workflow data
+  // Fetch detailed workflow data with smart cache invalidation
   const { data: detailData, isLoading, error, refetch } = useQuery({
     queryKey: ['workflow-details', tenantId, workflow.id],
     queryFn: async () => {
+      console.log(`🔄 Fetching fresh workflow details for ${workflow.id}`)
       const response = await api.get(`/api/tenant/${tenantId}/workflows/${workflow.id}/details`)
       return response.data
     },
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 15000, // More frequent refresh for modal data (15 seconds)
+    refetchOnMount: true, // Always refresh when modal opens
+    refetchOnWindowFocus: true, // Refresh when user comes back to window
+    staleTime: 0, // Data is immediately considered stale to ensure freshness
   })
 
   // Debug: log dei dati ricevuti
@@ -297,11 +302,25 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
               <Download className="h-4 w-4" />
             </button>
             <button
-              onClick={() => refetch()}
-              className="p-2 text-gray-400 hover:text-green-400 transition-colors"
-              title="Refresh"
+              onClick={async () => {
+                console.log('🔄 Force refresh requested for workflow', workflow.id)
+                try {
+                  // First: Force sync from n8n
+                  await schedulerAPI.refreshWorkflow(tenantId, workflow.id)
+                  console.log('✅ Backend sync completed')
+                  
+                  // Then: Refetch from our database
+                  await refetch()
+                  console.log('✅ Frontend data refreshed')
+                } catch (error) {
+                  console.error('❌ Refresh failed:', error)
+                }
+              }}
+              disabled={isLoading}
+              className="p-2 text-gray-400 hover:text-green-400 disabled:text-gray-600 transition-colors"
+              title={isLoading ? 'Refreshing...' : 'Force Refresh from n8n'}
             >
-              <Activity className="h-4 w-4" />
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={onClose}

@@ -2,6 +2,38 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 REGOLE DI SVILUPPO OBBLIGATORIE
+
+### 📝 Codice e Commenti
+- **SEMPRE commentare il codice in ITALIANO** - Tutti i commenti devono essere in italiano
+- **Nomi variabili/funzioni**: Inglese per coerenza del codice, commenti in italiano
+- **Documentazione**: README, commenti di funzione, JSDoc sempre in italiano
+
+### 🚫 Icone e UI
+- **MAI usare icone pittografiche** (emoji) - Utilizzare esclusivamente **Lucide React icons**
+- **Design System**: Control Room theme nero/verde, icone solo da Lucide React
+- **Consistency**: Tutte le icone devono provenire dalla stessa libreria
+
+### 📚 Documentazione API
+- **PRIMA di qualsiasi sviluppo o ottimizzazione API**: Consultare sempre `/n8n-openapi.yml`
+- **Riferimento obbligatorio**: Il file contiene la specifica completa n8n API v1.1.1
+- **Endpoint verification**: Verificare sempre endpoint, parametri e schemi dati disponibili
+- **Compatibility**: Mantenere piena compatibilità con n8n API v1
+
+### 🔄 Cache e Sync Intelligente
+- **Sistema implementato**: Smart cache invalidation per workflow modal
+- **Refresh intervals**: 15 secondi per dati critici, 30-60 secondi per altri
+- **Sync backend ottimizzato**: Rileva modifiche reali e skippa update inutili
+- **Tools detection**: Vector stores, embeddings e retriever riconosciuti come AI tools
+
+### 🚨 DATI REALI OBBLIGATORI
+- **MAI utilizzare dati mock o fake** - Utilizzare ESCLUSIVAMENTE dati reali dal database PostgreSQL
+- **Principio fondamentale**: Ogni componente deve mostrare dati reali dal database `n8n_mcp`
+- **Zero tolleranza**: Non implementare mock data, placeholder o dati simulati
+- **Tabelle di riferimento**: `tenant_workflows`, `tenant_executions`, `auth_users`, `security_audits`
+- **Query sempre parametrizzate**: Usare `tenant_id` per isolamento multi-tenant
+- **Fallback consentito**: Solo message "Nessun dato disponibile" se query vuota
+
 ## 🚀 PilotPro Control Center
 
 Sistema completo di controllo e monitoraggio per workflow automation con architettura multi-tenant e interfaccia Control Room.
@@ -18,7 +50,8 @@ MCP-N8N-Control/
 │   │   ├── scheduler-controller.ts
 │   │   ├── auth-controller.ts
 │   │   ├── tenant-controller.ts
-│   │   └── stats-controller.ts
+│   │   ├── stats-controller.ts
+│   │   └── ai-agents-controller.ts  # ✅ AI Agent Transparency API
 │   ├── auth/
 │   │   └── jwt-auth.ts           # JWT authentication
 │   ├── backend/
@@ -40,6 +73,7 @@ MCP-N8N-Control/
 │   │   │   ├── alerts/          # Alert system
 │   │   │   ├── scheduler/       # Scheduler control
 │   │   │   ├── security/        # Security center
+│   │   │   ├── agents/          # ✅ AI Agent Transparency
 │   │   │   └── auth/            # Login/Auth components
 │   │   ├── services/
 │   │   │   └── api.ts           # API service layer
@@ -142,6 +176,11 @@ npm run preview     # Preview build di produzione
 - `GET /api/tenant/:tenantId/workflows/:workflowId/details` - Dettagli completi workflow con analisi nodi
 - `GET /api/tenant/:tenantId/executions` - Esecuzioni del tenant
 
+**AI Agent Transparency** ✅:
+- `GET /api/tenant/:tenantId/agents/workflows` - Lista workflow con AI agents
+- `GET /api/tenant/:tenantId/agents/workflow/:workflowId/timeline` - Timeline execution step-by-step
+- `POST /api/tenant/:tenantId/agents/workflow/:workflowId/refresh` - Force refresh workflow data
+
 **System Management**:
 - `GET /api/scheduler/status` - Stato scheduler
 - `POST /api/scheduler/start` - Avvia scheduler
@@ -217,6 +256,13 @@ npm run preview     # Preview build di produzione
    - API keys management
    - User activity tracking
    - Risk analysis
+
+9. **AI Agent Transparency** ✅ - Sistema avanzato di monitoring AI
+   - Workflow cards con rilevamento AI agents automatico
+   - Timeline step-by-step delle executions con show-N ordering
+   - Parser intelligente contenuto email vs dati tecnici
+   - Force refresh da n8n API con circuit breaker recovery
+   - Trigger nodes: Input = "In attesa dati", Output = email ricevuta
 
 #### Servizi API Frontend
 
@@ -481,8 +527,10 @@ frontend/src/
 │   │   └── AlertsPage.tsx      # Alert system
 │   ├── scheduler/
 │   │   └── SchedulerPage.tsx   # Scheduler control
-│   └── security/
-│       └── SecurityPage.tsx    # Security center
+│   ├── security/
+│   │   └── SecurityPage.tsx    # Security center
+│   └── agents/                 # ✅ AI Agent Transparency
+│       └── AgentDetailModal.tsx # Modal timeline workflow execution
 ├── services/
 │   └── api.ts                  # API service layer
 ├── store/
@@ -515,36 +563,163 @@ frontend/src/
 - Zustand (state management)
 - date-fns (date formatting)
 
-## 🔄 Flusso Dati del Sistema
+## 🔄 Sistema Smart Cache Avanzato
 
-### 1. Autenticazione
-```
-User Login → Frontend → POST /auth/login → JWT Token → localStorage
-            → Tutte le richieste successive includono: Authorization: Bearer <token>
+### 1. Backend - Rilevamento Intelligente Cambiamenti
+```typescript
+// Confronto contenuto workflow per determinare aggiornamenti reali
+private async saveWorkflowToDatabase(workflow: NormalizedWorkflow): Promise<boolean> {
+  const existingResult = await this.db.query(`
+    SELECT raw_data, updated_at FROM tenant_workflows 
+    WHERE id = $1 AND tenant_id = $2
+  `, [workflow.id, workflow.tenantId]);
+  
+  const newRawData = JSON.stringify(workflow.rawData);
+  const isNewWorkflow = existingResult.rows.length === 0;
+  
+  let hasChanged = isNewWorkflow;
+  if (!isNewWorkflow) {
+    const existingRawData = JSON.stringify(existingResult.rows[0].raw_data);
+    const existingUpdatedAt = new Date(existingResult.rows[0].updated_at);
+    const newUpdatedAt = workflow.updatedAt ? new Date(workflow.updatedAt) : new Date();
+    
+    hasChanged = existingRawData !== newRawData || newUpdatedAt > existingUpdatedAt;
+  }
+  
+  if (!hasChanged) {
+    console.log(`📄 Workflow ${workflow.id} unchanged, skipping update`);
+    return false;
+  }
+  // ... update logic
+  return true;
+}
 ```
 
-### 2. Tenant Data Flow
-```
-Frontend Request → API /api/tenant/:tenantId/data
-                → Backend verifica JWT.tenantId === request.tenantId
-                → Query PostgreSQL con WHERE tenant_id = :tenantId
-                → Ritorna SOLO dati del tenant
+### 2. Frontend - Cache Aggressiva per Modal Workflow
+```typescript
+const { data: detailData, isLoading, error, refetch } = useQuery({
+  queryKey: ['workflow-details', tenantId, workflow.id],
+  queryFn: async () => {
+    console.log(`🔄 Fetching fresh workflow details for ${workflow.id}`)
+    const response = await api.get(`/api/tenant/${tenantId}/workflows/${workflow.id}/details`)
+    return response.data
+  },
+  refetchInterval: 15000, // Refresh ogni 15 secondi per dati modal critici
+  refetchOnMount: true,   // Sempre refresh quando modal si apre
+  refetchOnWindowFocus: true, // Refresh quando utente torna alla finestra
+  staleTime: 0, // Dati immediatamente considerati stale per massima freschezza
+})
 ```
 
-### 3. Scheduler Sync Flow
-```
-Cron Job (ogni 30 min) → Per ogni tenant attivo:
-                       → Fetch da n8n API
-                       → Salva in PostgreSQL
-                       → Log in tenant_sync_logs
-                       → Frontend riceve update via polling
+### 3. API Force Refresh Workflow
+```typescript
+// Nuovo endpoint per forzare sync specifico workflow
+router.post('/refresh-workflow', async (req, res) => {
+  try {
+    const { tenantId, workflowId } = req.body;
+    
+    // Forza sync immediato resettando timestamp
+    await db.query(`
+      UPDATE tenant_workflows 
+      SET last_synced_at = '2000-01-01'
+      WHERE id = $1 AND tenant_id = $2
+    `, [workflowId, tenantId]);
+    
+    // Triggera sync per questo tenant
+    const result = await scheduler.syncSingleTenant({ id: tenantId });
+    
+    res.json({
+      success: true,
+      workflow: { id: workflowId, tenantId: tenantId, synced: result.workflowsSynced > 0 },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to refresh workflow' });
+  }
+});
 ```
 
-### 4. Real-time Updates
+### 4. Flusso Dati con Smart Cache
 ```
-Frontend (React Query) → refetchInterval: 5-60 secondi
-                      → GET nuovi dati
-                      → Aggiorna UI automaticamente
+Modal Aperto → React Query fetch immediato (staleTime: 0)
+            → Backend verifica se workflow è changed
+            → Se unchanged: skip update, return cached
+            → Se changed: update DB + return fresh data
+            → Frontend auto-refresh ogni 15 secondi
+            → Utente clicca Refresh → Force API call + backend sync
+```
+
+## 🤖 Analisi Workflow AI Avanzata
+
+### Rilevamento Componenti AI
+```typescript
+// Identifica AI Agents con dettagli modello e temperatura
+if (nodeType.includes('.agent') || nodeName.toLowerCase().includes('agent')) {
+  const agentInfo = {
+    name: nodeName,
+    type: nodeType.split('.').pop() || nodeType,
+    model: nodeParameters.model || nodeParameters.modelId || 'unknown',
+    temperature: nodeParameters.temperature,
+    systemPrompt: nodeParameters.systemPrompt ? 'Configured' : 'Default',
+    connectedTools: [] // Popolato analizzando connections
+  };
+  nodeAnalysis.aiAgents.push(agentInfo);
+}
+
+// Identifica AI Tools - INCLUSI VECTOR STORES E RAG
+else if (nodeType.includes('toolWorkflow') || 
+         (nodeType.includes('tool') && nodeType.includes('langchain')) ||
+         nodeType.includes('vectorStore') ||
+         nodeType.includes('embedding') ||
+         nodeType.includes('retriever')) {
+  nodeAnalysis.tools.push({
+    name: nodeName,
+    type: nodeType.split('.').pop() || nodeType,
+    description: nodeParameters.description || nodeParameters.toolDescription || nodeName
+  });
+}
+```
+
+### Estrazione Sticky Notes per Documentazione
+```typescript
+// Cattura sticky notes come documentazione workflow
+if (nodeType === 'n8n-nodes-base.stickyNote') {
+  nodeAnalysis.stickyNotes.push({
+    content: nodeParameters.content || '',
+    height: nodeParameters.height,
+    width: nodeParameters.width,
+    color: nodeParameters.color
+  });
+}
+```
+
+### Descrizione Automatica Workflow
+```typescript
+// Genera descrizione automatica basata su componenti
+if (!nodeAnalysis.description && (nodeAnalysis.triggers.length > 0 || nodeAnalysis.aiAgents.length > 0)) {
+  let autoDescription = 'This workflow ';
+  
+  if (nodeAnalysis.triggers.length > 0) {
+    const triggerTypes = [...new Set(nodeAnalysis.triggers.map((t: any) => t.triggerType))];
+    autoDescription += `starts from ${triggerTypes.join(' or ')} triggers`;
+  }
+  
+  if (nodeAnalysis.aiAgents.length > 0) {
+    autoDescription += nodeAnalysis.triggers.length > 0 ? ', uses ' : 'uses ';
+    autoDescription += `${nodeAnalysis.aiAgents.length} AI agent${nodeAnalysis.aiAgents.length > 1 ? 's' : ''}`;
+    if (nodeAnalysis.tools.length > 0) {
+      autoDescription += ` with ${nodeAnalysis.tools.length} tool${nodeAnalysis.tools.length > 1 ? 's' : ''}`;
+    }
+  }
+  
+  if (nodeAnalysis.outputs.length > 0) {
+    const outputTypes = [...new Set(nodeAnalysis.outputs.map((o: any) => o.outputType))];
+    autoDescription += `, and sends responses via ${outputTypes.join(', ')}`;
+  }
+  
+  autoDescription += '.';
+  nodeAnalysis.description = autoDescription;
+}
 ```
 
 ## 🎯 Principi di Design
@@ -568,8 +743,70 @@ Frontend (React Query) → refetchInterval: 5-60 secondi
 - **Rate Limiting**: Protezione da abusi
 - **Audit Trail**: Logging completo di tutte le operazioni
 
+## 🤖 AI Agent Transparency System ✅
+
+### Funzionalità Complete Implementate
+
+#### 1. Backend API (`src/api/ai-agents-controller.ts`)
+```typescript
+// Lista workflow con AI agents detection
+GET /api/tenant/:tenantId/agents/workflows
+
+// Timeline execution step-by-step con show-N ordering
+GET /api/tenant/:tenantId/agents/workflow/:workflowId/timeline
+
+// Force refresh workflow da n8n API + circuit breaker reset
+POST /api/tenant/:tenantId/agents/workflow/:workflowId/refresh
+```
+
+#### 2. Frontend Modal (`frontend/src/components/agents/AgentDetailModal.tsx`)
+- **Workflow Cards**: Dashboard con workflow che contengono AI agents
+- **Timeline Modal**: Step-by-step execution con 3 tabs (Timeline, Business Context, Raw Data)
+- **Show-N Ordering**: Nodi ordinati per annotazioni show-1, show-2, ..., show-7
+- **Smart Parser**: Priorità contenuto email (subject, sender, body) vs dati tecnici
+- **Trigger Logic**: Input = "In attesa di nuove email", Output = email ricevuta
+- **Force Refresh**: Button per sync immediato da n8n API
+
+#### 3. Funzioni Avanzate
+- **Circuit Breaker Recovery**: Reset automatico dopo errori API n8n
+- **Smart Cache**: React Query con 60s refresh + force refresh capability
+- **Real-time Data**: Solo dati reali da PostgreSQL, zero mock data
+- **Email Content Focus**: Parser mostra contenuto email invece di metadata
+- **No Emoji Policy**: Solo Lucide React icons, nessuna icona pittografica
+
+### Architettura AI Agent Timeline
+
+```
+Workflow Cards → Click → AgentDetailModal
+                             ↓
+                       Timeline Tab
+                             ↓
+                   Show-N Ordered Steps
+                   (show-1, show-2, ...)
+                             ↓
+                    Expandable Steps
+                             ↓
+                  Input/Output Parsed
+                  (Email content focus)
+```
+
 ## Versioning
 
+- **v2.3.0** ✅ - AI Agent Transparency System Completo:
+  - Backend: API `/agents/workflows` e `/agents/workflow/:id/timeline`
+  - Frontend: AgentDetailModal con timeline step-by-step
+  - Show-N Ordering: Ordinamento custom nodi con show-1, show-2, ...
+  - Smart Parser: Contenuto email vs dati tecnici con priorità intelligente
+  - Trigger Logic: Input="In attesa dati", Output=email ricevuta
+  - Circuit Breaker: Recovery automatico API n8n errors
+  - Force Refresh: Sync immediato workflow + cache invalidation
+  - No Emoji: Rimosse tutte icone pittografiche, solo Lucide React
+- **v2.2.0** - Sistema Smart Cache Avanzato:
+  - Backend: Intelligent sync detection con confronto raw_data
+  - Frontend: Cache aggressiva per modal workflow (15s refresh, staleTime: 0)
+  - API: Force refresh endpoint /api/scheduler/refresh-workflow
+  - AI Analysis: Vector stores e RAG tools detection fix
+  - Node counting: Sticky notes recognition e count accurato
 - **v2.1.0** - WorkflowDetailModal con analisi AI agents, tools, sub-workflows e sticky notes
 - **v2.0.0** - Frontend completo con tutte le pagine funzionanti e dati reali
 - **v1.5.0** - Sostituiti tutti i mock data con API reali  

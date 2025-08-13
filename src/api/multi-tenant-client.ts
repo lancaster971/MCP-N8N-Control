@@ -289,8 +289,10 @@ export class MultiTenantApiClient {
       const workflows = await this.getWorkflowsForTenant(tenantId);
       for (const workflow of workflows) {
         try {
-          await this.saveWorkflowToDatabase(workflow);
-          results.workflowsSynced++;
+          const wasUpdated = await this.saveWorkflowToDatabase(workflow);
+          if (wasUpdated) {
+            results.workflowsSynced++;
+          }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           results.errors.push(`Workflow ${workflow.id}: ${errorMessage}`);
@@ -470,7 +472,31 @@ export class MultiTenantApiClient {
   /**
    * Salva workflow normalizzato nel database multi-tenant
    */
-  private async saveWorkflowToDatabase(workflow: NormalizedWorkflow): Promise<void> {
+  private async saveWorkflowToDatabase(workflow: NormalizedWorkflow): Promise<boolean> {
+    // Check if workflow actually changed by comparing raw_data and updatedAt
+    const existingResult = await this.db.query(`
+      SELECT raw_data, updated_at FROM tenant_workflows 
+      WHERE id = $1 AND tenant_id = $2
+    `, [workflow.id, workflow.tenantId]);
+    
+    const newRawData = JSON.stringify(workflow.rawData);
+    const isNewWorkflow = existingResult.rows.length === 0;
+    
+    let hasChanged = isNewWorkflow;
+    if (!isNewWorkflow) {
+      const existingRawData = JSON.stringify(existingResult.rows[0].raw_data);
+      const existingUpdatedAt = new Date(existingResult.rows[0].updated_at);
+      const newUpdatedAt = workflow.updatedAt ? new Date(workflow.updatedAt) : new Date();
+      
+      // Consider changed if: raw_data differs OR n8n updatedAt is newer
+      hasChanged = existingRawData !== newRawData || newUpdatedAt > existingUpdatedAt;
+    }
+    
+    if (!hasChanged) {
+      console.log(`📄 Workflow ${workflow.id} unchanged, skipping update`);
+      return false;
+    }
+    
     await this.db.query(`
       INSERT INTO tenant_workflows (id, tenant_id, name, active, created_at, updated_at, raw_data, last_synced_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
@@ -487,8 +513,11 @@ export class MultiTenantApiClient {
       workflow.active,
       workflow.createdAt ? new Date(workflow.createdAt) : new Date(),
       workflow.updatedAt ? new Date(workflow.updatedAt) : new Date(),
-      JSON.stringify(workflow.rawData)
+      newRawData
     ]);
+    
+    console.log(`✅ Workflow ${workflow.id} updated successfully`);
+    return true;
   }
 
   /**

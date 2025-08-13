@@ -314,7 +314,7 @@ export class MultiTenantScheduler {
   /**
    * Sync singolo tenant
    */
-  private async syncSingleTenant(tenant: any): Promise<{
+  public async syncSingleTenant(tenant: any): Promise<{
     tenantId: string;
     workflowsSynced: number;
     executionsSynced: number;

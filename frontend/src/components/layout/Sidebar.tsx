@@ -12,6 +12,7 @@ import {
   Database,
   Clock,
   Shield,
+  Bot,
   X,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
@@ -44,12 +45,14 @@ const navItems = [
       { icon: BarChart3, label: 'Statistics', path: '/stats' },
       { icon: AlertCircle, label: 'Alerts', path: '/alerts' },
       { icon: Database, label: 'Database', path: '/database' },
+      { icon: Bot, label: 'AI Agents', path: '/agents' },
     ],
   },
   {
     title: 'System',
     items: [
       { icon: Shield, label: 'Security', path: '/security' },
+      { icon: Shield, label: 'Compliance & Audit', path: '/security/premium' },
       { icon: Settings, label: 'Settings', path: '/settings' },
     ],
   },
@@ -109,7 +112,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       }
                     >
                       <item.icon className="h-4 w-4" />
-                      {item.label}
+                      <span className="flex-1">{item.label}</span>
+                      {(item as any).premium && (
+                        <span className="text-xs px-1.5 py-0.5 bg-green-400/20 text-green-400 rounded-full font-medium">
+                          PREMIUM
+                        </span>
+                      )}
                     </NavLink>
                   ))}
                 </div>

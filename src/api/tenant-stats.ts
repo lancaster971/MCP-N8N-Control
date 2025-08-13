@@ -365,13 +365,16 @@ router.get('/tenant/:tenantId/workflows/:workflowId/details', authMiddleware, as
           nodeAnalysis.aiAgents.push(agentInfo);
           simplifiedCategories['AI/ML']++;
         }
-        // Identify AI Tools (used by agents)
+        // Identify AI Tools (used by agents) - INCLUDING VECTOR STORES
         else if (nodeType.includes('toolWorkflow') || 
-                 nodeType.includes('tool') && nodeType.includes('langchain')) {
+                 (nodeType.includes('tool') && nodeType.includes('langchain')) ||
+                 nodeType.includes('vectorStore') ||
+                 nodeType.includes('embedding') ||
+                 nodeType.includes('retriever')) {
           nodeAnalysis.tools.push({
             name: nodeName,
             type: nodeType.split('.').pop() || nodeType,
-            description: nodeParameters.description || nodeParameters.name || nodeName
+            description: nodeParameters.description || nodeParameters.toolDescription || nodeParameters.name || nodeName
           });
           simplifiedCategories['AI/ML']++;
         }
@@ -421,20 +424,19 @@ router.get('/tenant/:tenantId/workflows/:workflowId/details', authMiddleware, as
           });
           simplifiedCategories['Output/Response']++;
         }
-        // Other AI/ML nodes (embeddings, vector stores, etc)
+        // Other AI/ML nodes (language models, etc - excluding tools)
         else if (nodeType.includes('langchain') || 
                  nodeType.includes('openai') || 
-                 nodeType.includes('embedding') ||
-                 nodeType.includes('vectorStore')) {
+                 nodeType.includes('ChatModel') ||
+                 nodeType.includes('LanguageModel')) {
           simplifiedCategories['AI/ML']++;
         }
-        // External services
+        // External services (excluding vector stores which are tools)
         else if (nodeType.includes('http') || 
                  nodeType.includes('api') ||
                  nodeType.includes('postgres') ||
                  nodeType.includes('mysql') ||
-                 nodeType.includes('supabase') ||
-                 nodeType.includes('qdrant')) {
+                 nodeType.includes('supabase')) {
           simplifiedCategories['External Services']++;
         }
         // Data processing

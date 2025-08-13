@@ -114,10 +114,16 @@ export class N8nApiService {
   /**
    * Get all workflow executions
    * 
+   * @param options Query options
    * @returns Array of execution objects
    */
-  async getExecutions(): Promise<Execution[]> {
-    return this.client.getExecutions();
+  async getExecutions(options?: {
+    includeData?: boolean;
+    status?: 'error' | 'success' | 'waiting';
+    workflowId?: string;
+    limit?: number;
+  }): Promise<Execution[]> {
+    return this.client.getExecutions(options);
   }
 
   /**
@@ -155,10 +161,11 @@ export class N8nApiService {
    * Get a specific execution by ID
    * 
    * @param id Execution ID
+   * @param includeData Whether to include detailed execution data
    * @returns Execution object
    */
-  async getExecution(id: string): Promise<Execution> {
-    return this.client.getExecution(id);
+  async getExecution(id: string, includeData = false): Promise<Execution> {
+    return this.client.getExecution(id, includeData);
   }
   
   /**
@@ -169,6 +176,56 @@ export class N8nApiService {
    */
   async deleteExecution(id: string): Promise<any> {
     return this.client.deleteExecution(id);
+  }
+
+  /**
+   * Generate security audit for n8n instance
+   * 
+   * @param options Audit configuration options
+   * @returns Security audit report with risk analysis
+   */
+  async generateSecurityAudit(options?: {
+    daysAbandonedWorkflow?: number;
+    categories?: ('credentials' | 'database' | 'nodes' | 'filesystem' | 'instance')[];
+  }): Promise<any> {
+    return this.client.generateSecurityAudit(options);
+  }
+
+  /**
+   * Get all credentials for security analysis
+   * 
+   * @returns Array of credential objects
+   */
+  async getCredentials(): Promise<any[]> {
+    return this.client.getCredentials();
+  }
+
+  /**
+   * Get all users for access control analysis
+   * 
+   * @param includeRole Whether to include user roles
+   * @returns Array of user objects
+   */
+  async getUsers(includeRole: boolean = true): Promise<any[]> {
+    return this.client.getUsers(includeRole);
+  }
+
+  /**
+   * Get all tags for organization analysis
+   * 
+   * @returns Array of tag objects
+   */
+  async getTags(): Promise<any[]> {
+    return this.client.getTags();
+  }
+
+  /**
+   * Get all variables for configuration security analysis
+   * 
+   * @returns Array of variable objects
+   */
+  async getVariables(): Promise<any[]> {
+    return this.client.getVariables();
   }
 }
 

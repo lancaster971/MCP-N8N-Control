@@ -666,4 +666,87 @@ router.get('/stats', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/scheduler/refresh-workflow:
+ *   post:
+ *     tags: [Scheduler]
+ *     summary: Force refresh specific workflow
+ *     description: Forces immediate sync of a specific workflow from n8n, bypassing cache
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tenantId
+ *               - workflowId
+ *             properties:
+ *               tenantId:
+ *                 type: string
+ *                 description: Tenant ID
+ *               workflowId:
+ *                 type: string
+ *                 description: Workflow ID to refresh
+ *     responses:
+ *       200:
+ *         description: Workflow refreshed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 workflow:
+ *                   type: object
+ *                 timestamp:
+ *                   type: string
+ *       400:
+ *         description: Invalid request parameters
+ *       500:
+ *         description: Failed to refresh workflow
+ */
+router.post('/refresh-workflow', async (req: Request, res: Response) => {
+  try {
+    const { tenantId, workflowId } = req.body;
+    
+    if (!tenantId || !workflowId) {
+      return res.status(400).json({
+        error: 'Missing required parameters',
+        message: 'tenantId and workflowId are required'
+      });
+    }
+    
+    console.log(`🔄 Force refreshing workflow ${workflowId} for tenant ${tenantId}`);
+    
+    // Force immediate sync by resetting the last_synced_at timestamp
+    await db.query(`
+      UPDATE tenant_workflows 
+      SET last_synced_at = '2000-01-01'
+      WHERE id = $1 AND tenant_id = $2
+    `, [workflowId, tenantId]);
+    
+    // Trigger sync for this tenant
+    const result = await scheduler.syncSingleTenant({ id: tenantId });
+    
+    res.json({
+      success: true,
+      workflow: {
+        id: workflowId,
+        tenantId: tenantId,
+        synced: result.workflowsSynced > 0
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to refresh workflow',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

@@ -113,11 +113,37 @@ export class N8nApiClient {
   /**
    * Get all workflow executions
    * 
+   * @param options Query options
    * @returns Array of execution objects
    */
-  async getExecutions(): Promise<any[]> {
+  async getExecutions(options?: {
+    includeData?: boolean;
+    status?: 'error' | 'success' | 'waiting';
+    workflowId?: string;
+    limit?: number;
+    cursor?: string;
+  }): Promise<any[]> {
     try {
-      const response = await this.axiosInstance.get('/executions');
+      const params = new URLSearchParams();
+      
+      if (options?.includeData) {
+        params.append('includeData', 'true');
+      }
+      if (options?.status) {
+        params.append('status', options.status);
+      }
+      if (options?.workflowId) {
+        params.append('workflowId', options.workflowId);
+      }
+      if (options?.limit) {
+        params.append('limit', options.limit.toString());
+      }
+      if (options?.cursor) {
+        params.append('cursor', options.cursor);
+      }
+      
+      const url = `/executions${params.toString() ? '?' + params.toString() : ''}`;
+      const response = await this.axiosInstance.get(url);
       return response.data.data || [];
     } catch (error) {
       throw handleAxiosError(error, 'Failed to fetch executions');
@@ -128,11 +154,13 @@ export class N8nApiClient {
    * Get a specific execution by ID
    * 
    * @param id Execution ID
+   * @param includeData Whether to include detailed execution data
    * @returns Execution object
    */
-  async getExecution(id: string): Promise<any> {
+  async getExecution(id: string, includeData = false): Promise<any> {
     try {
-      const response = await this.axiosInstance.get(`/executions/${id}`);
+      const url = includeData ? `/executions/${id}?includeData=true` : `/executions/${id}`;
+      const response = await this.axiosInstance.get(url);
       return response.data;
     } catch (error) {
       throw handleAxiosError(error, `Failed to fetch execution ${id}`);
@@ -281,6 +309,83 @@ export class N8nApiClient {
       return response.data;
     } catch (error) {
       throw handleAxiosError(error, `Failed to delete execution ${id}`);
+    }
+  }
+
+  /**
+   * Generate security audit for n8n instance
+   * 
+   * @param options Audit configuration options
+   * @returns Security audit report
+   */
+  async generateSecurityAudit(options?: {
+    daysAbandonedWorkflow?: number;
+    categories?: ('credentials' | 'database' | 'nodes' | 'filesystem' | 'instance')[];
+  }): Promise<any> {
+    try {
+      const requestBody = options ? { additionalOptions: options } : {};
+      const response = await this.axiosInstance.post('/audit', requestBody);
+      return response.data;
+    } catch (error) {
+      throw handleAxiosError(error, 'Failed to generate security audit');
+    }
+  }
+
+  /**
+   * Get all credentials (for security analysis)
+   * 
+   * @returns Array of credential objects
+   */
+  async getCredentials(): Promise<any[]> {
+    try {
+      const response = await this.axiosInstance.get('/credentials');
+      return response.data.data || [];
+    } catch (error) {
+      throw handleAxiosError(error, 'Failed to fetch credentials');
+    }
+  }
+
+  /**
+   * Get all users (for access analysis)
+   * 
+   * @param includeRole Whether to include user roles
+   * @returns Array of user objects
+   */
+  async getUsers(includeRole: boolean = true): Promise<any[]> {
+    try {
+      const params = includeRole ? '?includeRole=true' : '';
+      const response = await this.axiosInstance.get(`/users${params}`);
+      return response.data.data || [];
+    } catch (error) {
+      throw handleAxiosError(error, 'Failed to fetch users');
+    }
+  }
+
+  /**
+   * Get all tags (for organization analysis)
+   * 
+   * @returns Array of tag objects
+   */
+  async getTags(): Promise<any[]> {
+    try {
+      const response = await this.axiosInstance.get('/tags');
+      return response.data.data || [];
+    } catch (error) {
+      throw handleAxiosError(error, 'Failed to fetch tags');
+    }
+  }
+
+  /**
+   * Get all variables (for configuration security analysis)
+   * 
+   * @returns Array of variable objects
+   */
+  async getVariables(): Promise<any[]> {
+    try {
+      const response = await this.axiosInstance.get('/variables');
+      return response.data.data || [];
+    } catch (error) {
+      throw handleAxiosError(error, 'Failed to fetch variables');
     }
   }
 }

@@ -11,6 +11,8 @@ import { DatabasePage } from './components/database/DatabasePage'
 import { AlertsPage } from './components/alerts/AlertsPage'
 import { SchedulerPage } from './components/scheduler/SchedulerPage'
 import { SecurityPage } from './components/security/SecurityPage'
+import SecurityPremiumPage from './components/security/SecurityPremiumPage'
+import AgentsPage from './components/agents/AgentsPage'
 import { LoginPage } from './components/auth/LoginPage'
 import { useAuthStore } from './store/authStore'
 
@@ -70,6 +72,8 @@ function App() {
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="database" element={<DatabasePage />} />
             <Route path="security" element={<SecurityPage />} />
+            <Route path="security/premium" element={<SecurityPremiumPage />} />
+            <Route path="agents" element={<AgentsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

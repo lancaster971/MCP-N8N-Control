@@ -47,6 +47,8 @@ export const schedulerAPI = {
   triggerSync: (tenantId?: string) =>
     api.post('/api/scheduler/sync', { tenantId }),
   getSyncHistory: () => api.get('/api/logs'),
+  refreshWorkflow: (tenantId: string, workflowId: string) => 
+    api.post('/api/scheduler/refresh-workflow', { tenantId, workflowId })
 }
 
 // Tenants API

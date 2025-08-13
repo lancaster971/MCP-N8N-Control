@@ -13,8 +13,13 @@ import authController from '../api/auth-controller.js';
 import healthController from '../api/health-controller.js';
 import backupController from '../api/backup-controller.js';
 import tenantStatsRouter from '../api/tenant-stats.js';
+import securityRoutes from '../api/security-routes.js';
+import aiAgentsController from '../api/ai-agents-controller.js';
+import executionImportRoutes from '../api/execution-import-routes.js';
+import executionEnrichmentRoutes from '../api/execution-enrichment-routes.js';
 import { DatabaseConnection } from '../database/connection.js';
 import { setupSwagger } from '../api/swagger-config.js';
+import { EnvConfig } from '../config/environment.js';
 
 export interface ServerConfig {
   port: number;
@@ -111,7 +116,11 @@ export class ExpressServer {
     // API routes
     this.app.use('/api', schedulerController);
     this.app.use('/api', backupController);
-    this.app.use('/api', tenantStatsRouter);  // Nuove route per tenant-specific stats
+    this.app.use('/api', tenantStatsRouter);  // Route per tenant-specific stats
+    this.app.use('/api', securityRoutes);     // 🚀 PREMIUM: Security routes
+    this.app.use('/api', aiAgentsController); // 🤖 KILLER FEATURE: AI Agents Transparency
+    this.app.use('/api', executionImportRoutes); // 🔄 Import execution data completi (n8n API)
+    this.app.use('/api', executionEnrichmentRoutes); // ✨ Enrich execution data dal database
     this.app.use('/auth', authController);
     this.app.use('/health', healthController);
 
