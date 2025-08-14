@@ -148,6 +148,7 @@ router.get('/tenant/:tenantId/stats', authMiddleware, async (req: Request, res: 
 router.get('/tenant/:tenantId/workflows', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { tenantId } = req.params;
+    const { filter } = req.query; // Nuovo parametro per filtro AI agents
     const user = (req as any).user;
     
     // Verifica permessi
@@ -155,7 +156,8 @@ router.get('/tenant/:tenantId/workflows', authMiddleware, async (req: Request, r
       return res.status(403).json({ error: 'Access denied to this tenant' });
     }
     
-    const workflows = await db.getMany(`
+    // Base query con AI agents detection
+    let baseQuery = `
       SELECT 
         id,
         name,
@@ -166,17 +168,36 @@ router.get('/tenant/:tenantId/workflows', authMiddleware, async (req: Request, r
         updated_at,
         node_count,
         (SELECT COUNT(*) FROM tenant_executions WHERE workflow_id = tw.id) as execution_count,
-        (SELECT MAX(started_at) FROM tenant_executions WHERE workflow_id = tw.id) as last_execution
+        (SELECT MAX(started_at) FROM tenant_executions WHERE workflow_id = tw.id) as last_execution,
+        -- Rileva se workflow contiene AI agents
+        CASE 
+          WHEN raw_data::text ~* '(agent|ai|langchain|openai|anthropic|claude)' THEN true
+          ELSE false
+        END as has_ai_agents,
+        -- Conta AI agents nel workflow
+        (
+          SELECT COUNT(*) 
+          FROM jsonb_array_elements(COALESCE(raw_data->'nodes', '[]'::jsonb)) as node
+          WHERE node->>'type' ~* '(agent|ai|langchain|openai|anthropic|claude)'
+        ) as ai_agent_count
       FROM tenant_workflows tw
-      WHERE tenant_id = $1
+      WHERE tenant_id = $1`;
+    
+    // Filtro condizionale per AI agents
+    if (filter === 'ai-agents') {
+      baseQuery += ` AND raw_data::text ~* '(agent|ai|langchain|openai|anthropic|claude)'`;
+    }
+    
+    baseQuery += `
       ORDER BY 
         CASE 
           WHEN active = true THEN 1
           WHEN is_archived = true THEN 3
           ELSE 2
         END,
-        name ASC
-    `, [tenantId]);
+        name ASC`;
+    
+    const workflows = await db.getMany(baseQuery, [tenantId]);
     
     res.json({
       tenantId,
@@ -620,7 +641,20 @@ router.get('/tenant/:tenantId/workflows/:workflowId/details', authMiddleware, as
           count: parseInt(err.count),
           lastOccurred: err.last_occurred
         }))
-      }
+      },
+      // AI Timeline data condizionale - solo se workflow ha AI agents
+      ...(nodeAnalysis.aiAgents.length > 0 && {
+        aiData: {
+          hasAIAgents: true,
+          agentCount: nodeAnalysis.aiAgents.length,
+          tools: nodeAnalysis.tools,
+          lastExecution: workflow.last_execution ? {
+            id: workflow.last_execution,
+            hasDetailedSteps: false // Placeholder - verrà popolato dal timeline endpoint
+          } : null,
+          timelineEndpoint: `/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`
+        }
+      })
     });
   } catch (error) {
     console.error('Error getting workflow details:', error);

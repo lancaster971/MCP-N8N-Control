@@ -71,7 +71,7 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
   tenantId,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'executions' | 'nodes' | 'performance' | 'activity'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'executions' | 'nodes' | 'performance' | 'activity' | 'ai-timeline' | 'ai-context'>('overview')
 
   // Fetch detailed workflow data with smart cache invalidation
   const { data: detailData, isLoading, error, refetch } = useQuery({
@@ -94,6 +94,7 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
   const nodeAnalysis: NodeAnalysis = detailData?.nodeAnalysis || { totalNodes: 0, nodesByType: {}, triggers: [], outputs: [], aiAgents: [], tools: [], subWorkflows: [], connections: [] }
   const executionStats: ExecutionStats = detailData?.executionStats || { total: 0, successful: 0, failed: 0, averageDuration: 0, recentExecutions: [] }
   const performance = detailData?.performance || {}
+  const aiData = detailData?.aiData || null
   
   console.log('nodeAnalysis:', nodeAnalysis)
   console.log('executionStats:', executionStats)
@@ -339,6 +340,11 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
             { id: 'nodes', label: 'Nodes', icon: Layers },
             { id: 'performance', label: 'Performance', icon: TrendingUp },
             { id: 'activity', label: 'Activity', icon: Clock },
+            // Tabs AI condizionali - solo se workflow ha AI agents
+            ...(aiData?.hasAIAgents ? [
+              { id: 'ai-timeline', label: 'AI Timeline', icon: Brain },
+              { id: 'ai-context', label: 'AI Context', icon: MessageSquare },
+            ] : [])
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -893,6 +899,125 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* AI Timeline Tab - condizionale */}
+              {activeTab === 'ai-timeline' && aiData?.hasAIAgents && (
+                <div className="p-6">
+                  <div className="control-card p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                      <Brain className="h-5 w-5 text-primary" />
+                      AI Agent Timeline
+                    </h3>
+                    <div className="mb-4 text-sm text-muted">
+                      Step-by-step execution timeline per questo workflow AI.
+                      <a 
+                        href={aiData.timelineEndpoint}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-2 text-primary hover:underline"
+                      >
+                        View Full Timeline →
+                      </a>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="control-card p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bot className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium text-foreground">AI Agents</span>
+                        </div>
+                        <p className="text-2xl font-bold text-primary">{aiData.agentCount}</p>
+                      </div>
+                      
+                      <div className="control-card p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package className="h-4 w-4 text-muted" />
+                          <span className="text-sm font-medium text-foreground">Tools</span>
+                        </div>
+                        <p className="text-2xl font-bold text-foreground">{aiData.tools?.length || 0}</p>
+                      </div>
+                      
+                      <div className="control-card p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Activity className="h-4 w-4 text-muted" />
+                          <span className="text-sm font-medium text-foreground">Last Execution</span>
+                        </div>
+                        <p className="text-sm text-foreground">
+                          {aiData.lastExecution?.id ? `#${aiData.lastExecution.id.substring(0, 8)}` : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* AI Tools List */}
+                    {aiData.tools && aiData.tools.length > 0 && (
+                      <div className="mb-6">
+                        <h4 className="text-md font-semibold text-foreground mb-3">Connected AI Tools</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {aiData.tools.map((tool: any, index: number) => (
+                            <div key={index} className="control-card p-3 border-primary/20">
+                              <div className="flex items-start gap-3">
+                                <Package className="h-4 w-4 text-primary mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-foreground truncate">{tool.name}</p>
+                                  <p className="text-xs text-muted">{tool.type}</p>
+                                  {tool.description && (
+                                    <p className="text-xs text-muted mt-1 truncate">{tool.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Context Tab - condizionale */}
+              {activeTab === 'ai-context' && aiData?.hasAIAgents && (
+                <div className="p-6">
+                  <div className="control-card p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-primary" />
+                      AI Business Context
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                        <h4 className="text-sm font-semibold text-primary mb-2">AI Agent Information</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-xs text-muted">Agent Count</span>
+                            <p className="text-foreground font-medium">{aiData.agentCount}</p>
+                          </div>
+                          <div>
+                            <span className="text-xs text-muted">Connected Tools</span>
+                            <p className="text-foreground font-medium">{aiData.tools?.length || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-muted">
+                        <p className="mb-2">
+                          Questo workflow contiene <strong className="text-primary">{aiData.agentCount} AI agent{aiData.agentCount > 1 ? 's' : ''}</strong> 
+                          che processo automaticamente richieste e dati.
+                        </p>
+                        <p>
+                          Per visualizzare il timeline dettagliato step-by-step degli AI agents, 
+                          usa il tab <strong>"AI Timeline"</strong> o apri il 
+                          <a 
+                            href={`/agents`}
+                            className="ml-1 text-primary hover:underline"
+                          >
+                            pannello AI Agents dedicato
+                          </a>.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

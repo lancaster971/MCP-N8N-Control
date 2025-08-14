@@ -45,7 +45,6 @@ const navItems = [
       { icon: BarChart3, label: 'Statistics', path: '/stats' },
       { icon: AlertCircle, label: 'Alerts', path: '/alerts' },
       { icon: Database, label: 'Database', path: '/database' },
-      { icon: Bot, label: 'AI Agents', path: '/agents' },
     ],
   },
   {
