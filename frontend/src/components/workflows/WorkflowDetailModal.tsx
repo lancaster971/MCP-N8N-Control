@@ -71,7 +71,7 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
   tenantId,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'executions' | 'nodes' | 'performance' | 'activity' | 'ai-timeline' | 'ai-context'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'executions' | 'nodes' | 'performance' | 'activity' | 'ai-timeline'>('overview')
 
   // Fetch detailed workflow data with smart cache invalidation
   const { data: detailData, isLoading, error, refetch } = useQuery({
@@ -343,7 +343,6 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
             // Tabs AI condizionali - solo se workflow ha AI agents
             ...(aiData?.hasAIAgents ? [
               { id: 'ai-timeline', label: 'AI Timeline', icon: Brain },
-              { id: 'ai-context', label: 'AI Context', icon: MessageSquare },
             ] : [])
           ].map(({ id, label, icon: Icon }) => (
             <button
@@ -904,54 +903,57 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
                 </div>
               )}
 
-              {/* AI Timeline Tab - condizionale */}
+              {/* AI Timeline Tab - usando AgentDetailModal esistente */}
               {activeTab === 'ai-timeline' && aiData?.hasAIAgents && (
-                <AITimelineTab 
-                  workflowId={workflow.id}
-                  tenantId={tenantId}
-                  aiData={aiData}
-                />
-              )}
-
-              {/* AI Context Tab - condizionale */}
-              {activeTab === 'ai-context' && aiData?.hasAIAgents && (
                 <div className="p-6">
                   <div className="control-card p-6">
                     <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-primary" />
-                      AI Business Context
+                      <Brain className="h-5 w-5 text-primary" />
+                      AI Agent Timeline
                     </h3>
-                    
-                    <div className="space-y-4">
-                      <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-                        <h4 className="text-sm font-semibold text-primary mb-2">AI Agent Information</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <span className="text-xs text-muted">Agent Count</span>
-                            <p className="text-foreground font-medium">{aiData.agentCount}</p>
-                          </div>
-                          <div>
-                            <span className="text-xs text-muted">Connected Tools</span>
-                            <p className="text-foreground font-medium">{aiData.tools?.length || 0}</p>
-                          </div>
+                    <div className="mb-4 p-4 bg-primary/5 border border-primary/20 rounded">
+                      <p className="text-sm text-primary mb-2">
+                        ⚠️ Per visualizzare il timeline completo step-by-step, apri il modal dedicato:
+                      </p>
+                      <button
+                        onClick={() => {
+                          const url = `http://localhost:5173/agents`
+                          window.open(url, '_blank')
+                        }}
+                        className="btn-control-primary"
+                      >
+                        <Brain className="h-4 w-4 mr-2" />
+                        Apri AI Timeline Dettagliato
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="control-card p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bot className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium text-foreground">AI Agents</span>
                         </div>
+                        <p className="text-2xl font-bold text-primary">{aiData.agentCount}</p>
                       </div>
-                      
-                      <div className="text-sm text-muted">
-                        <p className="mb-2">
-                          Questo workflow contiene <strong className="text-primary">{aiData.agentCount} AI agent{aiData.agentCount > 1 ? 's' : ''}</strong> 
-                          che processo automaticamente richieste e dati.
-                        </p>
-                        <p>
-                          Per visualizzare il timeline dettagliato step-by-step degli AI agents, 
-                          usa il tab <strong>"AI Timeline"</strong> o apri il 
-                          <a 
-                            href={`/agents`}
-                            className="ml-1 text-primary hover:underline"
-                          >
-                            pannello AI Agents dedicato
-                          </a>.
-                        </p>
+                      <div className="control-card p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Package className="h-4 w-4 text-muted" />
+                          <span className="text-sm font-medium text-foreground">Tools</span>
+                        </div>
+                        <p className="text-2xl font-bold text-foreground">{aiData.tools?.length || 0}</p>
+                      </div>
+                      <div className="control-card p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Activity className="h-4 w-4 text-muted" />
+                          <span className="text-sm font-medium text-foreground">Timeline URL</span>
+                        </div>
+                        <a 
+                          href={aiData.timelineEndpoint}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline"
+                        >
+                          API Endpoint →
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -965,156 +967,4 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
   )
 }
 
-// AI Timeline Tab Component
-interface AITimelineTabProps {
-  workflowId: string
-  tenantId: string
-  aiData: any
-}
-
-const AITimelineTab: React.FC<AITimelineTabProps> = ({ workflowId, tenantId, aiData }) => {
-  // Fetch timeline data da AI agents API con fallback tenant
-  const { data: timelineData, isLoading: isLoadingTimeline, error: timelineError } = useQuery({
-    queryKey: ['ai-timeline', tenantId, workflowId],
-    queryFn: async () => {
-      // Prima prova con il tenant passato
-      try {
-        const response = await api.get(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`)
-        return response.data
-      } catch (error) {
-        // Se fallisce, prova con client_simulation_a (tenant con dati AI)
-        console.log(`Timeline fallback: trying client_simulation_a for workflow ${workflowId}`)
-        const fallbackResponse = await api.get(`/api/tenant/client_simulation_a/agents/workflow/${workflowId}/timeline`)
-        return fallbackResponse.data
-      }
-    },
-    enabled: !!workflowId && !!aiData?.hasAIAgents,
-    refetchInterval: 60000, // Refresh ogni minuto per timeline AI
-  })
-
-  const timeline = timelineData?.data?.timeline || []
-  const businessContext = timelineData?.data?.businessContext || {}
-
-  return (
-    <div className="p-6">
-      <div className="control-card p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Brain className="h-5 w-5 text-primary" />
-          AI Agent Timeline
-        </h3>
-        
-        {isLoadingTimeline ? (
-          <div className="flex items-center justify-center py-8">
-            <Activity className="h-6 w-6 text-primary animate-pulse mr-2" />
-            <span className="text-muted">Caricamento timeline...</span>
-          </div>
-        ) : timelineError ? (
-          <div className="text-center py-8 text-muted">
-            <XCircle className="h-8 w-8 mx-auto mb-2" />
-            <p>Errore nel caricamento timeline</p>
-          </div>
-        ) : timeline.length === 0 ? (
-          <div className="text-center py-8 text-muted">
-            <Clock className="h-8 w-8 mx-auto mb-2" />
-            <p>Nessun dato timeline disponibile</p>
-          </div>
-        ) : (
-          <>
-            {/* Stats header */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="control-card p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Bot className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">AI Agents</span>
-                </div>
-                <p className="text-2xl font-bold text-primary">{aiData.agentCount}</p>
-              </div>
-              
-              <div className="control-card p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-4 w-4 text-muted" />
-                  <span className="text-sm font-medium text-foreground">Tools</span>
-                </div>
-                <p className="text-2xl font-bold text-foreground">{aiData.tools?.length || 0}</p>
-              </div>
-              
-              <div className="control-card p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="h-4 w-4 text-muted" />
-                  <span className="text-sm font-medium text-foreground">Timeline Steps</span>
-                </div>
-                <p className="text-2xl font-bold text-foreground">{timeline.length}</p>
-              </div>
-            </div>
-
-            {/* Timeline Steps */}
-            <div className="space-y-4">
-              <h4 className="text-md font-semibold text-foreground mb-3">Execution Timeline</h4>
-              {timeline.map((step: any, index: number) => (
-                <div key={step.nodeId || index} className="control-card p-4 border-l-4 border-primary/30">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className="w-8 h-8 bg-primary/10 border border-primary/30 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary">{step.order}</span>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h5 className="text-sm font-medium text-foreground">{step.nodeName}</h5>
-                        <div className="flex items-center gap-2">
-                          {step.status === 'success' ? (
-                            <CheckCircle className="h-4 w-4 text-primary" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-muted" />
-                          )}
-                          <span className="text-xs text-muted">{step.executionTime}ms</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted mb-2">{step.nodeType}</p>
-                      
-                      {/* Input/Output collapsed view */}
-                      <details className="text-xs">
-                        <summary className="cursor-pointer text-primary hover:underline">
-                          View Input/Output Data
-                        </summary>
-                        <div className="mt-2 bg-card/50 p-3 rounded border">
-                          <div className="mb-2">
-                            <strong className="text-foreground">Input:</strong>
-                            <pre className="text-muted text-xs mt-1 whitespace-pre-wrap max-h-24 overflow-y-auto">
-                              {step.inputData ? JSON.stringify(step.inputData, null, 2) : 'No input data'}
-                            </pre>
-                          </div>
-                          <div>
-                            <strong className="text-foreground">Output:</strong>
-                            <pre className="text-muted text-xs mt-1 whitespace-pre-wrap max-h-24 overflow-y-auto">
-                              {step.outputData ? JSON.stringify(step.outputData, null, 2) : 'No output data'}
-                            </pre>
-                          </div>
-                        </div>
-                      </details>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Business Context */}
-            {Object.keys(businessContext).length > 0 && (
-              <div className="mt-6 control-card p-4 bg-primary/5 border-primary/20">
-                <h4 className="text-sm font-semibold text-primary mb-3">Business Context</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  {Object.entries(businessContext).map(([key, value]) => (
-                    <div key={key}>
-                      <span className="text-muted">{key}:</span>
-                      <span className="text-foreground ml-2">{String(value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
+// AI Timeline Tab Component - temporaneamente rimosso per debug
