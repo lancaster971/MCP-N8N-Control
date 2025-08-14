@@ -86,7 +86,7 @@ export const WorkflowsPage: React.FC = () => {
         setIsLoading(true)
         setError(null)
         const params = typeFilter !== 'all' ? `?filter=${typeFilter}` : ''
-        const response = await fetch(`http://localhost:3001/api/tenant/${tenantId}/workflows${params}`)
+        const response = await fetch(`http://localhost:3001/api/workflows${params}`)
         const data = await response.json()
         console.log('Workflows fetched:', data)
         setWorkflowsData(data)

@@ -4,15 +4,16 @@
  * Server REST API per controllo multi-tenant scheduler
  */
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import schedulerController from '../api/scheduler-controller.js';
+import schedulerMonoController from '../api/scheduler-mono.js';
 import authController from '../api/auth-controller.js';
 import healthController from '../api/health-controller.js';
 import backupController from '../api/backup-controller.js';
-import tenantStatsRouter from '../api/tenant-stats.js';
+// import tenantStatsRouter from '../api/tenant-stats.js'; // DISABLED - multi-tenant
 import securityRoutes from '../api/security-routes.js';
 import aiAgentsController from '../api/ai-agents-controller.js';
 import executionImportRoutes from '../api/execution-import-routes.js';
@@ -114,9 +115,9 @@ export class ExpressServer {
     });
 
     // API routes
-    this.app.use('/api', schedulerController);
+    this.app.use('/api', schedulerMonoController);
     this.app.use('/api', backupController);
-    this.app.use('/api', tenantStatsRouter);  // Route per tenant-specific stats
+    // this.app.use('/api', tenantStatsRouter);  // DISABLED - multi-tenant
     this.app.use('/api', securityRoutes);     // 🚀 PREMIUM: Security routes
     this.app.use('/api', aiAgentsController); // 🤖 KILLER FEATURE: AI Agents Transparency
     this.app.use('/api', executionImportRoutes); // 🔄 Import execution data completi (n8n API)

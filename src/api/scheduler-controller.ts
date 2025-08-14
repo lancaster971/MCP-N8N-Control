@@ -1,1 +1,1 @@
-export { default } from './scheduler-controller-swagger.js';
+export { default } from './scheduler-mono.js';

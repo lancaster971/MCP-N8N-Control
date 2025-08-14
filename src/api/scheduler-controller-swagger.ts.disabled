@@ -1,52 +1,62 @@
 /**
- * Scheduler Controller with Swagger Documentation
+ * Mono-Tenant Scheduler Controller 
  * 
- * REST API endpoints per controllo multi-tenant scheduler
+ * REST API endpoints per sync diretto n8n -> PostgreSQL
  */
 
 import express, { Request, Response } from 'express';
-import { getMultiTenantScheduler } from '../backend/multi-tenant-scheduler.js';
-import { createMultiTenantApiClient } from './multi-tenant-client.js';
 import { DatabaseConnection } from '../database/connection.js';
-import { getAuthService, AuthUser } from '../auth/jwt-auth.js';
+import { MonoSyncService } from './mono-sync.js';
 
 const router = express.Router();
-const scheduler = getMultiTenantScheduler();
-const client = createMultiTenantApiClient();
 const db = DatabaseConnection.getInstance();
-const authService = getAuthService();
+let monoSync: MonoSyncService;
+
+// Initialize mono sync service
+try {
+  monoSync = new MonoSyncService(db);
+} catch (error) {
+  console.error('❌ Failed to initialize MonoSyncService:', error);
+}
 
 /**
  * @swagger
  * /api/scheduler/status:
  *   get:
- *     summary: Status scheduler
- *     description: Ottieni stato completo dello scheduler e statistiche sistema
+ *     summary: Status mono-tenant sync
+ *     description: Ottieni stato sync e statistiche database
  *     tags: [Scheduler]
- *     responses:
- *       200:
- *         description: Scheduler status
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/SchedulerStatus'
- *       500:
- *         description: Internal server error
  */
 router.get('/scheduler/status', async (req: Request, res: Response) => {
   try {
-    const stats = scheduler.getStats();
-    const health = await scheduler.healthCheck();
+    // Get basic stats from database
+    const workflowCount = await db.query('SELECT COUNT(*) as count FROM workflows');
+    const executionCount = await db.query('SELECT COUNT(*) as count FROM executions');
+    const lastSync = await db.query('SELECT * FROM sync_logs ORDER BY started_at DESC LIMIT 1');
     
     res.json({
       timestamp: new Date().toISOString(),
       scheduler: {
-        isRunning: stats.isRunning,
-        scheduledTasks: stats.scheduledTasks,
-        config: stats.config
+        isRunning: true,
+        type: 'mono-tenant',
+        config: {
+          apiUrl: process.env.N8N_API_URL,
+          hasApiKey: !!process.env.N8N_API_KEY
+        }
       },
-      stats: stats.stats,
-      health: health,
+      stats: {
+        totalWorkflows: parseInt(workflowCount.rows[0]?.count || '0'),
+        totalExecutions: parseInt(executionCount.rows[0]?.count || '0'),
+        lastSync: lastSync.rows[0] || null
+      },
+      health: {
+        status: monoSync ? 'healthy' : 'degraded',
+        checks: {
+          database: true,
+          monoSync: !!monoSync,
+          apiConnection: !!process.env.N8N_API_KEY
+        }
+      },
       system: {
         uptime: process.uptime(),
         memory: process.memoryUsage(),
@@ -252,45 +262,54 @@ router.post('/scheduler/restart', async (req: Request, res: Response) => {
  */
 router.post('/scheduler/sync', async (req: Request, res: Response) => {
   try {
-    const { tenantId } = req.body;
-    
-    if (tenantId) {
-      // Sync singolo tenant
-      const result = await client.syncTenantData(tenantId);
-      
-      res.json({
-        message: `Sync completed for tenant ${tenantId}`,
-        timestamp: new Date().toISOString(),
-        result: {
-          tenantId,
-          workflowsSynced: result.workflowsSynced,
-          executionsSynced: result.executionsSynced,
-          errors: result.errors
-        }
-      });
-    } else {
-      // Sync tutti i tenant
-      const result = await scheduler.forceSyncAllTenants();
-      
-      res.json({
-        message: 'Multi-tenant sync completed',
-        timestamp: new Date().toISOString(),
-        result: {
-          totalTenants: result.totalTenants,
-          successfulTenants: result.successfulTenants,
-          failedTenants: result.failedTenants,
-          totalWorkflowsSynced: result.totalWorkflowsSynced,
-          totalExecutionsSynced: result.totalExecutionsSynced,
-          duration_ms: result.duration_ms,
-          errors: result.errors
-        }
+    if (!monoSync) {
+      return res.status(500).json({
+        error: 'MonoSyncService not initialized',
+        message: 'Check N8N_API_URL and N8N_API_KEY configuration'
       });
     }
+
+    console.log('🚀 MONO-SYNC: Starting sync...');
     
+    // Log sync start
+    const syncLogResult = await db.query(`
+      INSERT INTO sync_logs (started_at, success, workflows_processed, executions_processed)
+      VALUES (CURRENT_TIMESTAMP, false, 0, 0)
+      RETURNING id
+    `);
+    const syncLogId = syncLogResult.rows[0].id;
+    
+    // Execute sync
+    const result = await monoSync.syncAll();
+    
+    // Update sync log
+    await db.query(`
+      UPDATE sync_logs 
+      SET completed_at = CURRENT_TIMESTAMP,
+          success = $2,
+          workflows_processed = $3,
+          executions_processed = $4,
+          duration_ms = EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - started_at)) * 1000,
+          error_message = $5
+      WHERE id = $1
+    `, [syncLogId, result.errors.length === 0, result.workflowsSynced, result.executionsSynced, result.errors.join('; ') || null]);
+    
+    res.json({
+      message: 'Mono-tenant sync completed',
+      timestamp: new Date().toISOString(),
+      result: {
+        workflowsSynced: result.workflowsSynced,
+        executionsSynced: result.executionsSynced,
+        errors: result.errors,
+        success: result.errors.length === 0
+      }
+    });
   } catch (error) {
+    console.error('❌ MONO-SYNC failed:', error);
     res.status(500).json({
       error: 'Sync failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 });

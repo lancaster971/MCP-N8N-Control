@@ -6,6 +6,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { DatabaseConnection } from '../database/connection.js';
+import { MonoSyncService } from './mono-sync.js';
 
 // Semplice middleware auth per development
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -21,6 +22,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
 
 const router = Router();
 const db = DatabaseConnection.getInstance();
+const monoSync = new MonoSyncService();
 
 /**
  * @swagger
@@ -145,41 +147,32 @@ router.get('/tenant/:tenantId/stats', authMiddleware, async (req: Request, res: 
  *     description: Ottieni lista workflows di un tenant specifico
  *     tags: [Tenants]
  */
-router.get('/tenant/:tenantId/workflows', authMiddleware, async (req: Request, res: Response) => {
+router.get('/workflows', async (req: Request, res: Response) => {
   try {
-    const { tenantId } = req.params;
-    const user = (req as any).user;
-    
-    // Verifica permessi
-    if (user.role !== 'admin' && user.tenantId !== tenantId) {
-      return res.status(403).json({ error: 'Access denied to this tenant' });
-    }
-    
     const workflows = await db.getMany(`
       SELECT 
         id,
         name,
         active,
-        has_webhook,
         is_archived,
         created_at,
         updated_at,
         node_count,
-        (SELECT COUNT(*) FROM tenant_executions WHERE workflow_id = tw.id) as execution_count,
-        (SELECT MAX(started_at) FROM tenant_executions WHERE workflow_id = tw.id) as last_execution,
-        -- Rileva se workflow contiene AI agents
+        (SELECT COUNT(*) FROM executions WHERE workflow_id = w.id) as execution_count,
+        (SELECT MAX(started_at) FROM executions WHERE workflow_id = w.id) as last_execution,
+        -- AI detection from nodes JSONB
         CASE 
-          WHEN raw_data::text ~* '(agent|ai|langchain|openai|anthropic|claude)' THEN true
+          WHEN nodes::text ~* '(agent|ai|langchain|openai|anthropic|claude)' THEN true
           ELSE false
         END as has_ai_agents,
-        -- Conta AI agents nel workflow
-        (
-          SELECT COUNT(*) 
-          FROM jsonb_array_elements(COALESCE(raw_data->'nodes', '[]'::jsonb)) as node
-          WHERE node->>'type' ~* '(agent|ai|langchain|openai|anthropic|claude)'
-        ) as ai_agent_count
-      FROM tenant_workflows tw
-      WHERE tenant_id = $1
+        -- Count AI agents
+        COALESCE(ai_node_count, 0) as ai_agent_count,
+        -- Webhook detection
+        CASE 
+          WHEN nodes::text ~* 'webhook' THEN true
+          ELSE false
+        END as has_webhook
+      FROM workflows w
       ORDER BY 
         CASE 
           WHEN active = true THEN 1
@@ -187,10 +180,9 @@ router.get('/tenant/:tenantId/workflows', authMiddleware, async (req: Request, r
           ELSE 2
         END,
         name ASC
-    `, [tenantId]);
+    `);
     
     res.json({
-      tenantId,
       workflows,
       total: workflows.length,
     });
@@ -745,6 +737,37 @@ router.get('/tenant/:tenantId/dashboard', authMiddleware, async (req: Request, r
   } catch (error) {
     console.error('Error getting tenant dashboard:', error);
     res.status(500).json({ error: 'Failed to get dashboard data' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/sync/workflows:
+ *   post:
+ *     summary: Sync workflows from n8n (mono-tenant)
+ *     description: Importa tutti i workflow da n8n nella tabella mono-tenant
+ */
+router.post('/sync/workflows', async (req: Request, res: Response) => {
+  try {
+    console.log('🔄 MONO-SYNC: Manual sync triggered');
+    const result = await monoSync.syncWorkflows();
+    
+    res.json({
+      success: true,
+      message: 'Workflows sync completed',
+      imported: result.imported,
+      updated: result.updated,
+      errors: result.errors,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ MONO-SYNC FAILED:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Sync failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
