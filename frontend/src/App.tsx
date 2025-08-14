@@ -39,9 +39,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 
 // Placeholder components for routes
-const TenantsPage = () => <div className="control-card p-6 text-white">Tenants Management (Coming Soon)</div>
-const UsersPage = () => <div className="control-card p-6 text-white">Users Management (Coming Soon)</div>
-const SettingsPage = () => <div className="control-card p-6 text-white">System Settings (Coming Soon)</div>
+const TenantsPage = () => <div className="control-card p-6 text-foreground">Tenants Management (Coming Soon)</div>
+const UsersPage = () => <div className="control-card p-6 text-foreground">Users Management (Coming Soon)</div>
+const SettingsPage = () => <div className="control-card p-6 text-foreground">System Settings (Coming Soon)</div>
 
 function App() {
   useEffect(() => {
@@ -80,7 +80,7 @@ function App() {
         <Toaster
           position="top-right"
           toastOptions={{
-            className: 'glass-card',
+            className: 'premium-card',
             duration: 4000,
           }}
         />

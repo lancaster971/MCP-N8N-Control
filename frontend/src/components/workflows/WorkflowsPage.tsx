@@ -17,6 +17,7 @@ import { tenantAPI } from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
 import { formatDate, cn } from '../../lib/utils'
 import { WorkflowDetailModal } from './WorkflowDetailModal'
+import { Dropdown } from '../ui/Dropdown'
 
 interface Workflow {
   id: string
@@ -35,27 +36,27 @@ const getStatusInfo = (workflow: Workflow) => {
   if (workflow.is_archived) {
     return {
       status: 'Archiviato',
-      color: 'text-gray-500',
-      bgColor: 'bg-gray-500/10',
-      borderColor: 'border-gray-500/30',
-      dotColor: 'bg-gray-500'
+      color: 'text-muted',
+      bgColor: 'bg-card/10',
+      borderColor: 'border-border/30',
+      dotColor: 'bg-card'
     }
   }
   if (workflow.active) {
     return {
       status: 'Attivo',
-      color: 'text-green-400',
-      bgColor: 'bg-green-500/10',
-      borderColor: 'border-green-500/30',
-      dotColor: 'bg-green-500'
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+      borderColor: 'border-primary/30',
+      dotColor: 'bg-primary'
     }
   }
   return {
     status: 'Inattivo',
-    color: 'text-yellow-400',
-    bgColor: 'bg-yellow-500/10',
-    borderColor: 'border-yellow-500/30',
-    dotColor: 'bg-yellow-500'
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/30',
+    dotColor: 'bg-primary'
   }
 }
 
@@ -119,7 +120,7 @@ export const WorkflowsPage: React.FC = () => {
   if (error) {
     return (
       <div className="control-card p-6">
-        <p className="text-red-400">Errore nel caricamento dei workflows</p>
+        <p className="text-muted">Errore nel caricamento dei workflows</p>
       </div>
     )
   }
@@ -129,10 +130,10 @@ export const WorkflowsPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">
+          <h1 className="text-3xl font-bold text-foreground">
             Workflows - {workflowsData?.tenantId}
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted mt-1">
             Gestisci i tuoi workflow automation
           </p>
         </div>
@@ -153,40 +154,40 @@ export const WorkflowsPage: React.FC = () => {
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
-              <p className="text-sm text-gray-400">Totali</p>
+              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+              <p className="text-sm text-muted">Totali</p>
             </div>
-            <GitBranch className="h-8 w-8 text-gray-600" />
+            <GitBranch className="h-8 w-8 text-muted" />
           </div>
         </div>
         
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-green-400">{stats.active}</p>
-              <p className="text-sm text-gray-400">Attivi</p>
+              <p className="text-2xl font-bold text-primary">{stats.active}</p>
+              <p className="text-sm text-muted">Attivi</p>
             </div>
-            <Activity className="h-8 w-8 text-green-500" />
+            <Activity className="h-8 w-8 text-primary" />
           </div>
         </div>
         
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-yellow-400">{stats.inactive}</p>
-              <p className="text-sm text-gray-400">Inattivi</p>
+              <p className="text-2xl font-bold text-primary">{stats.inactive}</p>
+              <p className="text-sm text-muted">Inattivi</p>
             </div>
-            <Pause className="h-8 w-8 text-yellow-500" />
+            <Pause className="h-8 w-8 text-primary" />
           </div>
         </div>
         
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-gray-400">{stats.archived}</p>
-              <p className="text-sm text-gray-400">Archiviati</p>
+              <p className="text-2xl font-bold text-muted">{stats.archived}</p>
+              <p className="text-sm text-muted">Archiviati</p>
             </div>
-            <Archive className="h-8 w-8 text-gray-500" />
+            <Archive className="h-8 w-8 text-muted" />
           </div>
         </div>
       </div>
@@ -196,41 +197,42 @@ export const WorkflowsPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
             <input
               type="text"
               placeholder="Cerca workflows..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-800 rounded-md text-white focus:border-green-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-md text-foreground focus:border-primary focus:outline-none"
             />
           </div>
           
           {/* Status Filter */}
-          <select
+          <Dropdown
+            options={[
+              { value: 'all', label: 'Tutti gli status' },
+              { value: 'active', label: 'Solo Attivi' },
+              { value: 'inactive', label: 'Solo Inattivi' },
+              { value: 'archived', label: 'Solo Archiviati' }
+            ]}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-4 py-2 bg-gray-900 border border-gray-800 rounded-md text-white focus:border-green-500 focus:outline-none"
-          >
-            <option value="all">Tutti gli status</option>
-            <option value="active">Solo Attivi</option>
-            <option value="inactive">Solo Inattivi</option>
-            <option value="archived">Solo Archiviati</option>
-          </select>
+            onChange={(value) => setStatusFilter(value as any)}
+            className="w-48"
+          />
         </div>
       </div>
 
       {/* Workflows Grid */}
       <div>
         <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-foreground">
             Workflows ({filteredWorkflows.length})
           </h2>
         </div>
         
         {filteredWorkflows.length === 0 ? (
-          <div className="control-card p-8 text-center text-gray-500">
-            <GitBranch className="h-12 w-12 mx-auto mb-4 text-gray-600" />
+          <div className="control-card p-8 text-center text-muted">
+            <GitBranch className="h-12 w-12 mx-auto mb-4 text-muted" />
             <p>Nessun workflow trovato</p>
           </div>
         ) : (
@@ -241,7 +243,7 @@ export const WorkflowsPage: React.FC = () => {
               return (
                 <div 
                   key={workflow.id} 
-                  className="control-card p-6 hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200 cursor-pointer"
+                  className="control-card p-6 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-200 cursor-pointer"
                   onClick={() => setSelectedWorkflow(workflow)}
                 >
                   {/* Header con Status */}
@@ -263,49 +265,49 @@ export const WorkflowsPage: React.FC = () => {
                   </div>
 
                   {/* Nome Workflow */}
-                  <h3 className="text-lg font-medium text-white mb-4 leading-tight truncate" title={workflow.name}>
+                  <h3 className="text-lg font-medium text-foreground mb-4 leading-tight truncate" title={workflow.name}>
                     {workflow.name}
                   </h3>
                   
                   {/* Stats */}
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400 flex items-center gap-1">
+                      <span className="text-muted flex items-center gap-1">
                         <GitBranch className="h-3 w-3" />
                         Nodi
                       </span>
-                      <span className="text-white font-medium">{workflow.node_count}</span>
+                      <span className="text-foreground font-medium">{workflow.node_count}</span>
                     </div>
                     
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400 flex items-center gap-1">
+                      <span className="text-muted flex items-center gap-1">
                         <Play className="h-3 w-3" />
                         Esecuzioni
                       </span>
-                      <span className="text-white font-medium">{workflow.execution_count}</span>
+                      <span className="text-foreground font-medium">{workflow.execution_count}</span>
                     </div>
                     
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400 flex items-center gap-1">
+                      <span className="text-muted flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         Creato
                       </span>
-                      <span className="text-white font-medium">{formatDate(workflow.created_at).split(' ')[0]}</span>
+                      <span className="text-foreground font-medium">{formatDate(workflow.created_at).split(' ')[0]}</span>
                     </div>
                     
                     {workflow.last_execution && (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400 flex items-center gap-1">
+                        <span className="text-muted flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           Ultima
                         </span>
-                        <span className="text-white font-medium">{formatDate(workflow.last_execution).split(' ')[0]}</span>
+                        <span className="text-foreground font-medium">{formatDate(workflow.last_execution).split(' ')[0]}</span>
                       </div>
                     )}
                   </div>
                   
                   {/* Actions */}
-                  <div className="flex items-center gap-2 pt-4 border-t border-gray-800">
+                  <div className="flex items-center gap-2 pt-4 border-t border-border">
                     <button
                       onClick={(e) => {
                         e.stopPropagation() // Prevent card click
@@ -324,7 +326,7 @@ export const WorkflowsPage: React.FC = () => {
                         e.stopPropagation() // Prevent card click
                         setSelectedWorkflow(workflow)
                       }}
-                      className="p-2 text-gray-400 hover:text-white transition-colors"
+                      className="p-2 text-muted hover:text-foreground transition-colors"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>

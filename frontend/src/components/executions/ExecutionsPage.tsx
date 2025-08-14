@@ -37,47 +37,47 @@ const getStatusInfo = (status: string | null) => {
     case 'success':
       return {
         label: 'Success',
-        color: 'text-green-400',
-        bgColor: 'bg-green-500/10',
-        borderColor: 'border-green-500/30',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        borderColor: 'border-primary/30',
         icon: CheckCircle,
-        dotColor: 'bg-green-500'
+        dotColor: 'bg-primary'
       }
     case 'error':
       return {
         label: 'Error',
-        color: 'text-red-400',
-        bgColor: 'bg-red-500/10',
-        borderColor: 'border-red-500/30',
+        color: 'text-muted',
+        bgColor: 'bg-muted/10',
+        borderColor: 'border-muted/30',
         icon: XCircle,
-        dotColor: 'bg-red-500'
+        dotColor: 'bg-muted'
       }
     case 'running':
       return {
         label: 'Running',
-        color: 'text-blue-400',
-        bgColor: 'bg-blue-500/10',
-        borderColor: 'border-blue-500/30',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        borderColor: 'border-primary/30',
         icon: Play,
-        dotColor: 'bg-blue-500'
+        dotColor: 'bg-primary'
       }
     case 'waiting':
       return {
         label: 'Waiting',
-        color: 'text-yellow-400',
-        bgColor: 'bg-yellow-500/10',
-        borderColor: 'border-yellow-500/30',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        borderColor: 'border-primary/30',
         icon: Clock,
-        dotColor: 'bg-yellow-500'
+        dotColor: 'bg-primary'
       }
     default:
       return {
         label: 'Unknown',
-        color: 'text-gray-400',
-        bgColor: 'bg-gray-500/10',
-        borderColor: 'border-gray-500/30',
+        color: 'text-muted',
+        bgColor: 'bg-card/10',
+        borderColor: 'border-border/30',
         icon: Pause,
-        dotColor: 'bg-gray-500'
+        dotColor: 'bg-card'
       }
   }
 }
@@ -171,10 +171,10 @@ export const ExecutionsPage: React.FC = () => {
       <div className="space-y-6">
         <div className="control-card p-8">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-800 rounded w-1/3"></div>
+            <div className="h-8 bg-card rounded w-1/3"></div>
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="h-16 bg-gray-800 rounded"></div>
+                <div key={i} className="h-16 bg-card rounded"></div>
               ))}
             </div>
           </div>
@@ -190,10 +190,10 @@ export const ExecutionsPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">
+          <h1 className="text-3xl font-bold text-foreground">
             Executions - {executionsData?.tenantId}
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted mt-1">
             Monitora le esecuzioni dei tuoi workflow
           </p>
         </div>
@@ -204,7 +204,7 @@ export const ExecutionsPage: React.FC = () => {
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
               "btn-control",
-              showFilters && "bg-green-500/20 border-green-500/30 text-green-400"
+              showFilters && "bg-primary/20 border-primary/30 text-primary"
             )}
           >
             <Filter className="h-4 w-4" />
@@ -218,9 +218,9 @@ export const ExecutionsPage: React.FC = () => {
               id="auto-refresh"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="w-4 h-4 text-green-500 bg-gray-900 border-gray-600 rounded focus:ring-green-500"
+              className="w-4 h-4 text-primary bg-card border-border rounded focus:ring-primary"
             />
-            <label htmlFor="auto-refresh" className="text-sm text-white">
+            <label htmlFor="auto-refresh" className="text-sm text-foreground">
               Auto refresh
             </label>
           </div>
@@ -245,36 +245,36 @@ export const ExecutionsPage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="control-card p-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-white">{stats.total}</p>
-            <p className="text-xs text-gray-400">Totali</p>
+            <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+            <p className="text-xs text-muted">Totali</p>
           </div>
         </div>
         
         <div className="control-card p-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-green-400">{stats.success}</p>
-            <p className="text-xs text-gray-400">Success</p>
+            <p className="text-2xl font-bold text-primary">{stats.success}</p>
+            <p className="text-xs text-muted">Success</p>
           </div>
         </div>
         
         <div className="control-card p-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-red-400">{stats.error}</p>
-            <p className="text-xs text-gray-400">Error</p>
+            <p className="text-2xl font-bold text-muted">{stats.error}</p>
+            <p className="text-xs text-muted">Error</p>
           </div>
         </div>
         
         <div className="control-card p-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-400">{stats.running}</p>
-            <p className="text-xs text-gray-400">Running</p>
+            <p className="text-2xl font-bold text-primary">{stats.running}</p>
+            <p className="text-xs text-muted">Running</p>
           </div>
         </div>
         
         <div className="control-card p-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-yellow-400">{stats.waiting}</p>
-            <p className="text-xs text-gray-400">Waiting</p>
+            <p className="text-2xl font-bold text-primary">{stats.waiting}</p>
+            <p className="text-xs text-muted">Waiting</p>
           </div>
         </div>
       </div>
@@ -282,16 +282,16 @@ export const ExecutionsPage: React.FC = () => {
       {/* Advanced Filters Form */}
       {showFilters && (
         <div className="control-card">
-          <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 border-b border-gray-700">
-            <h3 className="text-lg font-semibold text-white mb-2">Filtri Avanzati</h3>
-            <p className="text-sm text-gray-400">Filtra le executions per criteri specifici</p>
+          <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Filtri Avanzati</h3>
+            <p className="text-sm text-muted">Filtra le executions per criteri specifici</p>
           </div>
           
           <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Workflows Filter */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-3">
+                <label className="block text-sm font-semibold text-foreground mb-3">
                   <GitBranch className="h-4 w-4 inline mr-2" />
                   Workflows
                 </label>
@@ -299,7 +299,7 @@ export const ExecutionsPage: React.FC = () => {
                   value={workflowFilter}
                   onChange={(e) => setWorkflowFilter(e.target.value)}
                   disabled={isLoadingWorkflows}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all disabled:opacity-50"
                 >
                   <option value="all">
                     {isLoadingWorkflows ? 'Caricando workflows...' : `All Workflows (${workflows.length})`}
@@ -314,14 +314,14 @@ export const ExecutionsPage: React.FC = () => {
 
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-3">
+                <label className="block text-sm font-semibold text-foreground mb-3">
                   <Activity className="h-4 w-4 inline mr-2" />
                   Status
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
                   <option value="all">Any Status ({stats.total})</option>
                   <option value="success">Success ({stats.success})</option>
@@ -335,27 +335,27 @@ export const ExecutionsPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               {/* Execution Start Date Range */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-3">
+                <label className="block text-sm font-semibold text-foreground mb-3">
                   <Calendar className="h-4 w-4 inline mr-2" />
                   Execution start
                 </label>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Da (Earliest)</label>
+                    <label className="block text-xs text-muted mb-1">Da (Earliest)</label>
                     <input
                       type="datetime-local"
                       value={dateRange.start}
                       onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+                      className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">A (Latest)</label>
+                    <label className="block text-xs text-muted mb-1">A (Latest)</label>
                     <input
                       type="datetime-local"
                       value={dateRange.end}
                       onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+                      className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export const ExecutionsPage: React.FC = () => {
 
               {/* Execution ID Search */}
               <div>
-                <label className="block text-sm font-semibold text-white mb-3">
+                <label className="block text-sm font-semibold text-foreground mb-3">
                   <Search className="h-4 w-4 inline mr-2" />
                   Search Execution ID
                 </label>
@@ -373,7 +373,7 @@ export const ExecutionsPage: React.FC = () => {
                     value={highlightedData.key}
                     onChange={(e) => setHighlightedData(prev => ({ ...prev, key: e.target.value }))}
                     placeholder="Cerca per Execution ID..."
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/20 focus:outline-none transition-all"
+                    className="w-full px-4 py-3 bg-card border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   />
                   <div className="flex items-center gap-3">
                     <input
@@ -381,9 +381,9 @@ export const ExecutionsPage: React.FC = () => {
                       id="exact-match"
                       checked={highlightedData.exactMatch}
                       onChange={(e) => setHighlightedData(prev => ({ ...prev, exactMatch: e.target.checked }))}
-                      className="w-4 h-4 text-green-500 bg-gray-800 border-gray-600 rounded focus:ring-green-500"
+                      className="w-4 h-4 text-primary bg-card border-border rounded focus:ring-primary"
                     />
-                    <label htmlFor="exact-match" className="text-sm text-white">
+                    <label htmlFor="exact-match" className="text-sm text-foreground">
                       Exact match
                     </label>
                   </div>
@@ -392,8 +392,8 @@ export const ExecutionsPage: React.FC = () => {
             </div>
 
             {/* Filter Actions */}
-            <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-700">
-              <div className="text-sm text-gray-400">
+            <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
+              <div className="text-sm text-muted">
                 {filteredExecutions.length} di {stats.total} executions
               </div>
               <div className="flex items-center gap-3">
@@ -429,23 +429,23 @@ export const ExecutionsPage: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-800">
-                <th className="text-left p-4 text-sm font-medium text-gray-400">
-                  <input type="checkbox" className="w-4 h-4 bg-gray-900 border-gray-600 rounded" />
+              <tr className="border-b border-border">
+                <th className="text-left p-4 text-sm font-medium text-muted">
+                  <input type="checkbox" className="w-4 h-4 bg-card border-border rounded" />
                 </th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Workflow</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Status</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Started</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Run Time</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Exec. ID</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400"></th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Workflow</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Status</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Started</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Run Time</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Exec. ID</th>
+                <th className="text-left p-4 text-sm font-medium text-muted"></th>
               </tr>
             </thead>
             <tbody>
               {filteredExecutions.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-500">
-                    <Play className="h-8 w-8 mx-auto mb-2 text-gray-600" />
+                  <td colSpan={7} className="p-8 text-center text-muted">
+                    <Play className="h-8 w-8 mx-auto mb-2 text-muted" />
                     Nessuna execution trovata
                   </td>
                 </tr>
@@ -456,14 +456,14 @@ export const ExecutionsPage: React.FC = () => {
                   return (
                     <tr 
                       key={execution.id} 
-                      className="border-b border-gray-800/50 hover:bg-gray-900/30 transition-colors"
+                      className="border-b border-border/50 hover:bg-card/30 transition-colors"
                     >
                       <td className="p-4">
-                        <input type="checkbox" className="w-4 h-4 bg-gray-900 border-gray-600 rounded" />
+                        <input type="checkbox" className="w-4 h-4 bg-card border-border rounded" />
                       </td>
                       
                       <td className="p-4">
-                        <div className="font-medium text-white max-w-xs">
+                        <div className="font-medium text-foreground max-w-xs">
                           <span className="truncate block" title={execution.workflow_name}>
                             {execution.workflow_name}
                           </span>
@@ -482,20 +482,20 @@ export const ExecutionsPage: React.FC = () => {
                         </span>
                       </td>
                       
-                      <td className="p-4 text-sm text-gray-300">
+                      <td className="p-4 text-sm text-muted">
                         {formatTime(execution.started_at)}
                       </td>
                       
-                      <td className="p-4 text-sm text-gray-300 font-mono">
+                      <td className="p-4 text-sm text-muted font-mono">
                         {formatDuration(execution.duration_ms)}
                       </td>
                       
-                      <td className="p-4 text-sm text-gray-300 font-mono">
+                      <td className="p-4 text-sm text-muted font-mono">
                         {execution.id}
                       </td>
                       
                       <td className="p-4">
-                        <button className="p-1 text-gray-400 hover:text-white transition-colors">
+                        <button className="p-1 text-muted hover:text-foreground transition-colors">
                           <MoreHorizontal className="h-4 w-4" />
                         </button>
                       </td>
@@ -511,7 +511,7 @@ export const ExecutionsPage: React.FC = () => {
       {/* Pagination placeholder */}
       {filteredExecutions.length > 0 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted">
             Visualizzando {filteredExecutions.length} di {stats.total} executions
           </p>
           <div className="flex items-center gap-2">

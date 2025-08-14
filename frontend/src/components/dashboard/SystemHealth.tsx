@@ -53,7 +53,7 @@ export const SystemHealth: React.FC = () => {
   const statusColor = systemStatus === 'operational' ? 'green' : systemStatus === 'degraded' ? 'yellow' : 'red'
   
   return (
-    <div className="glass-card rounded-xl p-6">
+    <div className="premium-card rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">System Health</h2>
         {healthData && (
@@ -63,7 +63,7 @@ export const SystemHealth: React.FC = () => {
               systemStatus === 'operational' ? 'status-success' : 
               systemStatus === 'degraded' ? 'status-warning' : 'status-error'
             )} />
-            <span className="text-xs text-gray-500">Live</span>
+            <span className="text-xs text-muted">Live</span>
           </div>
         )}
       </div>
@@ -73,20 +73,20 @@ export const SystemHealth: React.FC = () => {
           <div key={index}>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-medium">{metric.name}</span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-muted">
                 {metric.name === 'API Response Time' ? `${metric.value}ms` : 
                  metric.name === 'Sync Queue' ? metric.value : `${metric.value}%`}
               </span>
             </div>
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-2 bg-card dark:bg-card rounded-full overflow-hidden">
               <div
                 className={cn(
                   'h-full rounded-full transition-all duration-500',
                   metric.status === 'good'
-                    ? 'bg-green-500'
+                    ? 'bg-primary'
                     : metric.status === 'warning'
-                    ? 'bg-yellow-500'
-                    : 'bg-red-500'
+                    ? 'bg-primary'
+                    : 'bg-muted'
                 )}
                 style={{ 
                   width: `${metric.name === 'Sync Queue' 
@@ -111,11 +111,11 @@ export const SystemHealth: React.FC = () => {
           <div className="mt-2 space-y-1">
             {Object.entries(healthData.checks).map(([service, status]: [string, any]) => (
               <div key={service} className="flex items-center justify-between text-xs">
-                <span className="text-gray-600 dark:text-gray-400">{service}:</span>
+                <span className="text-muted dark:text-muted">{service}:</span>
                 <span className={cn(
                   'font-medium',
-                  status === 'ok' ? 'text-green-600' : 
-                  status === 'warning' ? 'text-yellow-600' : 'text-red-600'
+                  status === 'ok' ? 'text-primary' : 
+                  status === 'warning' ? 'text-primary' : 'text-muted'
                 )}>
                   {status}
                 </span>

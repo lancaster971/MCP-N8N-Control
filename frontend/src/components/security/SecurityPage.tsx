@@ -85,27 +85,27 @@ const getEventIcon = (event: string) => {
 }
 
 const getEventColor = (event: string, status: string) => {
-  if (status === 'failed') return 'text-red-400 bg-red-500/10'
-  if (status === 'warning') return 'text-yellow-400 bg-yellow-500/10'
+  if (status === 'failed') return 'text-muted bg-muted/10'
+  if (status === 'warning') return 'text-primary bg-primary/10'
   
   switch (event) {
-    case 'login': return 'text-green-400 bg-green-500/10'
-    case 'logout': return 'text-blue-400 bg-blue-500/10'
-    case 'failed_login': return 'text-red-400 bg-red-500/10'
-    case 'api_access': return 'text-purple-400 bg-purple-500/10'
-    case 'data_export': return 'text-orange-400 bg-orange-500/10'
-    case 'config_change': return 'text-yellow-400 bg-yellow-500/10'
-    default: return 'text-gray-400 bg-gray-500/10'
+    case 'login': return 'text-primary bg-primary/10'
+    case 'logout': return 'text-primary bg-primary/10'
+    case 'failed_login': return 'text-muted bg-muted/10'
+    case 'api_access': return 'text-primary bg-primary/10'
+    case 'data_export': return 'text-muted bg-muted/10'
+    case 'config_change': return 'text-primary bg-primary/10'
+    default: return 'text-muted bg-card/10'
   }
 }
 
 const getRiskColor = (risk: string) => {
   switch (risk) {
-    case 'critical': return 'text-red-400 bg-red-500/10 border-red-500/30'
-    case 'high': return 'text-orange-400 bg-orange-500/10 border-orange-500/30'
-    case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30'
-    case 'low': return 'text-green-400 bg-green-500/10 border-green-500/30'
-    default: return 'text-gray-400 bg-gray-500/10 border-gray-500/30'
+    case 'critical': return 'text-muted bg-muted/10 border-muted/30'
+    case 'high': return 'text-muted bg-muted/10 border-muted/30'
+    case 'medium': return 'text-primary bg-primary/10 border-primary/30'
+    case 'low': return 'text-primary bg-primary/10 border-primary/30'
+    default: return 'text-muted bg-card/10 border-border/30'
   }
 }
 
@@ -346,10 +346,10 @@ export const SecurityPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">
+          <h1 className="text-3xl font-bold text-foreground">
             Security Center
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted mt-1">
             Monitoraggio sicurezza, audit trail e gestione accessi
           </p>
         </div>
@@ -381,50 +381,50 @@ export const SecurityPage: React.FC = () => {
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Utenti Attivi</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-sm text-muted">Utenti Attivi</p>
+              <p className="text-2xl font-bold text-foreground">
                 {isLoadingStats ? '-' : processedMetrics.activeUsers}
               </p>
-              <p className="text-xs text-gray-500">di {isLoadingStats ? '-' : processedMetrics.totalUsers} totali</p>
+              <p className="text-xs text-muted">di {isLoadingStats ? '-' : processedMetrics.totalUsers} totali</p>
             </div>
-            <Users className="h-8 w-8 text-gray-600" />
+            <Users className="h-8 w-8 text-muted" />
           </div>
         </div>
 
-        <div className="control-card p-6 border-red-500/30">
+        <div className="control-card p-6 border-muted/30">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Login Falliti</p>
-              <p className="text-2xl font-bold text-red-400">
+              <p className="text-sm text-muted">Login Falliti</p>
+              <p className="text-2xl font-bold text-muted">
                 {isLoadingLogs ? '-' : processedMetrics.failedLogins}
               </p>
-              <p className="text-xs text-gray-500">ultime 24h</p>
+              <p className="text-xs text-muted">ultime 24h</p>
             </div>
-            <Ban className="h-8 w-8 text-red-500" />
+            <Ban className="h-8 w-8 text-muted" />
           </div>
         </div>
 
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">API Keys</p>
-              <p className="text-2xl font-bold text-green-400">{processedMetrics.apiKeysActive}</p>
-              <p className="text-xs text-gray-500">attive</p>
+              <p className="text-sm text-muted">API Keys</p>
+              <p className="text-2xl font-bold text-primary">{processedMetrics.apiKeysActive}</p>
+              <p className="text-xs text-muted">attive</p>
             </div>
-            <Key className="h-8 w-8 text-gray-600" />
+            <Key className="h-8 w-8 text-muted" />
           </div>
         </div>
 
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Success Rate</p>
-              <p className="text-2xl font-bold text-green-400">
+              <p className="text-sm text-muted">Success Rate</p>
+              <p className="text-2xl font-bold text-primary">
                 {isLoadingLogs ? '-' : `${processedMetrics.loginSuccessRate}%`}
               </p>
-              <p className="text-xs text-gray-500">operazioni</p>
+              <p className="text-xs text-muted">operazioni</p>
             </div>
-            <CheckCircle className="h-8 w-8 text-gray-600" />
+            <CheckCircle className="h-8 w-8 text-muted" />
           </div>
         </div>
       </div>
@@ -444,8 +444,8 @@ export const SecurityPage: React.FC = () => {
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all',
                 activeTab === id
-                  ? 'bg-green-500 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-primary text-foreground'
+                  : 'text-muted hover:bg-card hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
@@ -461,37 +461,37 @@ export const SecurityPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Security Status */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-green-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
                 Security Status
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Two-Factor Authentication</span>
+                  <span className="text-muted">Two-Factor Authentication</span>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-green-400 text-sm">Enabled</span>
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    <span className="text-primary text-sm">Enabled</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Password Policy</span>
+                  <span className="text-muted">Password Policy</span>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-green-400 text-sm">Strong</span>
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    <span className="text-primary text-sm">Strong</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Session Security</span>
+                  <span className="text-muted">Session Security</span>
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-400" />
-                    <span className="text-yellow-400 text-sm">Medium</span>
+                    <AlertTriangle className="h-4 w-4 text-primary" />
+                    <span className="text-primary text-sm">Medium</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">API Rate Limiting</span>
+                  <span className="text-muted">API Rate Limiting</span>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-400" />
-                    <span className="text-green-400 text-sm">Active</span>
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    <span className="text-primary text-sm">Active</span>
                   </div>
                 </div>
               </div>
@@ -499,15 +499,15 @@ export const SecurityPage: React.FC = () => {
 
             {/* Recent Threats */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-muted" />
                 Recent Security Events
               </h3>
               <div className="space-y-3">
                 {isLoadingLogs ? (
-                  <div className="text-gray-500">Caricamento...</div>
+                  <div className="text-muted">Caricamento...</div>
                 ) : allLogs.length === 0 ? (
-                  <div className="text-gray-500">Nessun evento recente</div>
+                  <div className="text-muted">Nessun evento recente</div>
                 ) : (
                   allLogs
                     .filter(log => log.riskLevel === 'high' || log.riskLevel === 'critical')
@@ -516,7 +516,7 @@ export const SecurityPage: React.FC = () => {
                     const EventIcon = getEventIcon(log.event)
                     
                     return (
-                      <div key={log.id} className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg">
+                      <div key={log.id} className="flex items-center gap-3 p-3 bg-card/50 rounded-lg">
                         <div className={cn(
                           'p-2 rounded-lg',
                           getEventColor(log.event, log.status)
@@ -524,8 +524,8 @@ export const SecurityPage: React.FC = () => {
                           <EventIcon className="h-4 w-4" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-white text-sm">{log.details}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-foreground text-sm">{log.details}</p>
+                          <p className="text-xs text-muted">
                             {log.user} • {formatTime(log.timestamp)}
                           </p>
                         </div>
@@ -552,20 +552,20 @@ export const SecurityPage: React.FC = () => {
           <div className="control-card p-4">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
                 <input
                   type="text"
                   placeholder="Cerca utente, IP, dettagli..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:border-primary focus:outline-none"
                 />
               </div>
 
               <select
                 value={eventFilter}
                 onChange={(e) => setEventFilter(e.target.value as any)}
-                className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
+                className="px-3 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:border-primary focus:outline-none"
               >
                 <option value="all">Tutti gli eventi</option>
                 <option value="login">Login</option>
@@ -578,7 +578,7 @@ export const SecurityPage: React.FC = () => {
               <select
                 value={riskFilter}
                 onChange={(e) => setRiskFilter(e.target.value as any)}
-                className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
+                className="px-3 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:border-primary focus:outline-none"
               >
                 <option value="all">Tutti i rischi</option>
                 <option value="critical">Critical</option>
@@ -599,26 +599,26 @@ export const SecurityPage: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-800">
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Timestamp</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Event</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">User</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Location</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Device</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Risk</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Details</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-4 text-sm font-medium text-muted">Timestamp</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Event</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">User</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Location</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Device</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Risk</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Details</th>
                   </tr>
                 </thead>
                 <tbody>
                   {isLoadingLogs ? (
                     <tr>
-                      <td colSpan={7} className="p-4 text-center text-gray-500">
+                      <td colSpan={7} className="p-4 text-center text-muted">
                         Caricamento...
                       </td>
                     </tr>
                   ) : filteredLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-4 text-center text-gray-500">
+                      <td colSpan={7} className="p-4 text-center text-muted">
                         Nessun log trovato
                       </td>
                     </tr>
@@ -630,9 +630,9 @@ export const SecurityPage: React.FC = () => {
                     return (
                       <tr 
                         key={log.id} 
-                        className="border-b border-gray-800/50 hover:bg-gray-900/30 transition-colors"
+                        className="border-b border-border/50 hover:bg-card/30 transition-colors"
                       >
-                        <td className="p-4 text-sm text-gray-300 font-mono">
+                        <td className="p-4 text-sm text-muted font-mono">
                           {formatTime(log.timestamp)}
                         </td>
                         
@@ -644,7 +644,7 @@ export const SecurityPage: React.FC = () => {
                             )}>
                               <EventIcon className="h-3 w-3" />
                             </div>
-                            <span className="text-white text-sm capitalize">
+                            <span className="text-foreground text-sm capitalize">
                               {log.event.replace('_', ' ')}
                             </span>
                           </div>
@@ -652,22 +652,22 @@ export const SecurityPage: React.FC = () => {
                         
                         <td className="p-4">
                           <div>
-                            <p className="text-white text-sm">{log.user}</p>
-                            <p className="text-xs text-gray-400">{log.userRole}</p>
+                            <p className="text-foreground text-sm">{log.user}</p>
+                            <p className="text-xs text-muted">{log.userRole}</p>
                           </div>
                         </td>
                         
                         <td className="p-4">
                           <div>
-                            <p className="text-white text-sm">{log.location}</p>
-                            <p className="text-xs text-gray-400 font-mono">{log.ipAddress}</p>
+                            <p className="text-foreground text-sm">{log.location}</p>
+                            <p className="text-xs text-muted font-mono">{log.ipAddress}</p>
                           </div>
                         </td>
                         
                         <td className="p-4">
                           <div className="flex items-center gap-1">
-                            <DeviceIcon className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-300 text-sm capitalize">{log.deviceType}</span>
+                            <DeviceIcon className="h-4 w-4 text-muted" />
+                            <span className="text-muted text-sm capitalize">{log.deviceType}</span>
                           </div>
                         </td>
                         
@@ -680,7 +680,7 @@ export const SecurityPage: React.FC = () => {
                           </span>
                         </td>
                         
-                        <td className="p-4 text-sm text-gray-300 max-w-xs truncate">
+                        <td className="p-4 text-sm text-muted max-w-xs truncate">
                           {log.details}
                         </td>
                       </tr>
@@ -698,8 +698,8 @@ export const SecurityPage: React.FC = () => {
       {activeTab === 'api_keys' && (
         <div className="space-y-6">
           <div className="control-card p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Key className="h-5 w-5 text-green-400" />
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Key className="h-5 w-5 text-primary" />
               API Keys Management
             </h3>
             
@@ -707,62 +707,62 @@ export const SecurityPage: React.FC = () => {
               {mockApiKeys.map((apiKey) => (
                 <div key={apiKey.id} className={cn(
                   'p-4 rounded-lg border transition-all',
-                  apiKey.status === 'active' ? 'border-green-500/30 bg-green-500/5' :
-                  apiKey.status === 'revoked' ? 'border-red-500/30 bg-red-500/5' :
-                  'border-yellow-500/30 bg-yellow-500/5'
+                  apiKey.status === 'active' ? 'border-primary/30 bg-primary/5' :
+                  apiKey.status === 'revoked' ? 'border-muted/30 bg-muted/5' :
+                  'border-primary/30 bg-primary/5'
                 )}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h4 className="text-white font-medium">{apiKey.name}</h4>
+                        <h4 className="text-foreground font-medium">{apiKey.name}</h4>
                         <span className={cn(
                           'px-2 py-1 rounded text-xs font-medium',
-                          apiKey.status === 'active' ? 'bg-green-500/20 text-green-400' :
-                          apiKey.status === 'revoked' ? 'bg-red-500/20 text-red-400' :
-                          'bg-yellow-500/20 text-yellow-400'
+                          apiKey.status === 'active' ? 'bg-primary/20 text-primary' :
+                          apiKey.status === 'revoked' ? 'bg-muted/20 text-muted' :
+                          'bg-primary/20 text-primary'
                         )}>
                           {apiKey.status}
                         </span>
                       </div>
                       
-                      <p className="text-gray-400 text-sm mb-3">{apiKey.description}</p>
+                      <p className="text-muted text-sm mb-3">{apiKey.description}</p>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-400">Key Hash</p>
-                          <p className="text-white font-mono">{apiKey.keyHash}</p>
+                          <p className="text-muted">Key Hash</p>
+                          <p className="text-foreground font-mono">{apiKey.keyHash}</p>
                         </div>
                         <div>
-                          <p className="text-gray-400">Usage</p>
-                          <p className="text-white">{apiKey.usageCount.toLocaleString()} calls</p>
+                          <p className="text-muted">Usage</p>
+                          <p className="text-foreground">{apiKey.usageCount.toLocaleString()} calls</p>
                         </div>
                         <div>
-                          <p className="text-gray-400">Rate Limit</p>
-                          <p className="text-white">{apiKey.rateLimit}/hour</p>
+                          <p className="text-muted">Rate Limit</p>
+                          <p className="text-foreground">{apiKey.rateLimit}/hour</p>
                         </div>
                         <div>
-                          <p className="text-gray-400">Created</p>
-                          <p className="text-white">{formatTime(apiKey.createdAt).split(' ')[0]}</p>
+                          <p className="text-muted">Created</p>
+                          <p className="text-foreground">{formatTime(apiKey.createdAt).split(' ')[0]}</p>
                         </div>
                         <div>
-                          <p className="text-gray-400">Last Used</p>
-                          <p className="text-white">
+                          <p className="text-muted">Last Used</p>
+                          <p className="text-foreground">
                             {apiKey.lastUsed ? formatTime(apiKey.lastUsed) : 'Never'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-gray-400">Expires</p>
-                          <p className="text-white">
+                          <p className="text-muted">Expires</p>
+                          <p className="text-foreground">
                             {apiKey.expiresAt ? formatTime(apiKey.expiresAt).split(' ')[0] : 'Never'}
                           </p>
                         </div>
                       </div>
                       
                       <div className="mt-3">
-                        <p className="text-gray-400 text-sm mb-1">Permissions</p>
+                        <p className="text-muted text-sm mb-1">Permissions</p>
                         <div className="flex flex-wrap gap-1">
                           {apiKey.permissions.map((perm, index) => (
-                            <span key={index} className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+                            <span key={index} className="px-2 py-1 bg-primary/20 text-primary rounded text-xs">
                               {perm}
                             </span>
                           ))}
@@ -771,13 +771,13 @@ export const SecurityPage: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <button className="p-2 text-gray-400 hover:text-blue-400 transition-colors">
+                      <button className="p-2 text-muted hover:text-primary transition-colors">
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-yellow-400 transition-colors">
+                      <button className="p-2 text-muted hover:text-primary transition-colors">
                         <Copy className="h-4 w-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-red-400 transition-colors">
+                      <button className="p-2 text-muted hover:text-muted transition-colors">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -792,11 +792,11 @@ export const SecurityPage: React.FC = () => {
       {/* Security Policies Tab */}
       {activeTab === 'policies' && (
         <div className="control-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Lock className="h-5 w-5 text-blue-400" />
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Lock className="h-5 w-5 text-primary" />
             Security Policies
           </h3>
-          <p className="text-gray-400">Security policies configuration in development...</p>
+          <p className="text-muted">Security policies configuration in development...</p>
         </div>
       )}
     </div>

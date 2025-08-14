@@ -155,21 +155,21 @@ export const DatabasePage: React.FC = () => {
   }
 
   const getGrowthColor = (growth: number) => {
-    if (growth > 10) return 'text-red-400'
-    if (growth > 5) return 'text-yellow-400'
-    if (growth > 0) return 'text-green-400'
-    return 'text-gray-400'
+    if (growth > 10) return 'text-muted'
+    if (growth > 5) return 'text-primary'
+    if (growth > 0) return 'text-primary'
+    return 'text-muted'
   }
 
   const getActionColor = (action: string) => {
     switch (action) {
-      case 'SYNC': return 'text-green-400 bg-green-500/10'
-      case 'INSERT': return 'text-green-400 bg-green-500/10'
-      case 'UPDATE': return 'text-yellow-400 bg-yellow-500/10'
-      case 'DELETE': return 'text-red-400 bg-red-500/10'
-      case 'ERROR': return 'text-red-400 bg-red-500/10'
-      case 'SELECT': return 'text-blue-400 bg-blue-500/10'
-      default: return 'text-gray-400 bg-gray-500/10'
+      case 'SYNC': return 'text-primary bg-primary/10'
+      case 'INSERT': return 'text-primary bg-primary/10'
+      case 'UPDATE': return 'text-primary bg-primary/10'
+      case 'DELETE': return 'text-muted bg-muted/10'
+      case 'ERROR': return 'text-muted bg-muted/10'
+      case 'SELECT': return 'text-primary bg-primary/10'
+      default: return 'text-muted bg-card/10'
     }
   }
 
@@ -182,10 +182,10 @@ export const DatabasePage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">
+          <h1 className="text-3xl font-bold text-foreground">
             Database Management
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted mt-1">
             Informazioni dettagliate sul database e performance
           </p>
         </div>
@@ -212,48 +212,48 @@ export const DatabasePage: React.FC = () => {
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Tabelle Totali</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-sm text-muted">Tabelle Totali</p>
+              <p className="text-2xl font-bold text-foreground">
                 {isLoadingStats ? '-' : processedStats.overview.totalTables}
               </p>
             </div>
-            <Table className="h-8 w-8 text-gray-600" />
+            <Table className="h-8 w-8 text-muted" />
           </div>
         </div>
 
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Records Totali</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-sm text-muted">Records Totali</p>
+              <p className="text-2xl font-bold text-foreground">
                 {isLoadingStats ? '-' : processedStats.overview.totalRecords.toLocaleString()}
               </p>
             </div>
-            <HardDrive className="h-8 w-8 text-gray-600" />
+            <HardDrive className="h-8 w-8 text-muted" />
           </div>
         </div>
 
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Dimensione DB</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-sm text-muted">Dimensione DB</p>
+              <p className="text-2xl font-bold text-foreground">
                 {processedStats.overview.databaseSize}
               </p>
             </div>
-            <Database className="h-8 w-8 text-gray-600" />
+            <Database className="h-8 w-8 text-muted" />
           </div>
         </div>
 
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">System Uptime</p>
-              <p className="text-sm font-bold text-green-400">
+              <p className="text-sm text-muted">System Uptime</p>
+              <p className="text-sm font-bold text-primary">
                 {isLoadingScheduler ? '-' : processedStats.performance.uptime}
               </p>
             </div>
-            <Server className="h-8 w-8 text-gray-600" />
+            <Server className="h-8 w-8 text-muted" />
           </div>
         </div>
       </div>
@@ -261,47 +261,47 @@ export const DatabasePage: React.FC = () => {
       {/* Performance Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="control-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-green-400" />
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
             System Performance
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400">Query Time Medio</p>
-              <p className="text-xl font-bold text-green-400">{processedStats.performance.queryTime}ms</p>
+            <div className="p-4 bg-card/50 rounded-lg">
+              <p className="text-sm text-muted">Query Time Medio</p>
+              <p className="text-xl font-bold text-primary">{processedStats.performance.queryTime}ms</p>
             </div>
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400">Active Tenants</p>
-              <p className="text-xl font-bold text-blue-400">
+            <div className="p-4 bg-card/50 rounded-lg">
+              <p className="text-sm text-muted">Active Tenants</p>
+              <p className="text-xl font-bold text-primary">
                 {isLoadingStats ? '-' : (systemStats?.database?.activeTenants || 0)}
               </p>
             </div>
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400">System Uptime</p>
-              <p className="text-xl font-bold text-white">
+            <div className="p-4 bg-card/50 rounded-lg">
+              <p className="text-sm text-muted">System Uptime</p>
+              <p className="text-xl font-bold text-foreground">
                 {isLoadingScheduler ? '-' : processedStats.performance.uptime}
               </p>
             </div>
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400">Health Status</p>
-              <p className="text-xl font-bold text-green-400">Healthy</p>
+            <div className="p-4 bg-card/50 rounded-lg">
+              <p className="text-sm text-muted">Health Status</p>
+              <p className="text-xl font-bold text-primary">Healthy</p>
             </div>
           </div>
         </div>
 
         <div className="control-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-400" />
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
             Attività Recenti
           </h3>
           <div className="space-y-3 max-h-64 overflow-y-auto">
             {isLoadingActivity ? (
-              <div className="text-gray-500">Caricamento...</div>
+              <div className="text-muted">Caricamento...</div>
             ) : processedStats.recentActivity.length === 0 ? (
-              <div className="text-gray-500">Nessuna attività recente</div>
+              <div className="text-muted">Nessuna attività recente</div>
             ) : (
               processedStats.recentActivity.slice(0, 8).map((activity, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-card/30 rounded-lg">
                   <div className="flex items-center gap-3">
                     <span className={cn(
                       'px-2 py-1 rounded text-xs font-medium',
@@ -309,11 +309,11 @@ export const DatabasePage: React.FC = () => {
                     )}>
                       {activity.action}
                     </span>
-                    <span className="text-white font-medium">{activity.table}</span>
+                    <span className="text-foreground font-medium">{activity.table}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-400">{activity.user}</p>
-                    <p className="text-xs text-gray-500">{formatDate(activity.timestamp)}</p>
+                    <p className="text-xs text-muted">{activity.user}</p>
+                    <p className="text-xs text-muted">{formatDate(activity.timestamp)}</p>
                   </div>
                 </div>
               ))
@@ -324,43 +324,43 @@ export const DatabasePage: React.FC = () => {
 
       {/* System Statistics */}
       <div className="control-card p-6">
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-green-400" />
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-primary" />
           Database Statistics
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 border border-blue-500/30 mb-3">
-              <GitBranch className="h-8 w-8 text-blue-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/30 mb-3">
+              <GitBranch className="h-8 w-8 text-primary" />
             </div>
-            <h4 className="text-white font-medium mb-1">Total Workflows</h4>
-            <p className="text-blue-400 text-xl font-bold">
+            <h4 className="text-foreground font-medium mb-1">Total Workflows</h4>
+            <p className="text-primary text-xl font-bold">
               {isLoadingStats ? '-' : (systemStats?.database?.totalWorkflows || 0)}
             </p>
-            <p className="text-xs text-gray-500">across all tenants</p>
+            <p className="text-xs text-muted">across all tenants</p>
           </div>
           
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 mb-3">
-              <Target className="h-8 w-8 text-green-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/30 mb-3">
+              <Target className="h-8 w-8 text-primary" />
             </div>
-            <h4 className="text-white font-medium mb-1">Total Executions</h4>
-            <p className="text-green-400 text-xl font-bold">
+            <h4 className="text-foreground font-medium mb-1">Total Executions</h4>
+            <p className="text-primary text-xl font-bold">
               {isLoadingStats ? '-' : (systemStats?.database?.totalExecutions?.toLocaleString() || '0')}
             </p>
-            <p className="text-xs text-gray-500">all time</p>
+            <p className="text-xs text-muted">all time</p>
           </div>
           
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-500/10 border border-purple-500/30 mb-3">
-              <Zap className="h-8 w-8 text-purple-400" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 border border-primary/30 mb-3">
+              <Zap className="h-8 w-8 text-primary" />
             </div>
-            <h4 className="text-white font-medium mb-1">Sync Operations</h4>
-            <p className="text-purple-400 text-xl font-bold">
+            <h4 className="text-foreground font-medium mb-1">Sync Operations</h4>
+            <p className="text-primary text-xl font-bold">
               {isLoadingStats ? '-' : (systemStats?.scheduler?.totalSyncRuns || 0)}
             </p>
-            <p className="text-xs text-gray-500">automated syncs</p>
+            <p className="text-xs text-muted">automated syncs</p>
           </div>
         </div>
       </div>
@@ -368,20 +368,20 @@ export const DatabasePage: React.FC = () => {
       {/* Tables Overview */}
       <div className="control-card p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Table className="h-5 w-5 text-green-400" />
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <Table className="h-5 w-5 text-primary" />
             Tabelle Database
           </h3>
           
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
               <input
                 type="text"
                 placeholder="Cerca tabelle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
+                className="pl-10 pr-4 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:border-primary focus:outline-none"
               />
             </div>
           </div>
@@ -390,25 +390,25 @@ export const DatabasePage: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-800">
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Nome Tabella</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Records</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Dimensione</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Crescita</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Ultima Modifica</th>
-                <th className="text-left p-4 text-sm font-medium text-gray-400">Azioni</th>
+              <tr className="border-b border-border">
+                <th className="text-left p-4 text-sm font-medium text-muted">Nome Tabella</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Records</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Dimensione</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Crescita</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Ultima Modifica</th>
+                <th className="text-left p-4 text-sm font-medium text-muted">Azioni</th>
               </tr>
             </thead>
             <tbody>
               {isLoadingStats ? (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-gray-500">
+                  <td colSpan={6} className="p-4 text-center text-muted">
                     Caricamento...
                   </td>
                 </tr>
               ) : filteredTables.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center text-gray-500">
+                  <td colSpan={6} className="p-4 text-center text-muted">
                     Nessuna tabella trovata
                   </td>
                 </tr>
@@ -416,18 +416,18 @@ export const DatabasePage: React.FC = () => {
                 filteredTables.map((table) => (
                   <tr 
                     key={table.name} 
-                    className="border-b border-gray-800/50 hover:bg-gray-900/30 transition-colors"
+                    className="border-b border-border/50 hover:bg-card/30 transition-colors"
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <Table className="h-4 w-4 text-gray-400" />
-                        <span className="text-white font-medium">{table.name}</span>
+                        <Table className="h-4 w-4 text-muted" />
+                        <span className="text-foreground font-medium">{table.name}</span>
                       </div>
                     </td>
-                    <td className="p-4 text-gray-300 font-mono">
+                    <td className="p-4 text-muted font-mono">
                       {table.records.toLocaleString()}
                     </td>
-                    <td className="p-4 text-gray-300 font-mono">
+                    <td className="p-4 text-muted font-mono">
                       {table.size}
                     </td>
                     <td className="p-4">
@@ -435,18 +435,18 @@ export const DatabasePage: React.FC = () => {
                         {table.growth > 0 ? '+' : ''}{table.growth}%
                       </span>
                     </td>
-                    <td className="p-4 text-gray-400 text-sm">
+                    <td className="p-4 text-muted text-sm">
                       {formatDate(table.lastModified)}
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <button 
-                          className="p-1 text-gray-400 hover:text-green-400 transition-colors"
+                          className="p-1 text-muted hover:text-primary transition-colors"
                           onClick={() => setSelectedTable(table.name)}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors">
+                        <button className="p-1 text-muted hover:text-primary transition-colors">
                           <BarChart3 className="h-4 w-4" />
                         </button>
                       </div>
@@ -463,7 +463,7 @@ export const DatabasePage: React.FC = () => {
       {selectedTable && (
         <div className="control-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-foreground">
               Dettagli Tabella: {selectedTable}
             </h3>
             <button 
@@ -475,20 +475,20 @@ export const DatabasePage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400">Records Totali</p>
-              <p className="text-xl font-bold text-white">
+            <div className="p-4 bg-card/50 rounded-lg">
+              <p className="text-sm text-muted">Records Totali</p>
+              <p className="text-xl font-bold text-foreground">
                 {filteredTables.find(t => t.name === selectedTable)?.records.toLocaleString()}
               </p>
             </div>
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400">Dimensione</p>
-              <p className="text-xl font-bold text-white">
+            <div className="p-4 bg-card/50 rounded-lg">
+              <p className="text-sm text-muted">Dimensione</p>
+              <p className="text-xl font-bold text-foreground">
                 {filteredTables.find(t => t.name === selectedTable)?.size}
               </p>
             </div>
-            <div className="p-4 bg-gray-800/50 rounded-lg">
-              <p className="text-sm text-gray-400">Crescita</p>
+            <div className="p-4 bg-card/50 rounded-lg">
+              <p className="text-sm text-muted">Crescita</p>
               <p className={cn(
                 'text-xl font-bold',
                 getGrowthColor(filteredTables.find(t => t.name === selectedTable)?.growth || 0)

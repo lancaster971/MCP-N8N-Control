@@ -12,6 +12,7 @@ import { formatNumber, cn } from '../../lib/utils'
 import { RecentActivity } from './RecentActivity'
 import { SystemHealth } from './SystemHealth'
 import { useAuthStore } from '../../store/authStore'
+import { Dropdown } from '../ui/Dropdown'
 
 interface StatCard {
   title: string
@@ -58,14 +59,14 @@ export const Dashboard: React.FC = () => {
       value: formatNumber(stats?.workflows?.total || 0),
       change: stats?.workflows?.active || 0,
       icon: GitBranch,
-      color: 'from-green-400 to-green-500',  // Verde Control Room
+      color: 'from-primary to-primary',  // Verde Control Room
     },
     {
       title: 'Workflows Attivi',
       value: stats?.workflows?.active || 0,
       change: 0,
       icon: Play,
-      color: 'from-green-500 to-green-600',  // Verde Control Room
+      color: 'from-primary to-primary',  // Verde Control Room
     },
     {
       title: 'Esecuzioni (24h)',
@@ -79,9 +80,9 @@ export const Dashboard: React.FC = () => {
       value: `${successRate}%`,
       change: 0,
       icon: TrendingUp,
-      color: successRate >= 90 ? 'from-green-400 to-green-500' : 
-              successRate >= 70 ? 'from-yellow-400 to-yellow-500' :
-              'from-red-400 to-red-500',
+      color: successRate >= 90 ? 'from-primary to-primary/90' : 
+              successRate >= 70 ? 'from-muted to-muted/90' :
+              'from-muted to-muted/90',
     },
   ]
   
@@ -104,19 +105,19 @@ export const Dashboard: React.FC = () => {
         opacityTo: 0.1,
       },
     },
-    colors: ['#0ea5e9', '#d946ef'],
+    colors: ['hsl(var(--primary))', 'hsl(var(--accent))'],
     xaxis: {
       categories: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
       labels: {
         style: {
-          colors: '#94a3b8',
+          colors: 'hsl(var(--muted-foreground))',
         },
       },
     },
     yaxis: {
       labels: {
         style: {
-          colors: '#94a3b8',
+          colors: 'hsl(var(--muted-foreground))',
         },
       },
     },
@@ -156,7 +157,7 @@ export const Dashboard: React.FC = () => {
       background: 'transparent',
     },
     labels: ['Success', 'Error', 'Running', 'Waiting'],
-    colors: ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'],
+    colors: ['hsl(var(--success))', 'hsl(var(--destructive))', 'hsl(var(--info))', 'hsl(var(--warning))'],
     stroke: {
       show: false,
     },
@@ -189,7 +190,7 @@ export const Dashboard: React.FC = () => {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="glass-card rounded-xl p-6 h-32 skeleton" />
+            <div key={i} className="premium-card rounded-xl p-6 h-32 skeleton" />
           ))}
         </div>
       </div>
@@ -201,8 +202,8 @@ export const Dashboard: React.FC = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">Dashboard - {dashboardData?.tenant?.name || tenantId}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-3xl font-bold text-foreground">Dashboard - {dashboardData?.tenant?.name || tenantId}</h1>
+          <p className="text-muted mt-1">
             I tuoi dati personali, non aggregati con altri tenant!
           </p>
         </div>
@@ -217,7 +218,7 @@ export const Dashboard: React.FC = () => {
         {statCards.map((stat, index) => (
           <div
             key={stat.title}
-            className="control-card p-6 hover:shadow-2xl transition-all duration-300 border-gray-800 hover:border-green-500/30"
+            className="premium-card hover-glow p-6 transition-all duration-300"
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex items-center justify-between mb-4">
@@ -227,16 +228,16 @@ export const Dashboard: React.FC = () => {
                   stat.color
                 )}
               >
-                <stat.icon className="h-6 w-6 text-white" />
+                <stat.icon className="h-6 w-6 text-foreground" />
               </div>
               <div className="flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-xs text-green-500">+{stat.change}%</span>
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <span className="text-xs text-primary">+{stat.change}%</span>
               </div>
             </div>
             <div>
               <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-muted">
                 {stat.title}
               </p>
             </div>
@@ -247,14 +248,18 @@ export const Dashboard: React.FC = () => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Activity Chart */}
-        <div className="lg:col-span-2 control-card p-6">
+        <div className="lg:col-span-2 premium-card hover-glow p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold">Activity Overview</h2>
-            <select className="text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1">
-              <option>Last 24 Hours</option>
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-            </select>
+            <Dropdown
+              options={[
+                { value: '24h', label: 'Last 24 Hours' },
+                { value: '7d', label: 'Last 7 Days' },
+                { value: '30d', label: 'Last 30 Days' }
+              ]}
+              value="24h"
+              className="w-40"
+            />
           </div>
           <ApexCharts
             options={chartOptions}
@@ -265,7 +270,7 @@ export const Dashboard: React.FC = () => {
         </div>
         
         {/* Status Distribution */}
-        <div className="control-card p-6">
+        <div className="premium-card hover-glow p-6">
           <h2 className="text-lg font-semibold mb-6">Execution Status</h2>
           <ApexCharts
             options={donutOptions}

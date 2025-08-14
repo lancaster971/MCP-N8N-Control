@@ -816,38 +816,37 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
   const getStepIcon = (status: string) => {
     switch (status) {
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-400" />;
-      case 'error': return <XCircle className="w-4 h-4 text-red-400" />;
-      case 'running': return <Settings className="w-4 h-4 text-yellow-400 animate-spin" />;
-      case 'not-executed': return <Activity className="w-4 h-4 text-gray-500" />;
-      default: return <Activity className="w-4 h-4 text-gray-400" />;
+      case 'success': return <CheckCircle className="w-4 h-4 text-primary" />;
+      case 'error': return <XCircle className="w-4 h-4 text-muted" />;
+      case 'running': return <Settings className="w-4 h-4 text-primary animate-spin" />;
+      case 'not-executed': return <Activity className="w-4 h-4 text-muted" />;
+      default: return <Activity className="w-4 h-4 text-muted" />;
     }
   };
 
   const getStepColor = (status: string) => {
     switch (status) {
-      case 'success': return 'border-green-400/30 bg-green-400/5';
-      case 'error': return 'border-red-400/30 bg-red-400/5';
-      case 'running': return 'border-yellow-400/30 bg-yellow-400/5';
-      case 'not-executed': return 'border-gray-600/30 bg-gray-800/50';
-      default: return 'border-gray-400/30 bg-gray-400/5';
+      case 'success': return 'border-primary/30 bg-primary/5';
+      case 'error': return 'border-muted/30 bg-muted/5';
+      case 'running': return 'border-primary/30 bg-primary/5';
+      case 'not-executed': return 'border-border/30 bg-card/50';
+      default: return 'border-border/30 bg-card/5';
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-green-400/20 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-card/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-card border border-primary/20 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center">
-            <Bot className="w-6 h-6 text-green-400 mr-3" />
             <div>
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-xl font-semibold text-foreground truncate max-w-md">
                 {timeline ? timeline.workflowName : 'Loading...'}
               </h2>
-              <p className="text-gray-400 text-sm">
+              <p className="text-muted text-sm">
                 Workflow ID: {workflowId}
                 {timeline?.lastExecution && (
                   <span className="ml-3">
@@ -862,20 +861,16 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
             <button
               onClick={handleForceRefresh}
               disabled={refreshMutation.isPending}
-              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
-                refreshMutation.isPending 
-                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
-                  : 'bg-green-600 hover:bg-green-500 text-white shadow-lg hover:shadow-green-500/25'
-              }`}
-              title="Force refresh latest executions from workflow engine"
+              className={`btn-glow px-4 py-2 flex items-center ${refreshMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Refresh latest executions from workflow engine"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
-              {refreshMutation.isPending ? 'Refreshing...' : 'Force Refresh'}
+              {refreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
             </button>
             
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded"
+              className="p-2 text-muted hover:text-foreground hover:bg-card rounded"
             >
               <X className="w-5 h-5" />
             </button>
@@ -885,14 +880,14 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
         {/* Loading State */}
         {isLoading && (
           <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400"></div>
-            <span className="ml-3 text-green-400">Loading execution details...</span>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3 text-primary">Loading execution details...</span>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="flex-1 flex items-center justify-center text-red-400">
+          <div className="flex-1 flex items-center justify-center text-muted">
             <AlertTriangle className="w-6 h-6 mr-2" />
             Failed to load execution details
           </div>
@@ -902,13 +897,13 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
         {timeline && (
           <>
             {/* Tabs */}
-            <div className="flex border-b border-gray-800">
+            <div className="flex border-b border-border">
               <button
                 onClick={() => setActiveTab('timeline')}
                 className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'timeline'
-                    ? 'border-green-400 text-green-400'
-                    : 'border-transparent text-gray-400 hover:text-white'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted hover:text-foreground'
                 }`}
               >
                 Timeline
@@ -917,8 +912,8 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                 onClick={() => setActiveTab('context')}
                 className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'context'
-                    ? 'border-green-400 text-green-400'
-                    : 'border-transparent text-gray-400 hover:text-white'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted hover:text-foreground'
                 }`}
               >
                 Business Context
@@ -927,8 +922,8 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                 onClick={() => setActiveTab('raw')}
                 className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'raw'
-                    ? 'border-green-400 text-green-400'
-                    : 'border-transparent text-gray-400 hover:text-white'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted hover:text-foreground'
                 }`}
               >
                 Raw Data
@@ -940,30 +935,30 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
               {/* Timeline Tab */}
               {activeTab === 'timeline' && (
                 <div>
-                  <div className="mb-6 p-4 bg-black rounded-lg border border-gray-800">
+                  <div className="mb-6 p-4 bg-card rounded-lg border border-border">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-medium">Workflow Summary</span>
+                      <span className="text-foreground font-medium">Workflow Summary</span>
                       <div className="flex items-center">
                         {timeline?.status === 'active' ? (
-                          <CheckCircle className="w-5 h-5 text-green-400 mr-2" />
+                          <CheckCircle className="w-5 h-5 text-primary mr-2" />
                         ) : (
-                          <XCircle className="w-5 h-5 text-red-400 mr-2" />
+                          <XCircle className="w-5 h-5 text-muted mr-2" />
                         )}
-                        <span className={timeline?.status === 'active' ? 'text-green-400' : 'text-red-400'}>
+                        <span className={`text-sm font-medium ${timeline?.status === 'active' ? 'text-primary' : 'text-muted'}`}>
                           {timeline?.status?.toUpperCase() || 'UNKNOWN'}
                         </span>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-400">Last Execution:</span>
-                        <span className="text-white ml-2">
+                        <span className="text-muted">Last Execution:</span>
+                        <span className="text-foreground ml-2">
                           {timeline?.lastExecution ? formatTimestamp(timeline.lastExecution.executedAt) : 'No executions'}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-400">Duration:</span>
-                        <span className="text-white ml-2">
+                        <span className="text-muted">Duration:</span>
+                        <span className="text-foreground ml-2">
                           {timeline?.lastExecution ? formatDuration(timeline.lastExecution.duration) : 'N/A'}
                         </span>
                       </div>
@@ -972,11 +967,11 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
                   {/* Info header per timeline con freshness indicator */}
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="text-sm text-gray-400">
+                    <div className="text-sm text-muted">
                       Showing workflow steps marked with "show" annotations
                     </div>
-                    <div className="flex items-center text-xs text-gray-500">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                    <div className="flex items-center text-xs text-muted">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse mr-2"></div>
                       Auto-refresh: 5 min | Last check: {new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
@@ -987,7 +982,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                     
                     if (stepsToShow.length === 0) {
                       return (
-                        <div className="text-center py-8 text-gray-400">
+                        <div className="text-center py-8 text-muted">
                           <Info className="w-8 h-8 mx-auto mb-2" />
                           <p>No workflow steps available</p>
                           <p className="text-sm">
@@ -1017,8 +1012,8 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                             <div className="flex items-center">
                               {getStepIcon(stepStatus)}
                               <div className="ml-3">
-                                <div className="font-medium text-white">{stepName}</div>
-                                <div className="text-sm text-gray-400">
+                                <div className="font-medium text-foreground">{stepName}</div>
+                                <div className="text-sm text-muted">
                                   {stepStatus === 'not-executed' 
                                     ? 'Node not executed in this run' 
                                     : stepSummary}
@@ -1026,53 +1021,53 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                               </div>
                             </div>
                             <div className="flex items-center">
-                              <span className="text-xs text-gray-400 mr-3">
+                              <span className="text-xs text-muted mr-3">
                                 {stepStatus === 'not-executed' 
                                   ? 'Skipped' 
                                   : formatDuration(step.executionTime || 0)}
                               </span>
                               {expandedStep === step.nodeId ? (
-                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                                <ChevronDown className="w-4 h-4 text-muted" />
                               ) : (
-                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                                <ChevronRight className="w-4 h-4 text-muted" />
                               )}
                             </div>
                           </div>
 
                           {expandedStep === step.nodeId && (
-                            <div className="mt-4 pt-4 border-t border-gray-700">
+                            <div className="mt-4 pt-4 border-t border-border">
                               {step.details && (
                                 <div className="mb-4">
-                                  <div className="text-sm font-medium text-white mb-2">Details:</div>
-                                  <div className="text-sm text-gray-300">{step.details}</div>
+                                  <div className="text-sm font-medium text-foreground mb-2">Details:</div>
+                                  <div className="text-sm text-muted">{step.details}</div>
                                 </div>
                               )}
                               
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                  <div className="text-sm font-medium text-white mb-2">Input:</div>
-                                  <div className="bg-gray-900 p-3 rounded text-sm text-gray-300 whitespace-pre-line">
+                                  <div className="text-sm font-medium text-foreground mb-2">Input:</div>
+                                  <div className="bg-card p-3 rounded text-sm text-muted whitespace-pre-line">
                                     {humanizeStepData(step.inputData, 'input', step.nodeType, step.nodeName)}
                                   </div>
                                   <details className="mt-2">
-                                    <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-400">
+                                    <summary className="text-xs text-muted cursor-pointer hover:text-muted">
                                       Mostra dati tecnici
                                     </summary>
-                                    <pre className="bg-gray-800 p-2 rounded text-xs text-gray-400 overflow-x-auto mt-2">
+                                    <pre className="bg-card p-2 rounded text-xs text-muted overflow-x-auto mt-2">
                                       {JSON.stringify(step.inputData, null, 2)}
                                     </pre>
                                   </details>
                                 </div>
                                 <div>
-                                  <div className="text-sm font-medium text-white mb-2">Output:</div>
-                                  <div className="bg-gray-900 p-3 rounded text-sm text-gray-300 whitespace-pre-line">
+                                  <div className="text-sm font-medium text-foreground mb-2">Output:</div>
+                                  <div className="bg-card p-3 rounded text-sm text-muted whitespace-pre-line">
                                     {humanizeStepData(step.outputData, 'output', step.nodeType, step.nodeName)}
                                   </div>
                                   <details className="mt-2">
-                                    <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-400">
+                                    <summary className="text-xs text-muted cursor-pointer hover:text-muted">
                                       Mostra dati tecnici
                                     </summary>
-                                    <pre className="bg-gray-800 p-2 rounded text-xs text-gray-400 overflow-x-auto mt-2">
+                                    <pre className="bg-card p-2 rounded text-xs text-muted overflow-x-auto mt-2">
                                       {JSON.stringify(step.outputData, null, 2)}
                                     </pre>
                                   </details>
@@ -1092,42 +1087,42 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
               {/* Business Context Tab */}
               {activeTab === 'context' && (
                 <div className="space-y-6">
-                  <div className="p-4 bg-black rounded-lg border border-gray-800">
-                    <h3 className="text-lg font-medium text-white mb-4">Business Context</h3>
+                  <div className="p-4 bg-card rounded-lg border border-border">
+                    <h3 className="text-lg font-medium text-foreground mb-4">Business Context</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {timeline.businessContext?.senderEmail && (
                         <div className="flex items-center">
-                          <Mail className="w-4 h-4 text-blue-400 mr-2" />
-                          <span className="text-gray-400">Sender:</span>
-                          <span className="text-blue-400 ml-2">{timeline.businessContext.senderEmail}</span>
+                          <Mail className="w-4 h-4 text-primary mr-2" />
+                          <span className="text-muted">Sender:</span>
+                          <span className="text-primary ml-2">{timeline.businessContext.senderEmail}</span>
                         </div>
                       )}
                       
                       {timeline.businessContext?.orderId && (
                         <div className="flex items-center">
-                          <Database className="w-4 h-4 text-green-400 mr-2" />
-                          <span className="text-gray-400">Order ID:</span>
-                          <span className="text-white ml-2">{timeline.businessContext.orderId}</span>
+                          <Database className="w-4 h-4 text-primary mr-2" />
+                          <span className="text-muted">Order ID:</span>
+                          <span className="text-foreground ml-2">{timeline.businessContext.orderId}</span>
                         </div>
                       )}
                       
                       {timeline.businessContext?.subject && (
                         <div className="flex items-center">
-                          <Info className="w-4 h-4 text-yellow-400 mr-2" />
-                          <span className="text-gray-400">Subject:</span>
-                          <span className="text-white ml-2">{timeline.businessContext.subject}</span>
+                          <Info className="w-4 h-4 text-primary mr-2" />
+                          <span className="text-muted">Subject:</span>
+                          <span className="text-foreground ml-2">{timeline.businessContext.subject}</span>
                         </div>
                       )}
                       
                       {timeline.businessContext?.classification && (
                         <div className="flex items-center">
-                          <Activity className="w-4 h-4 text-purple-400 mr-2" />
-                          <span className="text-gray-400">Classification:</span>
-                          <span className="text-purple-400 ml-2">
+                          <Activity className="w-4 h-4 text-primary mr-2" />
+                          <span className="text-muted">Classification:</span>
+                          <span className="text-primary ml-2">
                             {timeline.businessContext.classification}
                             {timeline.businessContext.confidence && (
-                              <span className="text-gray-400 ml-1">({timeline.businessContext.confidence}%)</span>
+                              <span className="text-muted ml-1">({timeline.businessContext.confidence}%)</span>
                             )}
                           </span>
                         </div>
@@ -1137,12 +1132,12 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
                   {/* Quick Actions */}
                   {timeline.businessContext?.senderEmail && (
-                    <div className="p-4 bg-black rounded-lg border border-gray-800">
-                      <h3 className="text-lg font-medium text-white mb-4">Quick Actions</h3>
+                    <div className="p-4 bg-card rounded-lg border border-border">
+                      <h3 className="text-lg font-medium text-foreground mb-4">Quick Actions</h3>
                       <div className="flex space-x-4">
                         <button
                           onClick={() => window.open(`mailto:${timeline.businessContext.senderEmail}?subject=Re: ${timeline.businessContext.subject || ''}`, '_blank')}
-                          className="flex items-center px-4 py-2 bg-blue-400 text-black rounded hover:bg-blue-300 transition-colors"
+                          className="flex items-center px-4 py-2 bg-primary text-black rounded hover:bg-primary transition-colors"
                         >
                           <Mail className="w-4 h-4 mr-2" />
                           Reply to Customer
@@ -1158,8 +1153,8 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <Code className="w-5 h-5 text-gray-400 mr-2" />
-                      <h3 className="text-lg font-medium text-white">Raw Timeline Data</h3>
+                      <Code className="w-5 h-5 text-muted mr-2" />
+                      <h3 className="text-lg font-medium text-foreground">Raw Timeline Data</h3>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -1171,14 +1166,14 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                             preElement.textContent = report;
                           }
                         }}
-                        className="flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors"
+                        className="flex items-center px-3 py-1.5 bg-card hover:bg-card text-foreground rounded-lg text-sm transition-colors"
                       >
                         <FileText className="w-4 h-4 mr-1.5" />
                         Genera Report
                       </button>
                       <button
                         onClick={downloadReport}
-                        className="flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm transition-colors"
+                        className="flex items-center px-3 py-1.5 bg-primary hover:bg-primary text-foreground rounded-lg text-sm transition-colors"
                       >
                         <Download className="w-4 h-4 mr-1.5" />
                         Scarica Report
@@ -1196,7 +1191,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                             preElement.textContent = sanitizedJson;
                           }
                         }}
-                        className="flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors"
+                        className="flex items-center px-3 py-1.5 bg-card hover:bg-card text-foreground rounded-lg text-sm transition-colors"
                       >
                         <Code className="w-4 h-4 mr-1.5" />
                         Mostra JSON
@@ -1206,7 +1201,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                   
                   <pre 
                     id="raw-data-content"
-                    className="bg-black p-4 rounded-lg border border-gray-800 text-xs text-gray-300 overflow-auto max-h-96 font-mono whitespace-pre"
+                    className="bg-card p-4 rounded-lg border border-border text-xs text-muted overflow-auto max-h-96 font-mono whitespace-pre"
                   >
                     {JSON.stringify(timeline, null, 2)
                       .replace(/n8n/gi, 'WFEngine')

@@ -14,6 +14,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Design System**: Control Room theme nero/verde, icone solo da Lucide React
 - **Consistency**: Tutte le icone devono provenire dalla stessa libreria
 
+### 🎨 DESIGN SYSTEM OBBLIGATORIO - REGOLE PERMANENTI
+- **Palette colori**: SOLO 3 colori principali - background (#1a1a1d), foreground (#f2f2f2), primary (#4CAF50)
+- **NO colori aggiuntivi**: Eliminare purple, orange, blue, yellow, gradient - usare solo primary/muted
+- **Tipografia**: Font Geist/Geist Mono, dimensioni coerenti (text-sm font-medium per labels)
+- **Truncation obbligatorio**: Applicare `truncate max-w-xs` a tutti i titoli lunghi nelle cards
+- **Dropdown personalizzati**: Mai usare select nativi - sempre componente Dropdown custom
+- **Bordi sottili**: border-border (15% opacity) per visibilità senza essere invasivi
+- **Background coerente**: bg-background su tutti i componenti principali
+- **Cards**: bg-card con bordi sottili, mai background differenti tra sidebar/main
+- **Hover states**: hover:bg-border per feedback interazione
+- **REGOLA AUREA**: Semplicità e coerenza sopra ogni cosa - VS Code dark theme style
+
 ### 🔒 SICUREZZA E PRIVACY CLIENTE - CRITICO
 - **MAI esporre riferimenti a n8n** nell'interfaccia utente, report o export
 - **Sostituire SEMPRE "n8n" con "WFEngine"** in tutti i testi visibili al cliente
@@ -204,10 +216,13 @@ npm run preview     # Preview build di produzione
 
 ### Frontend - React Application (Porta 5173) ✅ COMPLETATO
 
-#### Design System - Control Room Theme
-- **Colori**: Background nero (#000000), accenti verdi (#4ade80)
-- **Componenti**: Card con bordi verdi, pulsanti gradient, tabelle dark mode
-- **Icone**: Lucide React per consistenza visuale
+#### Design System - Control Room Theme (AGGIORNATO v2.5.0)
+- **Palette minimalista**: 3 colori HSL variables - background, foreground, primary
+- **Componenti**: Card bg-card con bordi sottili, NO gradient, tabelle dark mode
+- **Icone**: SOLO Lucide React, mai icone pittografiche
+- **Tipografia**: Geist/Geist Mono con dimensioni coerenti
+- **Truncation**: Obbligatorio per titoli lunghi nelle cards
+- **Dropdown**: Sempre componenti custom, mai select nativi
 - **Responsive**: Ottimizzato per desktop e mobile
 
 #### Pagine Implementate (TUTTE CON DATI REALI)
@@ -734,7 +749,10 @@ if (!nodeAnalysis.description && (nodeAnalysis.triggers.length > 0 || nodeAnalys
 ## 🎯 Principi di Design
 
 ### Frontend
-- **Control Room Theme**: Background nero, accenti verdi fosforescenti
+- **Design System Minimalista**: 3 colori HSL (background, foreground, primary) - VS Code dark theme style
+- **Palette rigorosa**: background (#1a1a1d), foreground (#f2f2f2), primary (#4CAF50) - NO altri colori
+- **Tipografia coerente**: Geist fonts, text-sm font-medium per labels, truncation obbligatorio
+- **Componenti custom**: Dropdown personalizzati al posto di select nativi, cards bg-card uniformi
 - **Data-First**: Tutti i componenti mostrano dati reali, zero mock
 - **Responsive**: Mobile-first ma ottimizzato per dashboard desktop
 - **Performance**: Lazy loading, code splitting, memo components
@@ -801,6 +819,15 @@ Workflow Cards → Click → AgentDetailModal
 
 ## Versioning
 
+- **v2.5.0** ✅ - Design System Minimalista Finale (14/08/2025):
+  - REGOLE PERMANENTI: Palette 3 colori HSL (background, foreground, primary)
+  - NO colori aggiuntivi: Eliminati tutti purple, orange, blue, yellow, gradient
+  - Tipografia coerente: text-sm font-medium per labels, Geist fonts
+  - Truncation obbligatorio: truncate max-w-xs per titoli lunghi nelle cards
+  - Dropdown custom: Sostituiti tutti select nativi con componente personalizzato
+  - Background uniforme: bg-background/bg-card coerente su tutto il sito
+  - VS Code dark theme: Bordi sottili, hover states, simplicità e coerenza
+  - Documentazione: Regole design system aggiunte a CLAUDE.md come standard obbligatorio
 - **v2.4.1** ✅ - Fix critici AgentDetailModal (13/08/2025 ore 23:00):
   - Fix: Risolto syntax error else statement linea 259 che causava crash totale
   - Fix: Corretto problema duplicazione input/output data nel backend (linea 312-313)

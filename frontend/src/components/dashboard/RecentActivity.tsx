@@ -31,28 +31,28 @@ export const RecentActivity: React.FC = () => {
   // Trasforma le esecuzioni DEL TUO TENANT in attività
   const activities: Activity[] = recentExecutions?.executions?.map((execution: any) => {
     let icon = Clock
-    let color = 'text-gray-500'
+    let color = 'text-muted'
     let type: Activity['type'] = 'info'
     
     switch (execution.status) {
       case 'success':
         icon = CheckCircle
-        color = 'text-green-500'
+        color = 'text-primary'
         type = 'success'
         break
       case 'error':
         icon = AlertCircle
-        color = 'text-red-500'
+        color = 'text-muted'
         type = 'error'
         break
       case 'running':
         icon = Clock
-        color = 'text-blue-500'
+        color = 'text-primary'
         type = 'running'
         break
       case 'waiting':
         icon = Clock
-        color = 'text-yellow-500'
+        color = 'text-primary'
         type = 'info'
         break
     }
@@ -75,7 +75,7 @@ export const RecentActivity: React.FC = () => {
       title: 'Workflow "Data Sync" completato',
       time: '2 minuti fa',
       icon: CheckCircle,
-      color: 'text-green-500',
+      color: 'text-primary',
     },
     {
       id: '2',
@@ -83,7 +83,7 @@ export const RecentActivity: React.FC = () => {
       title: 'Errore in "Email Campaign"',
       time: '15 minuti fa',
       icon: AlertCircle,
-      color: 'text-red-500',
+      color: 'text-muted',
     },
     {
       id: '3',
@@ -91,7 +91,7 @@ export const RecentActivity: React.FC = () => {
       title: 'Nuovo tenant aggiunto',
       time: '1 ora fa',
       icon: Users,
-      color: 'text-blue-500',
+      color: 'text-primary',
     },
     {
       id: '4',
@@ -99,16 +99,16 @@ export const RecentActivity: React.FC = () => {
       title: 'Backup in esecuzione',
       time: '2 ore fa',
       icon: Clock,
-      color: 'text-yellow-500',
+      color: 'text-primary',
     },
   ]
   
   return (
-    <div className="glass-card rounded-xl p-6">
+    <div className="premium-card rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Attività Recente</h2>
         {recentExecutions && (
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-muted dark:text-muted">
             Tenant: {tenantId}
           </span>
         )}
@@ -117,12 +117,12 @@ export const RecentActivity: React.FC = () => {
         {displayActivities.slice(0, 5).map((activity) => (
           <div
             key={activity.id}
-            className="flex items-start gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="flex items-start gap-3 p-3 hover:bg-card dark:hover:bg-card rounded-lg transition-colors"
           >
             <activity.icon className={cn('h-5 w-5 mt-0.5', activity.color)} />
             <div className="flex-1">
               <p className="text-sm font-medium">{activity.title}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-muted dark:text-muted">
                 {activity.time}
               </p>
             </div>
@@ -131,7 +131,7 @@ export const RecentActivity: React.FC = () => {
       </div>
       
       {activities.length === 0 && (
-        <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400">
+        <div className="text-center py-4 text-sm text-muted dark:text-muted">
           Nessuna attività recente
         </div>
       )}

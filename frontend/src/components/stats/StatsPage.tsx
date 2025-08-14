@@ -93,13 +93,13 @@ const StatCard: React.FC<{
   <div className={cn('control-card p-6', className)}>
     <div className="flex items-start justify-between">
       <div className="flex-1">
-        <p className="text-sm text-gray-400 mb-1">{title}</p>
-        <p className="text-2xl font-bold text-white">{value}</p>
+        <p className="text-sm text-muted mb-1">{title}</p>
+        <p className="text-2xl font-bold text-foreground">{value}</p>
         {change !== undefined && (
           <div className={cn(
             'flex items-center gap-1 mt-2 text-sm',
-            trend === 'up' ? 'text-green-400' : 
-            trend === 'down' ? 'text-red-400' : 'text-gray-400'
+            trend === 'up' ? 'text-primary' : 
+            trend === 'down' ? 'text-muted' : 'text-muted'
           )}>
             {trend === 'up' && <TrendingUp className="h-3 w-3" />}
             {trend === 'down' && <TrendingDown className="h-3 w-3" />}
@@ -107,7 +107,7 @@ const StatCard: React.FC<{
           </div>
         )}
       </div>
-      <div className="text-gray-600">
+      <div className="text-muted">
         {icon}
       </div>
     </div>
@@ -210,10 +210,10 @@ export const StatsPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">
+          <h1 className="text-3xl font-bold text-foreground">
             Analytics & Statistics
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted mt-1">
             Analisi approfondite delle performance del sistema
           </p>
         </div>
@@ -222,7 +222,7 @@ export const StatsPage: React.FC = () => {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as any)}
-            className="px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
+            className="px-3 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:border-primary focus:outline-none"
           >
             <option value="7d">Ultimi 7 giorni</option>
             <option value="30d">Ultimi 30 giorni</option>
@@ -259,8 +259,8 @@ export const StatsPage: React.FC = () => {
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all',
                 activeTab === id
-                  ? 'bg-green-500 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-primary text-foreground'
+                  : 'text-muted hover:bg-card hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
@@ -300,51 +300,51 @@ export const StatsPage: React.FC = () => {
               change={processedStats.overview.trendsVsPreviousWeek.successRate}
               trend="up"
               icon={<CheckCircle className="h-8 w-8" />}
-              className="border-green-500/30"
+              className="border-primary/30"
             />
           </div>
 
           {/* Performance Metrics */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Timer className="h-5 w-5 text-green-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Timer className="h-5 w-5 text-primary" />
                 Tempi di Esecuzione
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Tempo Medio</span>
-                  <span className="text-white font-mono">
+                  <span className="text-muted">Tempo Medio</span>
+                  <span className="text-foreground font-mono">
                     {isLoadingStats ? '-' : formatDuration(processedStats.overview.avgExecutionTime)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Miglioramento</span>
-                  <span className="text-green-400 font-medium">-15.2% vs scorsa settimana</span>
+                  <span className="text-muted">Miglioramento</span>
+                  <span className="text-primary font-medium">-15.2% vs scorsa settimana</span>
                 </div>
               </div>
             </div>
 
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <PieChart className="h-5 w-5 text-green-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <PieChart className="h-5 w-5 text-primary" />
                 Distribuzione Workflow Types
               </h3>
               <div className="space-y-3">
                 {isLoadingStats ? (
-                  <div className="text-gray-500">Caricamento...</div>
+                  <div className="text-muted">Caricamento...</div>
                 ) : (
                   processedStats.resources.workflowTypes.map((type) => (
                     <div key={type.type} className="flex items-center justify-between">
-                      <span className="text-gray-400">{type.type}</span>
+                      <span className="text-muted">{type.type}</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-20 bg-gray-800 rounded-full h-2">
+                        <div className="w-20 bg-card rounded-full h-2">
                           <div 
-                            className="bg-green-500 h-2 rounded-full"
+                            className="bg-primary h-2 rounded-full"
                             style={{ width: `${Math.min(type.percentage, 100)}%` }}
                           />
                         </div>
-                        <span className="text-white font-medium w-12 text-right">{type.count}</span>
+                        <span className="text-foreground font-medium w-12 text-right">{type.count}</span>
                       </div>
                     </div>
                   ))
@@ -361,33 +361,33 @@ export const StatsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top Performing Workflows */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
                 Top Performing Workflows
               </h3>
               <div className="space-y-3">
                 {isLoadingStats || isLoadingPerformance ? (
-                  <div className="text-gray-500">Caricamento...</div>
+                  <div className="text-muted">Caricamento...</div>
                 ) : processedStats.performance.topWorkflows.length === 0 ? (
-                  <div className="text-gray-500">Nessun dato disponibile</div>
+                  <div className="text-muted">Nessun dato disponibile</div>
                 ) : (
                   processedStats.performance.topWorkflows.slice(0, 5).map((workflow, index) => (
-                    <div key={workflow.id} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div key={workflow.id} className="flex items-center justify-between p-3 bg-card/50 rounded-lg">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">#{index + 1}</span>
-                          <h4 className="text-white font-medium truncate" title={workflow.name}>{workflow.name}</h4>
+                          <span className="text-xs bg-card text-muted px-2 py-1 rounded">#{index + 1}</span>
+                          <h4 className="text-foreground font-medium truncate" title={workflow.name}>{workflow.name}</h4>
                         </div>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-400">
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted">
                           <span>{workflow.executions} exec.</span>
                           <span>{formatDuration(workflow.avgDuration)} avg</span>
-                          <span className="text-green-400">{workflow.successRate}% success</span>
+                          <span className="text-primary">{workflow.successRate}% success</span>
                         </div>
                       </div>
-                      <div className="text-gray-400">
-                        {workflow.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-400" />}
-                        {workflow.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-400" />}
-                        {workflow.trend === 'stable' && <span className="text-gray-500">—</span>}
+                      <div className="text-muted">
+                        {workflow.trend === 'up' && <TrendingUp className="h-4 w-4 text-primary" />}
+                        {workflow.trend === 'down' && <TrendingDown className="h-4 w-4 text-muted" />}
+                        {workflow.trend === 'stable' && <span className="text-muted">—</span>}
                       </div>
                     </div>
                   ))
@@ -397,25 +397,25 @@ export const StatsPage: React.FC = () => {
 
             {/* Slowest Workflows */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-yellow-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
                 Workflows più Lenti
               </h3>
               <div className="space-y-3">
                 {isLoadingStats ? (
-                  <div className="text-gray-500">Caricamento...</div>
+                  <div className="text-muted">Caricamento...</div>
                 ) : (
                   processedStats.performance.slowestWorkflows.map((workflow) => (
-                    <div key={workflow.id} className="p-3 bg-gray-800/50 rounded-lg">
-                      <h4 className="text-white font-medium mb-2">{workflow.name}</h4>
+                    <div key={workflow.id} className="p-3 bg-card/50 rounded-lg">
+                      <h4 className="text-foreground font-medium mb-2">{workflow.name}</h4>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-400">Tempo Medio</span>
-                          <p className="text-yellow-400 font-mono">{formatDuration(workflow.avgDuration)}</p>
+                          <span className="text-muted">Tempo Medio</span>
+                          <p className="text-primary font-mono">{formatDuration(workflow.avgDuration)}</p>
                         </div>
                         <div>
-                          <span className="text-gray-400">Tempo Max</span>
-                          <p className="text-red-400 font-mono">{formatDuration(workflow.maxDuration)}</p>
+                          <span className="text-muted">Tempo Max</span>
+                          <p className="text-muted font-mono">{formatDuration(workflow.maxDuration)}</p>
                         </div>
                       </div>
                     </div>
@@ -427,27 +427,27 @@ export const StatsPage: React.FC = () => {
 
           {/* Error Analysis */}
           <div className="control-card p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-400" />
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-muted" />
               Analisi Errori
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {isLoadingStats ? (
-                <div className="text-gray-500">Caricamento...</div>
+                <div className="text-muted">Caricamento...</div>
               ) : processedStats.performance.errorProne.length === 0 ? (
-                <div className="text-gray-500">Nessun workflow con errori significativi</div>
+                <div className="text-muted">Nessun workflow con errori significativi</div>
               ) : (
                 processedStats.performance.errorProne.map((workflow) => (
-                  <div key={workflow.id} className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-                    <h4 className="text-white font-medium mb-2">{workflow.name}</h4>
+                  <div key={workflow.id} className="p-4 bg-muted/10 border border-muted/30 rounded-lg">
+                    <h4 className="text-foreground font-medium mb-2">{workflow.name}</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Error Rate</span>
-                        <span className="text-red-400 font-bold">{workflow.errorRate}%</span>
+                        <span className="text-muted">Error Rate</span>
+                        <span className="text-muted font-bold">{workflow.errorRate}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Total Errors</span>
-                        <span className="text-white">{workflow.totalErrors}</span>
+                        <span className="text-muted">Total Errors</span>
+                        <span className="text-foreground">{workflow.totalErrors}</span>
                       </div>
                     </div>
                   </div>
@@ -464,25 +464,25 @@ export const StatsPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Peak Hours */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Clock className="h-5 w-5 text-blue-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
                 Ore di Picco
               </h3>
               <div className="space-y-3">
                 {isLoadingStats ? (
-                  <div className="text-gray-500">Caricamento...</div>
+                  <div className="text-muted">Caricamento...</div>
                 ) : (
                   processedStats.resources.peakHours.map((peak) => (
-                    <div key={peak.hour} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
-                      <span className="text-white font-medium">{peak.hour}:00 - {peak.hour + 1}:00</span>
+                    <div key={peak.hour} className="flex items-center justify-between p-3 bg-card/50 rounded-lg">
+                      <span className="text-foreground font-medium">{peak.hour}:00 - {peak.hour + 1}:00</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-700 rounded-full h-2">
+                        <div className="w-24 bg-card rounded-full h-2">
                           <div 
-                            className="bg-blue-500 h-2 rounded-full"
+                            className="bg-primary h-2 rounded-full"
                             style={{ width: `${Math.min((peak.avgExecutions / 150) * 100, 100)}%` }}
                           />
                         </div>
-                        <span className="text-blue-400 font-mono">{peak.avgExecutions} exec/h</span>
+                        <span className="text-primary font-mono">{peak.avgExecutions} exec/h</span>
                       </div>
                     </div>
                   ))
@@ -492,28 +492,28 @@ export const StatsPage: React.FC = () => {
 
             {/* System Health */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Database className="h-5 w-5 text-green-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Database className="h-5 w-5 text-primary" />
                 System Health
               </h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">System Load</span>
-                  <span className="text-green-400 font-medium">Normale</span>
+                  <span className="text-muted">System Load</span>
+                  <span className="text-primary font-medium">Normale</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Database Performance</span>
-                  <span className="text-green-400 font-medium">Ottimale</span>
+                  <span className="text-muted">Database Performance</span>
+                  <span className="text-primary font-medium">Ottimale</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">API Response Time</span>
-                  <span className="text-green-400 font-mono">
+                  <span className="text-muted">API Response Time</span>
+                  <span className="text-primary font-mono">
                     {isLoadingStats ? '-' : `${processedStats.overview.avgExecutionTime}ms avg`}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Uptime</span>
-                  <span className="text-green-400 font-bold">99.98%</span>
+                  <span className="text-muted">Uptime</span>
+                  <span className="text-primary font-bold">99.98%</span>
                 </div>
               </div>
             </div>

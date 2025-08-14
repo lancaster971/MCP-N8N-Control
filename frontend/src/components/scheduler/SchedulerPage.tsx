@@ -62,41 +62,41 @@ const getStatusInfo = (status: string) => {
     case 'running':
       return {
         label: 'Active',
-        color: 'text-green-400',
-        bgColor: 'bg-green-500/10',
-        borderColor: 'border-green-500/30',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        borderColor: 'border-primary/30',
         icon: Play
       }
     case 'paused':
       return {
         label: 'Paused',
-        color: 'text-yellow-400',
-        bgColor: 'bg-yellow-500/10',
-        borderColor: 'border-yellow-500/30',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10',
+        borderColor: 'border-primary/30',
         icon: Pause
       }
     case 'disabled':
       return {
         label: 'Disabled',
-        color: 'text-gray-400',
-        bgColor: 'bg-gray-500/10',
-        borderColor: 'border-gray-500/30',
+        color: 'text-muted',
+        bgColor: 'bg-card/10',
+        borderColor: 'border-border/30',
         icon: Square
       }
     case 'error':
       return {
         label: 'Error',
-        color: 'text-red-400',
-        bgColor: 'bg-red-500/10',
-        borderColor: 'border-red-500/30',
+        color: 'text-muted',
+        bgColor: 'bg-muted/10',
+        borderColor: 'border-muted/30',
         icon: XCircle
       }
     default:
       return {
         label: 'Unknown',
-        color: 'text-gray-400',
-        bgColor: 'bg-gray-500/10',
-        borderColor: 'border-gray-500/30',
+        color: 'text-muted',
+        bgColor: 'bg-card/10',
+        borderColor: 'border-border/30',
         icon: Square
       }
   }
@@ -104,10 +104,10 @@ const getStatusInfo = (status: string) => {
 
 const getPriorityColor = (priority: string) => {
   switch (priority) {
-    case 'high': return 'text-red-400 bg-red-500/10 border-red-500/30'
-    case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30'
-    case 'low': return 'text-blue-400 bg-blue-500/10 border-blue-500/30'
-    default: return 'text-gray-400 bg-gray-500/10 border-gray-500/30'
+    case 'high': return 'text-muted bg-muted/10 border-muted/30'
+    case 'medium': return 'text-primary bg-primary/10 border-primary/30'
+    case 'low': return 'text-primary bg-primary/10 border-primary/30'
+    default: return 'text-muted bg-card/10 border-border/30'
   }
 }
 
@@ -205,10 +205,10 @@ export const SchedulerPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">
+          <h1 className="text-3xl font-bold text-foreground">
             Scheduler Control
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-muted mt-1">
             Gestione scheduling automatico e monitoraggio job
           </p>
         </div>
@@ -240,29 +240,29 @@ export const SchedulerPage: React.FC = () => {
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Jobs Totali</p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-sm text-muted">Jobs Totali</p>
+              <p className="text-2xl font-bold text-foreground">
                 {isLoadingStats ? '-' : processedStats.totalJobs}
               </p>
             </div>
-            <Calendar className="h-8 w-8 text-gray-600" />
+            <Calendar className="h-8 w-8 text-muted" />
           </div>
         </div>
 
-        <div className="control-card p-6 border-green-500/30">
+        <div className="control-card p-6 border-primary/30">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Scheduler Status</p>
+              <p className="text-sm text-muted">Scheduler Status</p>
               <p className={cn(
                 'text-2xl font-bold',
-                schedulerStatus?.scheduler?.isRunning ? 'text-green-400' : 'text-red-400'
+                schedulerStatus?.scheduler?.isRunning ? 'text-primary' : 'text-muted'
               )}>
                 {isLoadingScheduler ? '-' : (schedulerStatus?.scheduler?.isRunning ? 'RUNNING' : 'STOPPED')}
               </p>
             </div>
             <Play className={cn(
               'h-8 w-8',
-              schedulerStatus?.scheduler?.isRunning ? 'text-green-500' : 'text-gray-600'
+              schedulerStatus?.scheduler?.isRunning ? 'text-primary' : 'text-muted'
             )} />
           </div>
         </div>
@@ -270,24 +270,24 @@ export const SchedulerPage: React.FC = () => {
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Total Sync Runs</p>
-              <p className="text-2xl font-bold text-blue-400">
+              <p className="text-sm text-muted">Total Sync Runs</p>
+              <p className="text-2xl font-bold text-primary">
                 {isLoadingStats ? '-' : (systemStats?.scheduler?.totalSyncRuns || 0)}
               </p>
             </div>
-            <Activity className="h-8 w-8 text-gray-600" />
+            <Activity className="h-8 w-8 text-muted" />
           </div>
         </div>
 
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-400">Active Tenants</p>
-              <p className="text-2xl font-bold text-green-400">
+              <p className="text-sm text-muted">Active Tenants</p>
+              <p className="text-2xl font-bold text-primary">
                 {isLoadingStats ? '-' : (systemStats?.database?.activeTenants || 0)}
               </p>
             </div>
-            <Target className="h-8 w-8 text-gray-600" />
+            <Target className="h-8 w-8 text-muted" />
           </div>
         </div>
       </div>
@@ -306,8 +306,8 @@ export const SchedulerPage: React.FC = () => {
               className={cn(
                 'flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all',
                 activeTab === id
-                  ? 'bg-green-500 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-primary text-foreground'
+                  : 'text-muted hover:bg-card hover:text-foreground'
               )}
             >
               <Icon className="h-4 w-4" />
@@ -323,35 +323,35 @@ export const SchedulerPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* System Status */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
                 System Status
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Scheduler Running</span>
+                  <span className="text-muted">Scheduler Running</span>
                   <span className={cn(
                     'font-bold',
-                    schedulerStatus?.scheduler?.isRunning ? 'text-green-400' : 'text-red-400'
+                    schedulerStatus?.scheduler?.isRunning ? 'text-primary' : 'text-muted'
                   )}>
                     {isLoadingScheduler ? '-' : (schedulerStatus?.scheduler?.isRunning ? 'YES' : 'NO')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Active Tenants</span>
-                  <span className="text-white font-bold">
+                  <span className="text-muted">Active Tenants</span>
+                  <span className="text-foreground font-bold">
                     {isLoadingStats ? '-' : systemStats?.database?.activeTenants || 0}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">System Uptime</span>
-                  <span className="text-green-400 font-bold">
+                  <span className="text-muted">System Uptime</span>
+                  <span className="text-primary font-bold">
                     {isLoadingScheduler ? '-' : formatDuration((schedulerStatus?.system?.uptime || 0) * 1000)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Last Sync</span>
-                  <span className="text-blue-400 font-bold">
+                  <span className="text-muted">Last Sync</span>
+                  <span className="text-primary font-bold">
                     {isLoadingStats ? '-' : (systemStats?.scheduler?.lastSyncTime ? formatTime(systemStats.scheduler.lastSyncTime) : 'Never')}
                   </span>
                 </div>
@@ -360,39 +360,39 @@ export const SchedulerPage: React.FC = () => {
 
             {/* Recent Activity */}
             <div className="control-card p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Timer className="h-5 w-5 text-blue-400" />
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Timer className="h-5 w-5 text-primary" />
                 Recent Sync Activity
               </h3>
               <div className="space-y-3">
                 {isLoadingHistory ? (
-                  <div className="text-gray-500">Caricamento...</div>
+                  <div className="text-muted">Caricamento...</div>
                 ) : syncHistory?.logs?.length === 0 ? (
-                  <div className="text-gray-500">Nessun sync recente</div>
+                  <div className="text-muted">Nessun sync recente</div>
                 ) : (
                   syncHistory?.logs?.slice(0, 5).map((log: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-card/50 rounded-lg">
                       <div>
-                        <p className="text-white font-medium">{log.tenant_name || 'Unknown Tenant'}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-foreground font-medium">{log.tenant_name || 'Unknown Tenant'}</p>
+                        <p className="text-xs text-muted">
                           {log.items_processed || 0} items • {formatDuration(log.duration_ms || 0)}
                         </p>
                       </div>
                       <div className="text-right">
                         <div className="flex items-center gap-1">
                           {log.success ? (
-                            <CheckCircle className="h-3 w-3 text-green-400" />
+                            <CheckCircle className="h-3 w-3 text-primary" />
                           ) : (
-                            <XCircle className="h-3 w-3 text-red-400" />
+                            <XCircle className="h-3 w-3 text-muted" />
                           )}
                           <span className={cn(
                             'text-xs font-medium',
-                            log.success ? 'text-green-400' : 'text-red-400'
+                            log.success ? 'text-primary' : 'text-muted'
                           )}>
                             {log.success ? 'Success' : 'Failed'}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500">{formatTime(log.started_at)}</p>
+                        <p className="text-xs text-muted">{formatTime(log.started_at)}</p>
                       </div>
                     </div>
                   ))
@@ -410,20 +410,20 @@ export const SchedulerPage: React.FC = () => {
           <div className="control-card p-4">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
                 <input
                   type="text"
                   placeholder="Cerca jobs..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
+                  className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:border-primary focus:outline-none"
                 />
               </div>
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
+                className="px-4 py-2 bg-card border border-border rounded-md text-foreground text-sm focus:border-primary focus:outline-none"
               >
                 <option value="all">Tutti gli status</option>
                 <option value="active">Solo Attivi</option>
@@ -439,25 +439,25 @@ export const SchedulerPage: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-800">
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Job Name</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Status</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Schedule</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Last Run</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Duration</th>
-                    <th className="text-left p-4 text-sm font-medium text-gray-400">Actions</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left p-4 text-sm font-medium text-muted">Job Name</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Status</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Schedule</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Last Run</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Duration</th>
+                    <th className="text-left p-4 text-sm font-medium text-muted">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {isLoadingHistory ? (
                     <tr>
-                      <td colSpan={6} className="p-4 text-center text-gray-500">
+                      <td colSpan={6} className="p-4 text-center text-muted">
                         Caricamento...
                       </td>
                     </tr>
                   ) : filteredJobs.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-4 text-center text-gray-500">
+                      <td colSpan={6} className="p-4 text-center text-muted">
                         Nessun job trovato
                       </td>
                     </tr>
@@ -469,12 +469,12 @@ export const SchedulerPage: React.FC = () => {
                       return (
                         <tr 
                           key={job.id} 
-                          className="border-b border-gray-800/50 hover:bg-gray-900/30 transition-colors"
+                          className="border-b border-border/50 hover:bg-card/30 transition-colors"
                         >
                           <td className="p-4">
                             <div>
                               <div className="flex items-center gap-2">
-                                <h4 className="text-white font-medium">{job.name}</h4>
+                                <h4 className="text-foreground font-medium">{job.name}</h4>
                                 <span className={cn(
                                   'px-2 py-1 rounded text-xs font-medium border',
                                   getPriorityColor(job.priority)
@@ -482,8 +482,8 @@ export const SchedulerPage: React.FC = () => {
                                   {job.priority}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-400 mt-1">{job.description}</p>
-                              <p className="text-xs text-blue-400">{job.workflowName}</p>
+                              <p className="text-sm text-muted mt-1">{job.description}</p>
+                              <p className="text-xs text-primary">{job.workflowName}</p>
                             </div>
                           </td>
                           
@@ -501,18 +501,18 @@ export const SchedulerPage: React.FC = () => {
                           
                           <td className="p-4">
                             <div>
-                              <p className="text-white font-mono text-sm">{job.cron}</p>
-                              <p className="text-xs text-gray-400">{job.cronReadable}</p>
+                              <p className="text-foreground font-mono text-sm">{job.cron}</p>
+                              <p className="text-xs text-muted">{job.cronReadable}</p>
                             </div>
                           </td>
                           
                           <td className="p-4">
                             {job.lastRun && (
                               <div className="flex items-center gap-1">
-                                {job.lastRunStatus === 'success' && <CheckCircle className="h-3 w-3 text-green-400" />}
-                                {job.lastRunStatus === 'failed' && <XCircle className="h-3 w-3 text-red-400" />}
-                                {job.lastRunStatus === 'running' && <Play className="h-3 w-3 text-blue-400 animate-pulse" />}
-                                <span className="text-xs text-gray-400">
+                                {job.lastRunStatus === 'success' && <CheckCircle className="h-3 w-3 text-primary" />}
+                                {job.lastRunStatus === 'failed' && <XCircle className="h-3 w-3 text-muted" />}
+                                {job.lastRunStatus === 'running' && <Play className="h-3 w-3 text-primary animate-pulse" />}
+                                <span className="text-xs text-muted">
                                   {formatTime(job.lastRun)}
                                 </span>
                               </div>
@@ -520,24 +520,24 @@ export const SchedulerPage: React.FC = () => {
                           </td>
                           
                           <td className="p-4">
-                            <p className="text-sm text-white">
+                            <p className="text-sm text-foreground">
                               {formatDuration(job.averageDuration)}
                             </p>
-                            <p className="text-xs text-gray-400">{job.executionCount} runs</p>
+                            <p className="text-xs text-muted">{job.executionCount} runs</p>
                           </td>
                           
                           <td className="p-4">
                             <div className="flex items-center gap-1">
-                              <button className="p-1 text-gray-400 hover:text-green-400 transition-colors">
+                              <button className="p-1 text-muted hover:text-primary transition-colors">
                                 {job.status === 'paused' ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
                               </button>
-                              <button className="p-1 text-gray-400 hover:text-blue-400 transition-colors">
+                              <button className="p-1 text-muted hover:text-primary transition-colors">
                                 <Edit className="h-4 w-4" />
                               </button>
-                              <button className="p-1 text-gray-400 hover:text-yellow-400 transition-colors">
+                              <button className="p-1 text-muted hover:text-primary transition-colors">
                                 <Copy className="h-4 w-4" />
                               </button>
-                              <button className="p-1 text-gray-400 hover:text-red-400 transition-colors">
+                              <button className="p-1 text-muted hover:text-muted transition-colors">
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
@@ -556,28 +556,28 @@ export const SchedulerPage: React.FC = () => {
       {/* History Tab */}
       {activeTab === 'history' && (
         <div className="control-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Activity className="h-5 w-5 text-blue-400" />
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
             Sync Execution History
           </h3>
           
           {isLoadingHistory ? (
-            <div className="text-gray-500">Caricamento...</div>
+            <div className="text-muted">Caricamento...</div>
           ) : (
             <div className="space-y-3">
               {syncHistory?.logs?.map((log: any, index: number) => (
-                <div key={index} className="p-4 bg-gray-800/30 rounded-lg">
+                <div key={index} className="p-4 bg-card/30 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-white font-medium">{log.tenant_name || 'Unknown Tenant'}</h4>
+                    <h4 className="text-foreground font-medium">{log.tenant_name || 'Unknown Tenant'}</h4>
                     <div className="flex items-center gap-2">
                       {log.success ? (
-                        <CheckCircle className="h-4 w-4 text-green-400" />
+                        <CheckCircle className="h-4 w-4 text-primary" />
                       ) : (
-                        <XCircle className="h-4 w-4 text-red-400" />
+                        <XCircle className="h-4 w-4 text-muted" />
                       )}
                       <span className={cn(
                         'text-sm font-medium',
-                        log.success ? 'text-green-400' : 'text-red-400'
+                        log.success ? 'text-primary' : 'text-muted'
                       )}>
                         {log.success ? 'Success' : 'Failed'}
                       </span>
@@ -586,30 +586,30 @@ export const SchedulerPage: React.FC = () => {
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-400">Started</span>
-                      <p className="text-white">{formatTime(log.started_at)}</p>
+                      <span className="text-muted">Started</span>
+                      <p className="text-foreground">{formatTime(log.started_at)}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400">Duration</span>
-                      <p className="text-white">{formatDuration(log.duration_ms || 0)}</p>
+                      <span className="text-muted">Duration</span>
+                      <p className="text-foreground">{formatDuration(log.duration_ms || 0)}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400">Items</span>
-                      <p className="text-white">{log.items_processed || 0}</p>
+                      <span className="text-muted">Items</span>
+                      <p className="text-foreground">{log.items_processed || 0}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400">Tenant</span>
-                      <p className="text-white">{log.tenant_id}</p>
+                      <span className="text-muted">Tenant</span>
+                      <p className="text-foreground">{log.tenant_id}</p>
                     </div>
                   </div>
                   
                   {log.error_message && (
-                    <div className="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded">
-                      <p className="text-red-400 text-sm">{log.error_message}</p>
+                    <div className="mt-2 p-2 bg-muted/10 border border-muted/30 rounded">
+                      <p className="text-muted text-sm">{log.error_message}</p>
                     </div>
                   )}
                 </div>
-              )) || <div className="text-gray-500">Nessun history disponibile</div>}
+              )) || <div className="text-muted">Nessun history disponibile</div>}
             </div>
           )}
         </div>
