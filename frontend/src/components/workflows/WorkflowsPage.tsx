@@ -19,6 +19,7 @@ import { useAuthStore } from '../../store/authStore'
 import { formatDate, cn } from '../../lib/utils'
 import { WorkflowDetailModal } from './WorkflowDetailModal'
 import { Dropdown } from '../ui/Dropdown'
+import AgentDetailModal from '../agents/AgentDetailModal'
 
 interface Workflow {
   id: string
@@ -70,6 +71,8 @@ export const WorkflowsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'archived'>('all')
   const [typeFilter, setTypeFilter] = useState<'all' | 'ai-agents' | 'standard'>('all')
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null)
+  const [selectedAIWorkflow, setSelectedAIWorkflow] = useState<string | null>(null)
+  const [isAITimelineOpen, setIsAITimelineOpen] = useState(false)
 
   // Fetch workflows del tenant con filtro type
   const { data: workflowsData, isLoading, error } = useQuery({
@@ -357,6 +360,22 @@ export const WorkflowsPage: React.FC = () => {
                     >
                       {workflow.active ? 'Pausa' : 'Avvia'}
                     </button>
+                    
+                    {/* AI Timeline Button - solo per workflow con AI agents */}
+                    {workflow.has_ai_agents && workflow.ai_agent_count > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation() // Prevent card click
+                          setSelectedAIWorkflow(workflow.id)
+                          setIsAITimelineOpen(true)
+                        }}
+                        className="p-2 text-primary hover:text-foreground transition-colors border border-primary/30 rounded"
+                        title="Apri AI Timeline"
+                      >
+                        <Bot className="h-4 w-4" />
+                      </button>
+                    )}
+                    
                     <button 
                       onClick={(e) => {
                         e.stopPropagation() // Prevent card click
@@ -380,6 +399,19 @@ export const WorkflowsPage: React.FC = () => {
           workflow={selectedWorkflow}
           tenantId={tenantId}
           onClose={() => setSelectedWorkflow(null)}
+        />
+      )}
+      
+      {/* AI Timeline Modal - separato */}
+      {isAITimelineOpen && selectedAIWorkflow && (
+        <AgentDetailModal
+          workflowId={selectedAIWorkflow}
+          tenantId="client_simulation_a"
+          isOpen={isAITimelineOpen}
+          onClose={() => {
+            setIsAITimelineOpen(false)
+            setSelectedAIWorkflow(null)
+          }}
         />
       )}
     </div>

@@ -71,7 +71,7 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
   tenantId,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'executions' | 'nodes' | 'performance' | 'activity' | 'ai-timeline'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'executions' | 'nodes' | 'performance' | 'activity'>('overview')
 
   // Fetch detailed workflow data with smart cache invalidation
   const { data: detailData, isLoading, error, refetch } = useQuery({
@@ -94,7 +94,6 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
   const nodeAnalysis: NodeAnalysis = detailData?.nodeAnalysis || { totalNodes: 0, nodesByType: {}, triggers: [], outputs: [], aiAgents: [], tools: [], subWorkflows: [], connections: [] }
   const executionStats: ExecutionStats = detailData?.executionStats || { total: 0, successful: 0, failed: 0, averageDuration: 0, recentExecutions: [] }
   const performance = detailData?.performance || {}
-  const aiData = detailData?.aiData || null
   
   console.log('nodeAnalysis:', nodeAnalysis)
   console.log('executionStats:', executionStats)
@@ -340,10 +339,6 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
             { id: 'nodes', label: 'Nodes', icon: Layers },
             { id: 'performance', label: 'Performance', icon: TrendingUp },
             { id: 'activity', label: 'Activity', icon: Clock },
-            // Tabs AI condizionali - solo se workflow ha AI agents
-            ...(aiData?.hasAIAgents ? [
-              { id: 'ai-timeline', label: 'AI Timeline', icon: Brain },
-            ] : [])
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -903,62 +898,6 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
                 </div>
               )}
 
-              {/* AI Timeline Tab - usando AgentDetailModal esistente */}
-              {activeTab === 'ai-timeline' && aiData?.hasAIAgents && (
-                <div className="p-6">
-                  <div className="control-card p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-primary" />
-                      AI Agent Timeline
-                    </h3>
-                    <div className="mb-4 p-4 bg-primary/5 border border-primary/20 rounded">
-                      <p className="text-sm text-primary mb-2">
-                        ⚠️ Per visualizzare il timeline completo step-by-step, apri il modal dedicato:
-                      </p>
-                      <button
-                        onClick={() => {
-                          const url = `http://localhost:5173/agents`
-                          window.open(url, '_blank')
-                        }}
-                        className="btn-control-primary"
-                      >
-                        <Brain className="h-4 w-4 mr-2" />
-                        Apri AI Timeline Dettagliato
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="control-card p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Bot className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium text-foreground">AI Agents</span>
-                        </div>
-                        <p className="text-2xl font-bold text-primary">{aiData.agentCount}</p>
-                      </div>
-                      <div className="control-card p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Package className="h-4 w-4 text-muted" />
-                          <span className="text-sm font-medium text-foreground">Tools</span>
-                        </div>
-                        <p className="text-2xl font-bold text-foreground">{aiData.tools?.length || 0}</p>
-                      </div>
-                      <div className="control-card p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Activity className="h-4 w-4 text-muted" />
-                          <span className="text-sm font-medium text-foreground">Timeline URL</span>
-                        </div>
-                        <a 
-                          href={aiData.timelineEndpoint}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-primary hover:underline"
-                        >
-                          API Endpoint →
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>
