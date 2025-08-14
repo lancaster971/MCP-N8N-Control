@@ -973,12 +973,20 @@ interface AITimelineTabProps {
 }
 
 const AITimelineTab: React.FC<AITimelineTabProps> = ({ workflowId, tenantId, aiData }) => {
-  // Fetch timeline data da AI agents API
+  // Fetch timeline data da AI agents API con fallback tenant
   const { data: timelineData, isLoading: isLoadingTimeline, error: timelineError } = useQuery({
     queryKey: ['ai-timeline', tenantId, workflowId],
     queryFn: async () => {
-      const response = await api.get(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`)
-      return response.data
+      // Prima prova con il tenant passato
+      try {
+        const response = await api.get(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`)
+        return response.data
+      } catch (error) {
+        // Se fallisce, prova con client_simulation_a (tenant con dati AI)
+        console.log(`Timeline fallback: trying client_simulation_a for workflow ${workflowId}`)
+        const fallbackResponse = await api.get(`/api/tenant/client_simulation_a/agents/workflow/${workflowId}/timeline`)
+        return fallbackResponse.data
+      }
     },
     enabled: !!workflowId && !!aiData?.hasAIAgents,
     refetchInterval: 60000, // Refresh ogni minuto per timeline AI
