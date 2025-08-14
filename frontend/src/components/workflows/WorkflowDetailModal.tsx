@@ -906,76 +906,11 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
 
               {/* AI Timeline Tab - condizionale */}
               {activeTab === 'ai-timeline' && aiData?.hasAIAgents && (
-                <div className="p-6">
-                  <div className="control-card p-6">
-                    <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-primary" />
-                      AI Agent Timeline
-                    </h3>
-                    <div className="mb-4 text-sm text-muted">
-                      Step-by-step execution timeline per questo workflow AI.
-                      <a 
-                        href={aiData.timelineEndpoint}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-2 text-primary hover:underline"
-                      >
-                        View Full Timeline →
-                      </a>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div className="control-card p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Bot className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium text-foreground">AI Agents</span>
-                        </div>
-                        <p className="text-2xl font-bold text-primary">{aiData.agentCount}</p>
-                      </div>
-                      
-                      <div className="control-card p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Package className="h-4 w-4 text-muted" />
-                          <span className="text-sm font-medium text-foreground">Tools</span>
-                        </div>
-                        <p className="text-2xl font-bold text-foreground">{aiData.tools?.length || 0}</p>
-                      </div>
-                      
-                      <div className="control-card p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Activity className="h-4 w-4 text-muted" />
-                          <span className="text-sm font-medium text-foreground">Last Execution</span>
-                        </div>
-                        <p className="text-sm text-foreground">
-                          {aiData.lastExecution?.id ? `#${aiData.lastExecution.id.substring(0, 8)}` : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* AI Tools List */}
-                    {aiData.tools && aiData.tools.length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-md font-semibold text-foreground mb-3">Connected AI Tools</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {aiData.tools.map((tool: any, index: number) => (
-                            <div key={index} className="control-card p-3 border-primary/20">
-                              <div className="flex items-start gap-3">
-                                <Package className="h-4 w-4 text-primary mt-0.5" />
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium text-foreground truncate">{tool.name}</p>
-                                  <p className="text-xs text-muted">{tool.type}</p>
-                                  {tool.description && (
-                                    <p className="text-xs text-muted mt-1 truncate">{tool.description}</p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <AITimelineTab 
+                  workflowId={workflow.id}
+                  tenantId={tenantId}
+                  aiData={aiData}
+                />
               )}
 
               {/* AI Context Tab - condizionale */}
@@ -1025,6 +960,152 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
             </>
           )}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// AI Timeline Tab Component
+interface AITimelineTabProps {
+  workflowId: string
+  tenantId: string
+  aiData: any
+}
+
+const AITimelineTab: React.FC<AITimelineTabProps> = ({ workflowId, tenantId, aiData }) => {
+  // Fetch timeline data da AI agents API
+  const { data: timelineData, isLoading: isLoadingTimeline, error: timelineError } = useQuery({
+    queryKey: ['ai-timeline', tenantId, workflowId],
+    queryFn: async () => {
+      const response = await api.get(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`)
+      return response.data
+    },
+    enabled: !!workflowId && !!aiData?.hasAIAgents,
+    refetchInterval: 60000, // Refresh ogni minuto per timeline AI
+  })
+
+  const timeline = timelineData?.data?.timeline || []
+  const businessContext = timelineData?.data?.businessContext || {}
+
+  return (
+    <div className="p-6">
+      <div className="control-card p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Brain className="h-5 w-5 text-primary" />
+          AI Agent Timeline
+        </h3>
+        
+        {isLoadingTimeline ? (
+          <div className="flex items-center justify-center py-8">
+            <Activity className="h-6 w-6 text-primary animate-pulse mr-2" />
+            <span className="text-muted">Caricamento timeline...</span>
+          </div>
+        ) : timelineError ? (
+          <div className="text-center py-8 text-muted">
+            <XCircle className="h-8 w-8 mx-auto mb-2" />
+            <p>Errore nel caricamento timeline</p>
+          </div>
+        ) : timeline.length === 0 ? (
+          <div className="text-center py-8 text-muted">
+            <Clock className="h-8 w-8 mx-auto mb-2" />
+            <p>Nessun dato timeline disponibile</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats header */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="control-card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bot className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">AI Agents</span>
+                </div>
+                <p className="text-2xl font-bold text-primary">{aiData.agentCount}</p>
+              </div>
+              
+              <div className="control-card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Package className="h-4 w-4 text-muted" />
+                  <span className="text-sm font-medium text-foreground">Tools</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{aiData.tools?.length || 0}</p>
+              </div>
+              
+              <div className="control-card p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="h-4 w-4 text-muted" />
+                  <span className="text-sm font-medium text-foreground">Timeline Steps</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{timeline.length}</p>
+              </div>
+            </div>
+
+            {/* Timeline Steps */}
+            <div className="space-y-4">
+              <h4 className="text-md font-semibold text-foreground mb-3">Execution Timeline</h4>
+              {timeline.map((step: any, index: number) => (
+                <div key={step.nodeId || index} className="control-card p-4 border-l-4 border-primary/30">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-8 h-8 bg-primary/10 border border-primary/30 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary">{step.order}</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="text-sm font-medium text-foreground">{step.nodeName}</h5>
+                        <div className="flex items-center gap-2">
+                          {step.status === 'success' ? (
+                            <CheckCircle className="h-4 w-4 text-primary" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-muted" />
+                          )}
+                          <span className="text-xs text-muted">{step.executionTime}ms</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted mb-2">{step.nodeType}</p>
+                      
+                      {/* Input/Output collapsed view */}
+                      <details className="text-xs">
+                        <summary className="cursor-pointer text-primary hover:underline">
+                          View Input/Output Data
+                        </summary>
+                        <div className="mt-2 bg-card/50 p-3 rounded border">
+                          <div className="mb-2">
+                            <strong className="text-foreground">Input:</strong>
+                            <pre className="text-muted text-xs mt-1 whitespace-pre-wrap max-h-24 overflow-y-auto">
+                              {step.inputData ? JSON.stringify(step.inputData, null, 2) : 'No input data'}
+                            </pre>
+                          </div>
+                          <div>
+                            <strong className="text-foreground">Output:</strong>
+                            <pre className="text-muted text-xs mt-1 whitespace-pre-wrap max-h-24 overflow-y-auto">
+                              {step.outputData ? JSON.stringify(step.outputData, null, 2) : 'No output data'}
+                            </pre>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Business Context */}
+            {Object.keys(businessContext).length > 0 && (
+              <div className="mt-6 control-card p-4 bg-primary/5 border-primary/20">
+                <h4 className="text-sm font-semibold text-primary mb-3">Business Context</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  {Object.entries(businessContext).map(([key, value]) => (
+                    <div key={key}>
+                      <span className="text-muted">{key}:</span>
+                      <span className="text-foreground ml-2">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   )
