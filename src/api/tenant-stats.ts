@@ -166,7 +166,18 @@ router.get('/tenant/:tenantId/workflows', authMiddleware, async (req: Request, r
         updated_at,
         node_count,
         (SELECT COUNT(*) FROM tenant_executions WHERE workflow_id = tw.id) as execution_count,
-        (SELECT MAX(started_at) FROM tenant_executions WHERE workflow_id = tw.id) as last_execution
+        (SELECT MAX(started_at) FROM tenant_executions WHERE workflow_id = tw.id) as last_execution,
+        -- Rileva se workflow contiene AI agents
+        CASE 
+          WHEN raw_data::text ~* '(agent|ai|langchain|openai|anthropic|claude)' THEN true
+          ELSE false
+        END as has_ai_agents,
+        -- Conta AI agents nel workflow
+        (
+          SELECT COUNT(*) 
+          FROM jsonb_array_elements(COALESCE(raw_data->'nodes', '[]'::jsonb)) as node
+          WHERE node->>'type' ~* '(agent|ai|langchain|openai|anthropic|claude)'
+        ) as ai_agent_count
       FROM tenant_workflows tw
       WHERE tenant_id = $1
       ORDER BY 

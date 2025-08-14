@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Search,
@@ -74,16 +74,34 @@ export const WorkflowsPage: React.FC = () => {
   const [selectedAIWorkflow, setSelectedAIWorkflow] = useState<string | null>(null)
   const [isAITimelineOpen, setIsAITimelineOpen] = useState(false)
 
-  // Fetch workflows del tenant con filtro type
-  const { data: workflowsData, isLoading, error } = useQuery({
-    queryKey: ['tenant-workflows', tenantId, typeFilter],
-    queryFn: async () => {
-      const params = typeFilter !== 'all' ? `?filter=${typeFilter}` : ''
-      const response = await api.get(`/api/tenant/${tenantId}/workflows${params}`)
-      return response.data
-    },
-    refetchInterval: 30000,
-  })
+  // State per workflows (NO REACT QUERY)
+  const [workflowsData, setWorkflowsData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<any>(null)
+
+  // Fetch diretto senza cache
+  useEffect(() => {
+    const fetchWorkflows = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const params = typeFilter !== 'all' ? `?filter=${typeFilter}` : ''
+        const response = await fetch(`http://localhost:3001/api/tenant/${tenantId}/workflows${params}`)
+        const data = await response.json()
+        console.log('Workflows fetched:', data)
+        setWorkflowsData(data)
+      } catch (err) {
+        console.error('Fetch error:', err)
+        setError(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchWorkflows()
+    const interval = setInterval(fetchWorkflows, 30000)
+    return () => clearInterval(interval)
+  }, [tenantId, typeFilter])
 
   const workflows = workflowsData?.workflows || []
 
