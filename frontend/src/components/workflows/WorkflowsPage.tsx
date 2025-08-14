@@ -12,12 +12,14 @@ import {
   Activity,
   Calendar,
   ChevronRight,
+  Bot,
 } from 'lucide-react'
-import { tenantAPI } from '../../services/api'
+import { tenantAPI, api } from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
 import { formatDate, cn } from '../../lib/utils'
 import { WorkflowDetailModal } from './WorkflowDetailModal'
 import { Dropdown } from '../ui/Dropdown'
+import AgentDetailModal from '../agents/AgentDetailModal'
 
 interface Workflow {
   id: string
@@ -30,6 +32,8 @@ interface Workflow {
   node_count: number
   execution_count: number
   last_execution?: string
+  has_ai_agents?: boolean
+  ai_agent_count?: number
 }
 
 const getStatusInfo = (workflow: Workflow) => {
@@ -65,13 +69,17 @@ export const WorkflowsPage: React.FC = () => {
   const tenantId = user?.tenantId || 'default_tenant'
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'archived'>('all')
+  const [typeFilter, setTypeFilter] = useState<'all' | 'ai-agents' | 'standard'>('all')
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null)
+  const [selectedAIWorkflow, setSelectedAIWorkflow] = useState<string | null>(null)
+  const [isAITimelineOpen, setIsAITimelineOpen] = useState(false)
 
-  // Fetch workflows del tenant
+  // Fetch workflows del tenant con filtro type
   const { data: workflowsData, isLoading, error } = useQuery({
-    queryKey: ['tenant-workflows', tenantId],
+    queryKey: ['tenant-workflows', tenantId, typeFilter],
     queryFn: async () => {
-      const response = await tenantAPI.workflows(tenantId)
+      const params = typeFilter !== 'all' ? `?filter=${typeFilter}` : ''
+      const response = await api.get(`/api/tenant/${tenantId}/workflows${params}`)
       return response.data
     },
     refetchInterval: 30000,
@@ -103,6 +111,7 @@ export const WorkflowsPage: React.FC = () => {
     active: workflows.filter((w: Workflow) => w.active && !w.is_archived).length,
     inactive: workflows.filter((w: Workflow) => !w.active && !w.is_archived).length,
     archived: workflows.filter((w: Workflow) => w.is_archived).length,
+    aiAgents: workflows.filter((w: Workflow) => w.has_ai_agents).length,
   }
 
   if (isLoading) {
@@ -149,7 +158,7 @@ export const WorkflowsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - 4 KPI in alto */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
@@ -184,10 +193,10 @@ export const WorkflowsPage: React.FC = () => {
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-muted">{stats.archived}</p>
-              <p className="text-sm text-muted">Archiviati</p>
+              <p className="text-2xl font-bold text-primary">{stats.aiAgents}</p>
+              <p className="text-sm text-muted">AI Agents</p>
             </div>
-            <Archive className="h-8 w-8 text-muted" />
+            <Bot className="h-8 w-8 text-primary" />
           </div>
         </div>
       </div>
@@ -206,6 +215,18 @@ export const WorkflowsPage: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 bg-card border border-border rounded-md text-foreground focus:border-primary focus:outline-none"
             />
           </div>
+          
+          {/* Type Filter */}
+          <Dropdown
+            options={[
+              { value: 'all', label: 'Tutti i workflow' },
+              { value: 'ai-agents', label: 'Solo AI Agents' },
+              { value: 'standard', label: 'Solo Standard' }
+            ]}
+            value={typeFilter}
+            onChange={(value) => setTypeFilter(value as any)}
+            className="w-48"
+          />
           
           {/* Status Filter */}
           <Dropdown
@@ -236,7 +257,7 @@ export const WorkflowsPage: React.FC = () => {
             <p>Nessun workflow trovato</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredWorkflows.map((workflow: Workflow) => {
               const statusInfo = getStatusInfo(workflow)
               
@@ -257,11 +278,19 @@ export const WorkflowsPage: React.FC = () => {
                       <div className={cn('w-1.5 h-1.5 rounded-full', statusInfo.dotColor)} />
                       {statusInfo.status}
                     </span>
-                    {workflow.has_webhook && (
-                      <span className="badge-control">
-                        Webhook
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {workflow.has_ai_agents && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-primary/10 border border-primary/30 text-primary">
+                          <Bot className="h-3 w-3" />
+                          {workflow.ai_agent_count} AI
+                        </span>
+                      )}
+                      {workflow.has_webhook && (
+                        <span className="badge-control">
+                          Webhook
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Nome Workflow */}
@@ -321,6 +350,29 @@ export const WorkflowsPage: React.FC = () => {
                     >
                       {workflow.active ? 'Pausa' : 'Avvia'}
                     </button>
+                    
+                    {/* Timeline Button - per tutti i workflow */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation() // Prevent card click
+                        setSelectedAIWorkflow(workflow.id)
+                        setIsAITimelineOpen(true)
+                      }}
+                      className={cn(
+                        "p-2 hover:text-foreground transition-colors border rounded",
+                        workflow.has_ai_agents && workflow.ai_agent_count > 0
+                          ? "text-primary border-primary/30"
+                          : "text-muted border-border"
+                      )}
+                      title={workflow.has_ai_agents ? "Timeline AI" : "Timeline Workflow"}
+                    >
+                      {workflow.has_ai_agents ? (
+                        <Bot className="h-4 w-4" />
+                      ) : (
+                        <Activity className="h-4 w-4" />
+                      )}
+                    </button>
+                    
                     <button 
                       onClick={(e) => {
                         e.stopPropagation() // Prevent card click
@@ -344,6 +396,19 @@ export const WorkflowsPage: React.FC = () => {
           workflow={selectedWorkflow}
           tenantId={tenantId}
           onClose={() => setSelectedWorkflow(null)}
+        />
+      )}
+      
+      {/* AI Timeline Modal - separato */}
+      {isAITimelineOpen && selectedAIWorkflow && (
+        <AgentDetailModal
+          workflowId={selectedAIWorkflow}
+          tenantId="client_simulation_a"
+          isOpen={isAITimelineOpen}
+          onClose={() => {
+            setIsAITimelineOpen(false)
+            setSelectedAIWorkflow(null)
+          }}
         />
       )}
     </div>

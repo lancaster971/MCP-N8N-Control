@@ -897,6 +897,7 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
                   </div>
                 </div>
               )}
+
             </>
           )}
         </div>
@@ -904,3 +905,5 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
     </div>
   )
 }
+
+// AI Timeline Tab Component - temporaneamente rimosso per debug
