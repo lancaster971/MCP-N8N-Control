@@ -17,6 +17,7 @@ import securityRoutes from '../api/security-routes.js';
 import aiAgentsController from '../api/ai-agents-controller.js';
 import executionImportRoutes from '../api/execution-import-routes.js';
 import executionEnrichmentRoutes from '../api/execution-enrichment-routes.js';
+import productionController from '../api/production-controller.js';
 import { DatabaseConnection } from '../database/connection.js';
 import { setupSwagger } from '../api/swagger-config.js';
 import { EnvConfig } from '../config/environment.js';
@@ -172,6 +173,7 @@ export class ExpressServer {
     this.app.use('/api', aiAgentsController); // 🤖 KILLER FEATURE: AI Agents Transparency
     this.app.use('/api', executionImportRoutes); // 🔄 Import execution data completi (n8n API)
     this.app.use('/api', executionEnrichmentRoutes); // ✨ Enrich execution data dal database
+    this.app.use('/api', productionController); // 🏭 TIER 2: Production Stability APIs
 
     // 404 handler
     this.app.use('*', (req, res) => {
