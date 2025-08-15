@@ -34,6 +34,10 @@ export const ENV_VARS = {
   ENABLE_SCHEDULER: 'ENABLE_SCHEDULER',
   LOG_LEVEL: 'LOG_LEVEL',
   
+  // Mono/Multi-Tenant Configuration
+  MULTI_TENANT_MODE: 'MULTI_TENANT_MODE',
+  DEFAULT_TENANT_ID: 'DEFAULT_TENANT_ID',
+  
   DEBUG: 'DEBUG',
 };
 
@@ -59,6 +63,10 @@ export interface EnvConfig {
   kpiRetentionDays: number;
   enableScheduler: boolean;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
+  
+  // Mono/Multi-Tenant Configuration
+  multiTenantMode: boolean;
+  defaultTenantId: string;
   
   debug: boolean;
 }
@@ -115,6 +123,10 @@ export function getEnvConfig(): EnvConfig {
   const kpiRetentionDays = parseInt(process.env[ENV_VARS.KPI_RETENTION_DAYS] || '90');
   const enableScheduler = process.env[ENV_VARS.ENABLE_SCHEDULER]?.toLowerCase() !== 'false';
   const logLevel = (process.env[ENV_VARS.LOG_LEVEL] as 'debug' | 'info' | 'warn' | 'error') || 'info';
+  
+  // Mono/Multi-Tenant configuration
+  const multiTenantMode = process.env[ENV_VARS.MULTI_TENANT_MODE]?.toLowerCase() === 'true';
+  const defaultTenantId = process.env[ENV_VARS.DEFAULT_TENANT_ID] || 'client_simulation_a';
   
   const debug = process.env[ENV_VARS.DEBUG]?.toLowerCase() === 'true';
 
@@ -175,6 +187,10 @@ export function getEnvConfig(): EnvConfig {
     kpiRetentionDays,
     enableScheduler,
     logLevel,
+    
+    // Mono/Multi-Tenant
+    multiTenantMode,
+    defaultTenantId,
     
     debug,
   };

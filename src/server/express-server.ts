@@ -22,6 +22,7 @@ import { DatabaseConnection } from '../database/connection.js';
 import { setupSwagger } from '../api/swagger-config.js';
 import { EnvConfig } from '../config/environment.js';
 import { getAuthService } from '../auth/jwt-auth.js';
+import { logTenantMode } from '../config/tenant-config.js';
 
 export interface ServerConfig {
   port: number;
@@ -277,6 +278,8 @@ export class ExpressServer {
         console.log(`🛡️ Rate Limit: ${this.config.rateLimitMaxRequests}${process.env.NODE_ENV !== 'production' ? ' x3' : ''} req/${this.config.rateLimitWindowMs/1000/60}min`);
         console.log(`🔒 Security Headers: ALWAYS ENABLED`);
         console.log(`🔐 Authentication: JWT + API Key REQUIRED on /api/*`);
+        console.log('');
+        logTenantMode();
         console.log('='.repeat(50));
         console.log('🔓 PUBLIC ENDPOINTS:');
         console.log(`  GET  ${this.config.host}:${this.config.port}/ (info)`);

@@ -12,25 +12,10 @@ import { Router } from 'express';
 import { SecurityController } from './security-controller.js';
 import { N8nApiService } from './n8n-client.js';
 import { DatabaseConnection } from '../database/connection.js';
-import { EnvConfig } from '../config/environment.js';
+import { EnvConfig, getEnvConfig } from '../config/environment.js';
 
 // Inizializza dipendenze
-const envConfig: EnvConfig = {
-  n8nApiUrl: process.env.N8N_API_URL || 'https://your-n8n-instance.com/api/v1',
-  n8nApiKey: process.env.N8N_API_KEY || '',
-  debug: process.env.DEBUG === 'true',
-  dbType: 'postgres',
-  dbHost: process.env.DB_HOST || 'localhost',
-  dbPort: parseInt(process.env.DB_PORT || '5432'),
-  dbName: process.env.DB_NAME || 'n8n_mcp',
-  dbUser: process.env.DB_USER || '',
-  dbPassword: process.env.DB_PASSWORD || '',
-  dbSsl: process.env.DB_SSL === 'true',
-  syncInterval: parseInt(process.env.SYNC_INTERVAL || '30'),
-  kpiRetentionDays: parseInt(process.env.KPI_RETENTION_DAYS || '30'),
-  enableScheduler: process.env.ENABLE_SCHEDULER !== 'false',
-  logLevel: (process.env.LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error') || 'info'
-};
+const envConfig: EnvConfig = getEnvConfig();
 
 const n8nService = new N8nApiService(envConfig);
 const dbConnection = DatabaseConnection.getInstance();

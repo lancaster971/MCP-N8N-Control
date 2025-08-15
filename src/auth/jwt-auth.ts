@@ -259,13 +259,37 @@ export class JwtAuthService {
         role: userRecord.role,
         tenant_id: userRecord.tenant_id,
         api_key: userRecord.api_key,
-        permissions: JSON.parse(userRecord.permissions),
+        permissions: this.safeJsonParse(userRecord.permissions),
         created_at: userRecord.created_at
       };
 
     } catch (error) {
       console.error('Create user error:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Parse JSON sicuro con fallback
+   */
+  private safeJsonParse(jsonString: string): string[] {
+    try {
+      if (!jsonString || typeof jsonString !== 'string') {
+        return [];
+      }
+      
+      // Rimuovi eventuali caratteri spurii all'inizio
+      const cleanString = jsonString.replace(/^[^[{]*/, '').trim();
+      
+      if (!cleanString.startsWith('[') && !cleanString.startsWith('{')) {
+        console.warn('Invalid JSON format, using empty permissions:', jsonString.substring(0, 50));
+        return [];
+      }
+      
+      return JSON.parse(cleanString);
+    } catch (error) {
+      console.warn('JSON parse error, using empty permissions:', error, 'String:', jsonString?.substring(0, 100));
+      return [];
     }
   }
 

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PilotPro Control Center - Admin Interface</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <h1><i class="fas fa-cogs"></i> PilotPro Admin Control</h1>
+                <div class="auth-status">
+                    <span id="auth-indicator" class="status-indicator disconnected">
+                        <i class="fas fa-circle"></i> Disconnesso
+                    </span>
+                    <button id="login-btn" class="btn btn-primary">Login</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="admin-nav">
+            <button class="nav-tab active" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <button class="nav-tab" data-tab="users">
+                <i class="fas fa-users"></i> Users
+            </button>
+            <button class="nav-tab" data-tab="api-test">
+                <i class="fas fa-flask"></i> API Test
+            </button>
+            <button class="nav-tab" data-tab="system">
+                <i class="fas fa-server"></i> System
+            </button>
+            <button class="nav-tab" data-tab="scheduler">
+                <i class="fas fa-clock"></i> Scheduler
+            </button>
+            <button class="nav-tab" data-tab="tests">
+                <i class="fas fa-bug"></i> Tests
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3><i class="fas fa-heartbeat"></i> System Health</h3>
+                        <div id="health-status" class="status-grid">
+                            <div class="status-item">
+                                <span>API</span>
+                                <span id="api-status" class="status unknown">Checking...</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Database</span>
+                                <span id="db-status" class="status unknown">Checking...</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Scheduler</span>
+                                <span id="scheduler-status" class="status unknown">Checking...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3><i class="fas fa-chart-line"></i> Quick Stats</h3>
+                        <div id="quick-stats" class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Users</span>
+                                <span id="total-users" class="stat-value">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Active Workflows</span>
+                                <span id="active-workflows" class="stat-value">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Last Sync</span>
+                                <span id="last-sync" class="stat-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Alerts</h3>
+                        <div id="alerts-list" class="alerts-container">
+                            <!-- Dynamic alerts -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> User Management</h2>
+                    <button id="create-user-btn" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Crea User
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div id="users-table-container">
+                        <table id="users-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Tenant ID</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <!-- Dynamic users -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Test Tab -->
+            <div id="api-test" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-flask"></i> API Testing</h2>
+                </div>
+                
+                <div class="api-test-grid">
+                    <div class="card">
+                        <h3>Quick API Tests</h3>
+                        <div class="api-quick-tests">
+                            <button class="btn btn-info api-test-btn" data-endpoint="/health/check">
+                                <i class="fas fa-heartbeat"></i> Health Check
+                            </button>
+                            <button class="btn btn-info api-test-btn" data-endpoint="/scheduler/status">
+                                <i class="fas fa-clock"></i> Scheduler Status
+                            </button>
+                            <button class="btn btn-info api-test-btn" data-endpoint="/api/production/health">
+                                <i class="fas fa-server"></i> Production Health
+                            </button>
+                            <button class="btn btn-info api-test-btn" data-endpoint="/api/stats">
+                                <i class="fas fa-chart-bar"></i> System Stats
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Custom API Call</h3>
+                        <div class="api-form">
+                            <div class="form-row">
+                                <select id="api-method" class="form-control">
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                </select>
+                                <input type="text" id="api-endpoint" placeholder="/api/endpoint" class="form-control">
+                                <button id="execute-api-btn" class="btn btn-primary">Execute</button>
+                            </div>
+                            <textarea id="api-body" placeholder="JSON Body (optional)" class="form-control" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-terminal"></i> Response</h3>
+                    <div class="response-container">
+                        <div class="response-header">
+                            <span id="response-status" class="response-status"></span>
+                            <span id="response-time" class="response-time"></span>
+                        </div>
+                        <pre id="api-response" class="response-body">Pronto per la prima chiamata API...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Tab -->
+            <div id="system" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-server"></i> System Monitoring</h2>
+                    <button id="refresh-system-btn" class="btn btn-primary">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+                
+                <div class="system-grid">
+                    <div class="card">
+                        <h3>Production Metrics</h3>
+                        <div id="production-metrics" class="metrics-container">
+                            <!-- Dynamic metrics -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Database Pool</h3>
+                        <div id="db-pool-info" class="pool-info">
+                            <!-- Dynamic pool info -->
+                        </div>
+                        <button id="refresh-pool-btn" class="btn btn-warning">Refresh Pool</button>
+                    </div>
+
+                    <div class="card">
+                        <h3>Recent Logs</h3>
+                        <div id="system-logs" class="logs-container">
+                            <!-- Dynamic logs -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduler Tab -->
+            <div id="scheduler" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-clock"></i> Scheduler Control</h2>
+                </div>
+                
+                <div class="scheduler-grid">
+                    <div class="card">
+                        <h3>Scheduler Status</h3>
+                        <div id="scheduler-info" class="scheduler-status">
+                            <!-- Dynamic scheduler info -->
+                        </div>
+                        <div class="scheduler-controls">
+                            <button id="start-scheduler-btn" class="btn btn-success">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button id="stop-scheduler-btn" class="btn btn-danger">
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
+                            <button id="restart-scheduler-btn" class="btn btn-warning">
+                                <i class="fas fa-redo"></i> Restart
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Manual Sync</h3>
+                        <div class="sync-controls">
+                            <input type="text" id="tenant-id-input" placeholder="Tenant ID (optional)" class="form-control">
+                            <button id="manual-sync-btn" class="btn btn-primary">
+                                <i class="fas fa-sync"></i> Force Sync
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Sync History</h3>
+                        <div id="sync-history" class="sync-history">
+                            <!-- Dynamic sync history -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tests Tab -->
+            <div id="tests" class="tab-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-bug"></i> Test Suite</h2>
+                </div>
+                
+                <div class="tests-grid">
+                    <div class="card">
+                        <h3>Available Test Suites</h3>
+                        <div class="test-suites">
+                            <button class="btn btn-info test-suite-btn" data-test="quick">
+                                <i class="fas fa-bolt"></i> Quick Test (30s)
+                            </button>
+                            <button class="btn btn-warning test-suite-btn" data-test="full">
+                                <i class="fas fa-cog"></i> Full Test Suite (3min)
+                            </button>
+                            <button class="btn btn-danger test-suite-btn" data-test="security">
+                                <i class="fas fa-shield-alt"></i> Security Tests (2min)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3><i class="fas fa-terminal"></i> Test Output</h3>
+                        <div class="test-output-container">
+                            <div id="test-status" class="test-status"></div>
+                            <pre id="test-output" class="test-output">Seleziona un test suite per iniziare...</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Login Modal -->
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-sign-in-alt"></i> Admin Login</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required class="form-control" value="admin@n8n-mcp.local">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required class="form-control" value="admin123">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create User Modal -->
+        <div id="create-user-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-user-plus"></i> Crea Nuovo User</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="create-user-form">
+                    <div class="form-group">
+                        <label for="new-email">Email:</label>
+                        <input type="email" id="new-email" name="email" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Password:</label>
+                        <input type="password" id="new-password" name="password" required class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-role">Role:</label>
+                        <select id="new-role" name="role" class="form-control">
+                            <option value="readonly">Readonly</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: none;">
+                        <label for="new-tenant-id">Tenant ID:</label>
+                        <input type="text" id="new-tenant-id" name="tenantId" class="form-control" value="client_simulation_a">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">Crea User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

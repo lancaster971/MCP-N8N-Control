@@ -7,6 +7,7 @@
 import express, { Request, Response } from 'express';
 import { getAuthService, AuthUser } from '../auth/jwt-auth.js';
 import { DatabaseConnection } from '../database/connection.js';
+import { resolveTenantId, validateTenantId, getTenantConfig } from '../config/tenant-config.js';
 
 const router = express.Router();
 const authService = getAuthService();
@@ -171,11 +172,25 @@ router.post('/register',
         });
       }
 
+      // Risolvi tenant ID utilizzando la configurazione mono/multi-tenant
+      const resolvedTenantId = resolveTenantId(tenantId);
+      const tenantConfig = getTenantConfig();
+
+      // Valida tenant ID
+      if (!validateTenantId(resolvedTenantId)) {
+        return res.status(400).json({
+          error: 'Bad Request',
+          message: tenantConfig.isMultiTenantMode 
+            ? 'Invalid tenant ID' 
+            : `Invalid tenant ID. System is configured for mono-tenant mode with tenant: ${tenantConfig.defaultTenantId}`
+        });
+      }
+
       const user = await authService.createUser({
         email,
         password,
         role,
-        tenant_id: tenantId,
+        tenant_id: resolvedTenantId,
         permissions
       });
 
@@ -188,7 +203,12 @@ router.post('/register',
         success: true,
         ip: req.ip,
         userAgent: req.get('User-Agent'),
-        details: { targetEmail: email, targetRole: role, targetTenant: tenantId }
+        details: { 
+          targetEmail: email, 
+          targetRole: role, 
+          targetTenant: resolvedTenantId,
+          monoTenantMode: !tenantConfig.isMultiTenantMode
+        }
       });
 
       res.status(201).json({
