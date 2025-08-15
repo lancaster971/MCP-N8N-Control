@@ -20,6 +20,7 @@ import executionEnrichmentRoutes from '../api/execution-enrichment-routes.js';
 import { DatabaseConnection } from '../database/connection.js';
 import { setupSwagger } from '../api/swagger-config.js';
 import { EnvConfig } from '../config/environment.js';
+import { getAuthService } from '../auth/jwt-auth.js';
 
 export interface ServerConfig {
   port: number;
@@ -47,11 +48,13 @@ export class ExpressServer {
   private config: ServerConfig;
   private server: any = null;
   private db: DatabaseConnection;
+  private authService: any;
 
   constructor(config?: Partial<ServerConfig>) {
     this.config = { ...defaultServerConfig, ...config };
     this.app = express();
     this.db = DatabaseConnection.getInstance();
+    this.authService = getAuthService();
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -62,39 +65,49 @@ export class ExpressServer {
    * Configura middleware
    */
   private setupMiddleware(): void {
-    // Security headers
-    if (this.config.enableHelmet) {
-      this.app.use(helmet());
-    }
+    // Security headers (SEMPRE ABILITATO)
+    this.app.use(helmet({
+      crossOriginEmbedderPolicy: false // Disabilita COEP per compatibilità frontend
+    }));
 
     // CORS - PERMETTI TUTTO IN DEVELOPMENT
     this.app.use(cors({
       origin: process.env.NODE_ENV === 'production' 
         ? this.config.corsOrigins 
         : true,  // Accetta TUTTO in development
-      credentials: true
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Webhook-Secret']
     }));
 
-    // Rate limiting - DISABILITATO IN DEVELOPMENT
-    if (process.env.NODE_ENV === 'production') {
-      const limiter = rateLimit({
-        windowMs: this.config.rateLimitWindowMs,
-        max: this.config.rateLimitMaxRequests,
-        message: {
-          error: 'Too many requests',
-          message: 'Rate limit exceeded, try again later'
-        }
-      });
-      this.app.use('/api/', limiter);
-    }
+    // Rate limiting SEMPRE ATTIVO (più permissivo in dev)
+    const limiter = rateLimit({
+      windowMs: this.config.rateLimitWindowMs,
+      max: process.env.NODE_ENV === 'production' 
+        ? this.config.rateLimitMaxRequests 
+        : this.config.rateLimitMaxRequests * 3, // 3x più permissivo in dev
+      message: {
+        error: 'Too many requests',
+        message: 'Rate limit exceeded, try again later'
+      },
+      standardHeaders: true,
+      legacyHeaders: false
+    });
+    
+    // Rate limit su tutte le API (escluso health checks)
+    this.app.use('/api/', limiter);
+    this.app.use('/auth/', limiter);
 
     // Body parsing
     this.app.use(express.json({ limit: '10mb' }));
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-    // Request logging
+    // Request logging con auth info
     this.app.use((req, res, next) => {
-      console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
+      const authHeader = req.headers['authorization'];
+      const apiKey = req.headers['x-api-key'];
+      const hasAuth = authHeader || apiKey ? '🔒' : '🔓';
+      console.log(`${new Date().toISOString()} ${hasAuth} ${req.method} ${req.path}`);
       next();
     });
   }
@@ -103,54 +116,70 @@ export class ExpressServer {
    * Configura routes
    */
   private setupRoutes(): void {
-    // Health check
+    // 🔓 PUBLIC ROUTES (nessuna autenticazione richiesta)
+    
+    // Health check (SEMPRE PUBLIC)
     this.app.get('/health', (req, res) => {
       res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        version: process.env.npm_package_version || '1.0.0'
+        version: process.env.npm_package_version || '1.0.0',
+        auth: 'enabled',
+        environment: process.env.NODE_ENV || 'development'
       });
     });
 
-    // API routes
-    this.app.use('/api', schedulerController);
-    this.app.use('/api', backupController);
-    this.app.use('/api', tenantStatsRouter);  // Route per tenant-specific stats
-    this.app.use('/api', securityRoutes);     // 🚀 PREMIUM: Security routes
-    this.app.use('/api', aiAgentsController); // 🤖 KILLER FEATURE: AI Agents Transparency
-    this.app.use('/api', executionImportRoutes); // 🔄 Import execution data completi (n8n API)
-    this.app.use('/api', executionEnrichmentRoutes); // ✨ Enrich execution data dal database
-    this.app.use('/auth', authController);
-    this.app.use('/health', healthController);
-
-    // Swagger Documentation
-    setupSwagger(this.app);
-
-    // Root endpoint
+    // Root endpoint (PUBLIC ma informativo)
     this.app.get('/', (req, res) => {
       res.json({
         name: 'PilotPro Multi-Tenant Control API',
         version: process.env.npm_package_version || '1.0.0',
         timestamp: new Date().toISOString(),
+        security: {
+          authentication: 'JWT + API Key required',
+          rateLimiting: 'active',
+          cors: process.env.NODE_ENV === 'production' ? 'restricted' : 'permissive'
+        },
         endpoints: {
-          health: '/health',
-          auth: '/auth/*',
-          scheduler: '/api/scheduler/*',
-          tenants: '/api/tenants/*',
-          logs: '/api/logs',
-          stats: '/api/stats',
-          documentation: '/api-docs'
+          health: '/health (public)',
+          auth: '/auth/* (login/register)',
+          api: '/api/* (protected)',
+          documentation: '/api-docs (public)'
         }
       });
     });
+
+    // Auth routes (PUBLIC - contiene login)
+    this.app.use('/auth', authController);
+
+    // Health detail routes (PUBLIC ma limitato)
+    this.app.use('/health', healthController);
+
+    // Swagger Documentation (PUBLIC)
+    setupSwagger(this.app);
+
+    // 🔒 PROTECTED API ROUTES (autenticazione richiesta)
+    
+    // Applica autenticazione JWT/API Key a TUTTI gli endpoint /api/*
+    this.app.use('/api/*', this.authService.authenticateToken());
+
+    // API routes PROTETTE
+    this.app.use('/api', schedulerController);
+    this.app.use('/api', backupController);
+    this.app.use('/api', tenantStatsRouter);  // Route per tenant-specific stats
+    this.app.use('/api', securityRoutes);     // 🚀 PREMIUM: Security routes  
+    this.app.use('/api', aiAgentsController); // 🤖 KILLER FEATURE: AI Agents Transparency
+    this.app.use('/api', executionImportRoutes); // 🔄 Import execution data completi (n8n API)
+    this.app.use('/api', executionEnrichmentRoutes); // ✨ Enrich execution data dal database
 
     // 404 handler
     this.app.use('*', (req, res) => {
       res.status(404).json({
         error: 'Not Found',
         message: `Route ${req.method} ${req.path} not found`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        hint: 'Protected endpoints require Authorization header or X-API-Key'
       });
     });
   }
@@ -159,29 +188,72 @@ export class ExpressServer {
    * Configura error handlers
    */
   private setupErrorHandlers(): void {
-    // Global error handler
+    // Global error handler con logging avanzato
     this.app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-      console.error('API Error:', error);
-
+      const timestamp = new Date().toISOString();
       const statusCode = error.statusCode || error.status || 500;
+      const isAuthError = statusCode === 401 || statusCode === 403;
       
-      res.status(statusCode).json({
-        error: error.name || 'Internal Server Error',
+      // Log dettagliato per troubleshooting
+      console.error(`${timestamp} ❌ API ERROR:`, {
+        url: req.url,
+        method: req.method,
+        status: statusCode,
+        error: error.name,
+        message: error.message,
+        hasAuth: !!(req.headers['authorization'] || req.headers['x-api-key']),
+        userAgent: req.get('User-Agent')
+      });
+
+      // Response JSON strutturata
+      const errorResponse: any = {
+        error: error.name || (isAuthError ? 'Authentication Error' : 'Internal Server Error'),
         message: error.message || 'Something went wrong',
+        timestamp,
+        path: req.path,
+        method: req.method
+      };
+
+      // Aggiungi info per auth errors
+      if (isAuthError) {
+        errorResponse.hint = 'Add Authorization: Bearer <token> or X-API-Key: <key> header';
+      }
+
+      // Stack trace solo in development
+      if (process.env.NODE_ENV === 'development' && statusCode >= 500) {
+        errorResponse.stack = error.stack;
+      }
+
+      res.status(statusCode).json(errorResponse);
+    });
+
+    // Unhandled promise rejection con più dettagli
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('🚨 UNHANDLED PROMISE REJECTION:', {
         timestamp: new Date().toISOString(),
-        ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+        reason,
+        promise
+      });
+      // Non terminare il processo per promise rejection
+    });
+
+    // Uncaught exception - termina processo
+    process.on('uncaughtException', (error) => {
+      console.error('💀 UNCAUGHT EXCEPTION:', {
+        timestamp: new Date().toISOString(),
+        error: error.message,
+        stack: error.stack
+      });
+      // Graceful shutdown
+      this.stop().finally(() => {
+        process.exit(1);
       });
     });
 
-    // Unhandled promise rejection
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    });
-
-    // Uncaught exception
-    process.on('uncaughtException', (error) => {
-      console.error('Uncaught Exception:', error);
-      process.exit(1);
+    // SIGTERM - Graceful shutdown per Docker/PM2
+    process.on('SIGTERM', () => {
+      console.log('📛 SIGTERM received, shutting down gracefully...');
+      this.handleShutdown('SIGTERM');
     });
   }
 
@@ -196,24 +268,32 @@ export class ExpressServer {
 
       // Avvia server HTTP
       this.server = this.app.listen(this.config.port, this.config.host, () => {
-        console.log('🚀 EXPRESS API SERVER STARTED');
-        console.log('='.repeat(40));
+        console.log('🚀 EXPRESS API SERVER STARTED - SECURITY ENABLED');
+        console.log('='.repeat(50));
         console.log(`📡 Host: ${this.config.host}:${this.config.port}`);
-        console.log(`🌐 CORS: ${this.config.corsOrigins.join(', ')}`);
-        console.log(`🛡️ Rate Limit: ${this.config.rateLimitMaxRequests} req/${this.config.rateLimitWindowMs/1000/60}min`);
-        console.log(`🔒 Security: ${this.config.enableHelmet ? 'enabled' : 'disabled'}`);
-        console.log('='.repeat(40));
-        console.log('Available endpoints:');
-        console.log(`  GET  ${this.config.host}:${this.config.port}/health`);
-        console.log(`  GET  ${this.config.host}:${this.config.port}/api/scheduler/status`);
-        console.log(`  POST ${this.config.host}:${this.config.port}/api/scheduler/start`);
-        console.log(`  POST ${this.config.host}:${this.config.port}/api/scheduler/stop`);
-        console.log(`  POST ${this.config.host}:${this.config.port}/api/scheduler/sync`);
-        console.log(`  GET  ${this.config.host}:${this.config.port}/api/tenants`);
-        console.log(`  POST ${this.config.host}:${this.config.port}/api/tenants`);
-        console.log(`  GET  ${this.config.host}:${this.config.port}/api/logs`);
-        console.log(`  GET  ${this.config.host}:${this.config.port}/api/stats`);
+        console.log(`🌐 CORS: ${process.env.NODE_ENV === 'production' ? 'restricted' : 'permissive'}`);
+        console.log(`🛡️ Rate Limit: ${this.config.rateLimitMaxRequests}${process.env.NODE_ENV !== 'production' ? ' x3' : ''} req/${this.config.rateLimitWindowMs/1000/60}min`);
+        console.log(`🔒 Security Headers: ALWAYS ENABLED`);
+        console.log(`🔐 Authentication: JWT + API Key REQUIRED on /api/*`);
+        console.log('='.repeat(50));
+        console.log('🔓 PUBLIC ENDPOINTS:');
+        console.log(`  GET  ${this.config.host}:${this.config.port}/ (info)`);
+        console.log(`  GET  ${this.config.host}:${this.config.port}/health (health check)`);
+        console.log(`  POST ${this.config.host}:${this.config.port}/auth/login (login)`);
+        console.log(`  POST ${this.config.host}:${this.config.port}/auth/register (admin only)`);
         console.log(`  📚   ${this.config.host}:${this.config.port}/api-docs (Swagger UI)`);
+        console.log('');
+        console.log('🔒 PROTECTED ENDPOINTS (require auth):');
+        console.log(`  GET  ${this.config.host}:${this.config.port}/api/scheduler/status`);
+        console.log(`  POST ${this.config.host}:${this.config.port}/api/scheduler/sync`);
+        console.log(`  GET  ${this.config.host}:${this.config.port}/api/workflows`);
+        console.log(`  GET  ${this.config.host}:${this.config.port}/api/executions`);
+        console.log(`  GET  ${this.config.host}:${this.config.port}/api/stats`);
+        console.log('');
+        console.log('🔑 DEFAULT ADMIN CREDENTIALS:');
+        console.log('   Email: admin@n8n-mcp.local');
+        console.log('   Password: admin123');
+        console.log('='.repeat(50));
       });
 
       // Gestione shutdown graceful
