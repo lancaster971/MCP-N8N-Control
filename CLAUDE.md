@@ -901,4 +901,112 @@ Body:
 
 ---
 
+## 🧪 **TEST SUITE COMPLETA v2.9.0 - Security + Core + Performance**
+
+### **🚀 Script di Test Automatizzati**
+
+```bash
+# 🎯 QUICK TEST - Verifica rapida sistema (30 secondi)
+./test-quick.sh
+
+# 🧪 FULL TEST SUITE - Test completo multi-tier (2-3 minuti)
+./test-suite.sh
+
+# 🔒 SECURITY ONLY - Test sicurezza approfonditi (1-2 minuti) 
+./test-suite-security.sh
+```
+
+### **📋 Test Suite Capabilities v2.9.0**
+
+**🔒 TIER 1: Security Integration Tests**
+- ✅ JWT + API Key dual authentication
+- ✅ Rate limiting e DoS protection  
+- ✅ RBAC permission system validation
+- ✅ SQL injection protection verification
+- ✅ Security headers (Helmet.js) check
+- ✅ Concurrent request handling (20 req test)
+- ✅ Error handling without information disclosure
+
+**📡 TIER 2: Core API Functionality Tests** 
+- ✅ Workflows, Executions, Stats APIs
+- ✅ Search functionality (workflows + executions)
+- ✅ Authentication flow validation
+- ✅ Database connectivity verification
+
+**⚙️ TIER 3: Scheduler System Tests**
+- ✅ Scheduler status e management
+- ✅ Manual sync operations
+- ✅ Auto-healing functionality check
+
+**🚀 TIER 4: Advanced Features Tests**
+- ✅ Show-N Universal System
+- ✅ Enhanced workflow details  
+- ✅ Performance benchmarks
+- ✅ API response time validation
+
+### **🎯 Quick Start Testing**
+
+```bash
+# 1. Avvia sistema (prerequisito)
+source .env && DB_USER=tizianoannicchiarico node build/server/express-server.js
+
+# 2. Test rapido (quick check)
+./test-quick.sh
+
+# 3. Test completo (full validation)
+npm run build && ./test-suite.sh
+```
+
+### **📊 Expected Results v2.9.0**
+
+**✅ ENTERPRISE READY CRITERIA:**
+- Security Tests: >95% pass rate (all auth + protection systems)
+- Core APIs: 100% pass rate (all data endpoints)
+- System Performance: <2s response time for 3 API calls
+- Concurrent Handling: 20+ simultaneous requests
+
+**🎉 SUCCESS INDICATORS:**
+```bash
+✅ System fully validated - Enterprise ready!
+🔒 Security: JWT + API Key + RBAC + Rate Limiting
+📡 APIs: Workflows (75), Executions (168), Stats Complete  
+⚡ Performance: <2000ms for multi-API calls
+🚀 Ready for production deployment
+```
+
+### **🧪 Test Architecture COMPLETATO v2.9.0**
+
+```
+test-quick.sh           # ⚡ 6 tests rapidi (30s)
+├── System Health       # Server + Auth status
+├── Security Basic      # Protection + JWT  
+└── Core APIs          # Workflows + Stats
+
+test-suite.sh          # 🧪 20+ tests completi (3min) 
+├── TIER 1: Security   # 10 security tests approfonditi
+├── TIER 2: Core APIs  # 5 API functionality tests
+├── TIER 3: Scheduler  # 3 scheduler management tests
+└── TIER 4: Advanced   # 4 performance + features tests
+
+test-suite-security.sh # 🔒 10 security tests (2min)
+├── Auth Systems       # JWT + API Key validation
+├── Protection Tests   # Rate limiting + SQL injection
+├── Headers + RBAC     # Security headers + permissions  
+└── Performance Sec    # Concurrent requests handling
+```
+
+**STATO ATTUALE v2.9.0**: 🔒 ENTERPRISE SECURITY READY + 🧪 TEST SUITE COMPLETA
+
+**SISTEMA ENTERPRISE READY v2.9.0**: Architettura mono-tenant con Security Tier 1 COMPLETO:
+- 🔒 **TIER 1 Security Integration COMPLETATO** - JWT + API Key + RBAC + Rate Limiting
+- ✅ Auto-healing scheduler con monitoring  
+- ✅ 40+ API endpoints completamente funzionanti
+- ✅ Sistema show-N universale per tutti i workflow
+- ✅ Sistema tags completo con ricerca funzionale
+- ✅ Export system database direct per maximum performance
+- 🧪 **Test suite completa 3-tier** - Security + Core + Performance validazione
+- 📚 Troubleshooting e documentazione completa per production deployment
+
+---
+
 **Note**: Questo documento è il riferimento principale per lo sviluppo. Aggiornarlo quando si fanno modifiche significative all'architettura.
