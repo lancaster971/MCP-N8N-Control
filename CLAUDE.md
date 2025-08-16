@@ -80,11 +80,12 @@ Guida principale per Claude Code (claude.ai/code) quando lavora con il codice di
 
 Sistema completo di controllo e monitoraggio per workflow automation con architettura multi-tenant e interfaccia Control Room.
 
-**STATO ATTUALE v2.15.0**: 🏗️ **ENTERPRISE FRONTEND ARCHITECTURE + SMART CACHING**
-- 🏗️ **NUOVO: Enterprise Data Layer** - Zustand store centralizzato per gestione intelligente di 58+ tabelle database
-- ⚡ **Smart Caching System** - Riduzione 80% API calls tramite background sync + normalized data storage  
-- 🔄 **Advanced State Management** - Single source of truth per workflows, executions, agents, metrics
-- 📊 **Optimized React Query** - Hook intelligenti (useWorkflows, useDashboard) sostituiscono 19+ useQuery frammentate
+**STATO ATTUALE v2.18.0**: 🚀 **UPSERVER SCRIPT + SETTINGS API SYSTEM + REAL-TIME N8N SYNC**
+- 🚀 **NUOVO: UPServer Script** - Avvio sistema completo con health check Linux-style + PID management
+- ⚙️ **Settings API System** - Configurazione backend remoto + API Keys enterprise + auto-discovery
+- 🔄 **Real-time n8n Sync** - Scheduler riparato con sync automatico ogni 5 minuti + dati aggiornati
+- 🏗️ **Enterprise Data Layer** - Zustand store centralizzato per gestione intelligente di 58+ tabelle database
+- ⚡ **Smart Caching System** - Riduzione 80% API calls tramite background sync + normalized data storage
 - 🚀 **Batch API Integration** - Endpoint backend ottimizzati per ridurre network traffic da 100+ a 20 calls/minuto
 - 🛡️ **Frontend Stability System** - Error handling avanzato con graceful degradation per tutte le pagine
 - 📊 **Enhanced Dashboard & Pages** - Dashboard, Workflows, Statistics con real-time updates + enterprise caching
@@ -154,6 +155,43 @@ MULTI_TENANT_MODE=false DEFAULT_TENANT_ID=client_simulation_a node build/server/
 
 ## 📞 **Quick Start**
 
+### 🚀 **Metodo 1: Script UPServer (RACCOMANDATO)**
+
+```bash
+# 1. Setup Database (solo la prima volta)
+createdb n8n_mcp
+psql -d n8n_mcp -f src/database/migrations/*.sql
+
+# 2. Avvio Sistema Completo con UPServer
+./UPServer
+
+# 🎯 Comandi disponibili:
+./UPServer              # Avvia tutto (rileva stato, avvia solo quello che serve)
+./UPServer status       # Controlla stato sistema
+./UPServer stop         # Ferma tutti i servizi
+./UPServer restart      # Riavvia sistema completo
+./UPServer backend      # Gestisce solo backend
+./UPServer frontend     # Gestisce solo frontend
+
+# 🎯 Output esempio:
+🔍 PilotPro System Status Check
+Database            [  OK  ] PostgreSQL connected (1 tenant(s))
+Backend             [  OK  ] API server running (PID: 12345, port: 3001)
+Frontend            [  OK  ] React server running (PID: 12346, port: 5173)
+Scheduler           [  OK  ] Auto-sync active (every 5min)
+
+🏥 System Health Tests
+API Integration     [  OK  ] 75 workflows accessible
+Data Sync           [  OK  ] 325 executions in database
+Data Freshness      [  OK  ] Last execution: 2025-08-16 20:40:35
+
+✅ Backend:   http://localhost:3001
+✅ Frontend:  http://localhost:5173
+🚀 SYSTEM READY FOR USE!
+```
+
+### 🛠️ **Metodo 2: Avvio Manuale**
+
 ```bash
 # 1. Setup Database
 createdb n8n_mcp
@@ -164,21 +202,18 @@ npm install
 npm run build
 WEBHOOK_SECRET=pilotpro-webhook-2025-secure DB_USER=your_user \
 MULTI_TENANT_MODE=false DEFAULT_TENANT_ID=client_simulation_a \
-npm start
+node build/server/express-server.js
 
-# 3. Start Frontend
+# 3. Start Frontend (in terminal separato)
 cd frontend
 npm install
 npm run dev
 
 # 4. Open Browser - Client Frontend  
-http://localhost:5174
+http://localhost:5173
 
-# 5. Open Admin Interface - Backend Management
-http://localhost:3002
-
-# Default admin credentials (both interfaces)
-Email: admin@n8n-mcp.local
+# Default admin credentials
+Email: admin@pilotpro.local
 Password: admin123
 
 # Expected server output
@@ -190,18 +225,81 @@ Password: admin123
 # Documentazione completa: /loginPage/README.md
 ```
 
-### 🎯 **Test Suite Rapido**
+### 🎯 **Script Sistema**
 
 ```bash
-# Test rapido sistema (30 secondi)
-./test-quick.sh
+# 🚀 AVVIO SISTEMA COMPLETO (Raccomandato)
+./UPServer                    # Avvia backend + frontend + health check
 
-# Test completo enterprise (3 minuti)
-./test-suite.sh
+# 🧪 TEST SUITE
+./test-quick.sh              # Test rapido sistema (30 secondi)
+./test-suite.sh             # Test completo enterprise (3 minuti)  
+./test-suite-security.sh    # Test sicurezza approfonditi (2 minuti)
+./test-settings-system.sh   # Test sistema Settings API
 
-# Test sicurezza approfonditi (2 minuti)
-./test-suite-security.sh
+# ⚙️ SETTINGS & CONFIG
+./UPServer                   # Include auto-start scheduler + sync n8n
 ```
+
+---
+
+## 🚀 **Script UPServer - Avvio Sistema Completo**
+
+### 📋 **Caratteristiche Script**
+
+**✅ LINUX-STYLE STARTUP:**
+- **Health check automatici** con colori professionali  
+- **PID management** per controllo processi
+- **Auto-cleanup** con trap per Ctrl+C
+- **Status monitoring** real-time dei servizi
+- **Error handling** robusto con retry logic
+
+**✅ SERVIZI GESTITI:**
+```bash
+Database            [  OK  ] PostgreSQL connected (n8n_mcp)
+Backend             [  OK  ] API server running (PID: xxxxx)  
+Frontend            [  OK  ] React server running (PID: xxxxx)
+Scheduler           [  OK  ] Auto-sync enabled (5min intervals)
+API Integration     [  OK  ] XX workflows accessible via API
+```
+
+**✅ GESTIONE PROCESSI:**
+- **Avvio automatico**: Backend + Frontend + Scheduler
+- **Port conflict detection**: Gestione porte occupate
+- **Process monitoring**: Check processi ogni 30s
+- **Graceful shutdown**: Cleanup automatico all'uscita
+
+### 🎯 **Utilizzo Script**
+
+```bash
+# Avvio sistema completo
+./UPServer
+
+# Ferma tutto
+Ctrl+C (o pkill -f 'UPServer')
+
+# Status sistema  
+ps aux | grep -E "(express-server|npm.*dev)"
+
+# Log processi
+tail -f /tmp/pilotpro_backend.log
+tail -f /tmp/pilotpro_frontend.log
+```
+
+### 🔧 **Configurazione Integrata**
+
+**Environment Variables (pre-configurate):**
+- `WEBHOOK_SECRET=pilotpro-webhook-2025-secure`
+- `N8N_API_URL=https://flow.agentix-io.com/rest`
+- `N8N_API_KEY=eyJ...` (token n8n valido)
+- `MULTI_TENANT_MODE=false`
+- `DEFAULT_TENANT_ID=client_simulation_a`
+
+**Auto-Start Features:**
+- ✅ **Scheduler automatico** con sync n8n ogni 5 minuti
+- ✅ **Health monitoring** di tutti i componenti
+- ✅ **Port management** intelligente
+- ✅ **Error recovery** per processi morti
 
 ---
 

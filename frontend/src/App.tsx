@@ -14,6 +14,7 @@ import { SchedulerPage } from './components/scheduler/SchedulerPage'
 import { SecurityPage } from './components/security/SecurityPage'
 import SecurityPremiumPage from './components/security/SecurityPremiumPage'
 import AgentsPageEnhanced from './components/agents/AgentsPageEnhanced'
+import SettingsPage from './components/settings/SettingsPage'
 import { LoginPage } from './components/auth/LoginPage'
 import { useAuthStore } from './store/authStore'
 
@@ -42,7 +43,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 // Placeholder components for routes
 const TenantsPage = () => <div className="control-card p-6 text-white">Tenants Management (Coming Soon)</div>
 const UsersPage = () => <div className="control-card p-6 text-white">Users Management (Coming Soon)</div>
-const SettingsPage = () => <div className="control-card p-6 text-white">System Settings (Coming Soon)</div>
 
 function App() {
   useEffect(() => {

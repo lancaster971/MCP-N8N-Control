@@ -6,6 +6,36 @@ Guida completa allo sviluppo, configurazione e deployment del sistema PilotPro C
 
 ---
 
+## 🚀 Script UPServer - Avvio Sistema Completo
+
+```bash
+# Avvio tutto il sistema con un comando
+./UPServer
+
+# Features Linux-style:
+✅ Health check automatici con colori professionali
+✅ PID management per controllo processi  
+✅ Auto-cleanup con trap per Ctrl+C
+✅ Status monitoring real-time
+✅ Scheduler auto-start con sync n8n
+✅ Port conflict detection
+✅ Process monitoring ogni 30s
+✅ Graceful shutdown automatico
+
+# Output esempio:
+🚀 PilotPro Control Center - System Startup
+Database            [  OK  ] PostgreSQL connected (n8n_mcp)
+Backend             [  OK  ] API server running (PID: 61708)
+Frontend            [  OK  ] React server running (PID: 61726)
+Scheduler           [  OK  ] Auto-sync enabled (5min intervals)
+API Integration     [  OK  ] 75 workflows accessible via API
+
+✅ Backend:   http://localhost:3001
+✅ Frontend:  http://localhost:5173
+✅ Scheduler: Auto-sync every 5 minutes
+🚀 SYSTEM READY FOR USE!
+```
+
 ## Comandi di Sviluppo
 
 ### Backend (Express + TypeScript)
@@ -133,6 +163,24 @@ docker-compose down -v
 
 ## 📞 Quick Start
 
+### 🚀 **Metodo UPServer (RACCOMANDATO)**
+
+```bash
+# Setup iniziale (solo la prima volta)
+createdb n8n_mcp
+psql -d n8n_mcp -f src/database/migrations/*.sql
+
+# Avvio sistema completo
+./UPServer
+
+# 🎯 Sistema pronto su:
+# Backend:  http://localhost:3001
+# Frontend: http://localhost:5173
+# Login:    admin@pilotpro.local / admin123
+```
+
+### 🛠️ **Metodo Manuale**
+
 ```bash
 # 1. Setup Database
 createdb n8n_mcp
@@ -149,10 +197,10 @@ npm install
 npm run dev
 
 # 4. Open Browser
-http://localhost:5174
+http://localhost:5173
 
 # Default login
-Email: admin@pilotpro.com
+Email: admin@pilotpro.local
 Password: admin123
 ```
 

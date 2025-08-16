@@ -18,6 +18,8 @@ import aiAgentsController from '../api/ai-agents-controller.js';
 import executionImportRoutes from '../api/execution-import-routes.js';
 import executionEnrichmentRoutes from '../api/execution-enrichment-routes.js';
 import productionController from '../api/production-controller.js';
+import systemController from '../api/system-controller.js';
+import settingsController from '../api/settings-controller.js';
 import { DatabaseConnection } from '../database/connection.js';
 import { setupSwagger } from '../api/swagger-config.js';
 import { EnvConfig, loadEnvironmentVariables } from '../config/environment.js';
@@ -183,6 +185,8 @@ export class ExpressServer {
     this.app.use('/api', executionImportRoutes); // 🔄 Import execution data completi (n8n API)
     this.app.use('/api', executionEnrichmentRoutes); // ✨ Enrich execution data dal database
     this.app.use('/api', productionController); // 🏭 TIER 2: Production Stability APIs
+    this.app.use('/api/system', systemController); // 🛠️ SYSTEM: UPServer integration + service management
+    this.app.use('/api/settings', settingsController); // ⚙️ SETTINGS: Frontend remoto + API Keys
     
     // 🧪 TEST SUITE ENDPOINTS (protetti con JWT)
     this.app.post('/test/quick', this.authService.authenticateToken(), this.handleQuickTest.bind(this));

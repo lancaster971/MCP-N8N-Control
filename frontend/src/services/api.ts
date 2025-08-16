@@ -10,11 +10,15 @@ export const api = axios.create({
   },
 })
 
-// Add auth token to requests
+// Add auth token or API key to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
+  const apiKey = localStorage.getItem('pilotpro_api_key') || import.meta.env.VITE_API_KEY
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  } else if (apiKey) {
+    config.headers['X-API-Key'] = apiKey
   }
   return config
 })
@@ -248,4 +252,45 @@ export const monitoringAPI = {
   metrics: () => api.get('/health/dashboard'),
   health: () => api.get('/health/check'),
   logs: (params?: any) => api.get('/api/logs', { params }),
+}
+
+// Settings API - Sistema configurazione e API Keys
+export const settingsAPI = {
+  // Connection configuration
+  getConnection: () => api.get('/api/settings/connection'),
+  updateConnection: (config: any) => api.post('/api/settings/connection', config),
+  testConnection: (url: string, timeout?: number) => 
+    api.post('/api/settings/connection/test', { url, timeout }),
+  
+  // API Keys management
+  getApiKeys: (includeInactive = false) => 
+    api.get('/api/settings/apikeys', { params: { includeInactive } }),
+  generateApiKey: (data: { name: string; type: string; permissions?: string[]; scopes?: string[]; expiresInSeconds?: number }) =>
+    api.post('/api/settings/apikeys', data),
+  revokeApiKey: (keyId: string) => api.delete(`/api/settings/apikeys/${keyId}`),
+  renewApiKey: (keyId: string, expiresInSeconds: number) =>
+    api.put(`/api/settings/apikeys/${keyId}/renew`, { expiresInSeconds }),
+  
+  // API Key Update for clients
+  updateClientApiKey: (newApiKey: string, adminPassword: string) =>
+    api.put('/api/settings/client/apikey', { newApiKey, adminPassword }),
+}
+
+// System Management API - Controllo servizi UPServer
+export const systemAPI = {
+  // System status
+  getStatus: () => api.get('/api/system/status'),
+  getHealth: () => api.get('/api/system/health'),
+  getPids: () => api.get('/api/system/pids'),
+  
+  // Service management
+  startService: (service: 'backend' | 'frontend' | 'all') => 
+    api.post(`/api/system/services/${service}/start`),
+  stopService: (service: 'backend' | 'frontend' | 'all') => 
+    api.post(`/api/system/services/${service}/stop`),
+  restartSystem: () => api.post('/api/system/services/restart'),
+  
+  // Logs
+  getLogs: (service: 'backend' | 'frontend', lines = 50) => 
+    api.get('/api/system/logs', { params: { service, lines } }),
 }
