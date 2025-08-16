@@ -9,18 +9,51 @@
 </head>
 <body>
     <div class="admin-container">
-        <!-- Header -->
-        <header class="admin-header">
-            <div class="header-content">
-                <h1><i class="fas fa-cogs"></i> PilotPro Admin Control</h1>
-                <div class="auth-status">
-                    <span id="auth-indicator" class="status-indicator disconnected">
-                        <i class="fas fa-circle"></i> Disconnesso
-                    </span>
-                    <button id="login-btn" class="btn btn-primary">Login</button>
+        <!-- Login Screen -->
+        <div id="login-screen" class="login-screen">
+            <div class="login-container">
+                <div class="login-header">
+                    <h1><i class="fas fa-cogs"></i> PilotPro Admin Control</h1>
+                    <p>Secure Admin Interface - Authentication Required</p>
+                </div>
+                <div class="login-card">
+                    <h2><i class="fas fa-sign-in-alt"></i> Admin Login</h2>
+                    <form id="main-login-form">
+                        <div class="form-group">
+                            <label for="main-email">Email:</label>
+                            <input type="email" id="main-email" name="email" required class="form-control" value="admin@n8n-mcp.local" placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="main-password">Password:</label>
+                            <input type="password" id="main-password" name="password" required class="form-control" value="admin123" placeholder="Enter your password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Login to Admin Panel
+                        </button>
+                    </form>
+                    <div class="login-footer">
+                        <p><i class="fas fa-shield-alt"></i> Secure connection established</p>
+                        <p><i class="fas fa-server"></i> Server: <span id="server-status">Checking...</span></p>
+                    </div>
                 </div>
             </div>
-        </header>
+        </div>
+
+        <!-- Main Admin Interface (hidden until login) -->
+        <div id="main-interface" class="main-interface" style="display: none;">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="header-content">
+                    <h1><i class="fas fa-cogs"></i> PilotPro Admin Control</h1>
+                    <div class="auth-status">
+                        <span id="auth-indicator" class="status-indicator connected">
+                            <i class="fas fa-circle"></i> Connected
+                        </span>
+                        <span id="user-info" class="user-info"></span>
+                        <button id="logout-btn" class="btn btn-outline">Logout</button>
+                    </div>
+                </div>
+            </header>
 
         <!-- Navigation Tabs -->
         <nav class="admin-nav">
@@ -49,6 +82,39 @@
             <!-- Dashboard Tab -->
             <div id="dashboard" class="tab-content active">
                 <div class="dashboard-grid">
+                    <!-- Services Status Overview -->
+                    <div class="card">
+                        <h3><i class="fas fa-server"></i> Services Status</h3>
+                        <div id="services-status" class="status-grid">
+                            <div class="status-item">
+                                <span>Admin GUI</span>
+                                <span id="admin-gui-status" class="status healthy">Online</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Backend API</span>
+                                <span id="backend-api-status" class="status unknown">Checking...</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Database</span>
+                                <span id="database-status" class="status unknown">Checking...</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Scheduler</span>
+                                <span id="scheduler-status" class="status unknown">Checking...</span>
+                            </div>
+                            <div class="status-item">
+                                <span>WFEngine</span>
+                                <span id="n8n-engine-status" class="status unknown">Checking...</span>
+                            </div>
+                        </div>
+                        <div class="services-summary">
+                            <div class="overall-status">
+                                <span>Overall Status:</span>
+                                <span id="overall-status" class="status unknown">Checking...</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <h3><i class="fas fa-heartbeat"></i> System Health</h3>
                         <div id="health-status" class="status-grid">
@@ -62,7 +128,7 @@
                             </div>
                             <div class="status-item">
                                 <span>Scheduler</span>
-                                <span id="scheduler-status" class="status unknown">Checking...</span>
+                                <span id="scheduler-core-status" class="status unknown">Checking...</span>
                             </div>
                         </div>
                     </div>
@@ -104,7 +170,7 @@
                 </div>
                 
                 <div class="card">
-                    <div id="users-table-container">
+                    <div id="users-table-container" class="data-table-container">
                         <table id="users-table" class="data-table">
                             <thead>
                                 <tr>
@@ -287,8 +353,45 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-chart-line"></i> Test Results</h3>
+                    <div id="test-results-container" class="test-results-container">
+                        <div class="test-history">
+                            <h4>Recent Test Executions</h4>
+                            <div id="test-history-list" class="test-history-list">
+                                <div class="no-results">No tests executed yet</div>
+                            </div>
+                        </div>
+                        <div class="test-metrics">
+                            <h4>Test Metrics</h4>
+                            <div class="metrics-grid">
+                                <div class="metric-item">
+                                    <span class="metric-label">Total Tests</span>
+                                    <span id="total-tests" class="metric-value">0</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Passed</span>
+                                    <span id="passed-tests" class="metric-value success">0</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Failed</span>
+                                    <span id="failed-tests" class="metric-value error">0</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Success Rate</span>
+                                    <span id="success-rate" class="metric-value">0%</span>
+                                </div>
+                            </div>
+                            <button id="view-full-results-btn" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+                                <i class="fas fa-external-link-alt"></i> View Full Test Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
+        </div> <!-- End main-interface -->
 
         <!-- Login Modal -->
         <div id="login-modal" class="modal">
@@ -342,8 +445,68 @@
                 </form>
             </div>
         </div>
+
+        <!-- Full Test Results Modal -->
+        <div id="full-test-results-modal" class="modal">
+            <div class="modal-content" style="max-width: 1200px; max-height: 90vh;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-chart-line"></i> Complete Test Results</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div style="padding: 1.5rem; overflow-y: auto; max-height: calc(90vh - 120px);">
+                    <!-- Test Summary Cards -->
+                    <div class="dashboard-grid" style="margin-bottom: 2rem;">
+                        <div class="card">
+                            <h3><i class="fas fa-chart-pie"></i> Test Summary</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Executed</span>
+                                    <span id="modal-total-tests" class="stat-value">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Success Rate</span>
+                                    <span id="modal-success-rate" class="stat-value success">0%</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Avg Duration</span>
+                                    <span id="modal-avg-duration" class="stat-value">0s</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Last Test</span>
+                                    <span id="modal-last-test" class="stat-value">Never</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h3><i class="fas fa-clock"></i> Test Types</h3>
+                            <div id="test-types-breakdown" class="status-grid">
+                                <!-- Dynamic test types breakdown -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Test History -->
+                    <div class="card">
+                        <h3><i class="fas fa-history"></i> Detailed Test History</h3>
+                        <div id="detailed-test-history" class="detailed-test-history">
+                            <!-- Dynamic detailed history -->
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <button id="clear-test-history-btn" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Clear Test History
+                        </button>
+                        <button id="export-test-results-btn" class="btn btn-success">
+                            <i class="fas fa-download"></i> Export Results (JSON)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="admin.js"></script>
+    <script src="admin.js"></script>\n    <script src="test-results-modal.js"></script>
 </body>
 </html>
