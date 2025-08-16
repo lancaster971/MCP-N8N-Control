@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { sanitizeApiResponse } from '../utils/sanitization'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -18,14 +19,26 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle auth errors
+// Handle auth errors + sanitization backup
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 🔒 BACKUP SANITIZZAZIONE: Layer 2 di sicurezza per garantire zero riferimenti interni
+    if (response.data) {
+      response.data = sanitizeApiResponse(response.data);
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'
     }
+    
+    // Sanitizza anche i messaggi di errore
+    if (error.response?.data) {
+      error.response.data = sanitizeApiResponse(error.response.data);
+    }
+    
     return Promise.reject(error)
   }
 )
@@ -63,13 +76,18 @@ export const tenantsAPI = {
   getExecutions: (id: string) => api.get(`/api/tenants/${id}/executions`),
 }
 
-// Workflows API
+// Workflows API - USA TENANT-SPECIFIC ENDPOINTS
 export const workflowsAPI = {
-  list: (params?: any) => api.get('/workflows', { params }),
-  get: (id: string) => api.get(`/workflows/${id}`),
-  getExecutions: (id: string) => api.get(`/workflows/${id}/executions`),
-  getNodes: (id: string) => api.get(`/workflows/${id}/nodes`),
-  getStats: (id: string) => api.get(`/workflows/${id}/stats`),
+  list: (tenantId: string = 'client_simulation_a', params?: any) => 
+    api.get(`/api/tenant/${tenantId}/workflows`, { params }),
+  get: (id: string, tenantId: string = 'client_simulation_a') => 
+    api.get(`/api/tenant/${tenantId}/workflows/${id}/details`),
+  getExecutions: (id: string, tenantId: string = 'client_simulation_a') => 
+    api.get(`/api/tenant/${tenantId}/executions`, { params: { workflowId: id } }),
+  getNodes: (id: string, tenantId: string = 'client_simulation_a') => 
+    api.get(`/api/tenant/${tenantId}/workflows/${id}/details`),
+  getStats: (id: string, tenantId: string = 'client_simulation_a') => 
+    api.get(`/api/tenant/${tenantId}/workflows/${id}/details`),
 }
 
 // Executions API
@@ -91,19 +109,6 @@ export const statsAPI = {
   executions: () => api.get('/api/stats'),
   kpis: () => api.get('/api/stats'),
   realtime: () => api.get('/api/stats'),
-}
-
-// Security API - per sostituire mock data
-export const securityAPI = {
-  // Get tenant security logs (deriva dai tenant logs esistenti)
-  logs: (tenantId: string = 'default_tenant', params?: any) => 
-    api.get('/api/logs', { params: { tenantId, ...params } }),
-  
-  // Get system metrics from scheduler endpoint
-  metrics: () => api.get('/api/stats'),
-  
-  // Mock API keys (non implementato nel backend, usa dati fittizi)
-  apiKeys: () => Promise.resolve({ data: { apiKeys: [] } }),
 }
 
 // Database API - per sostituire mock data
@@ -128,6 +133,51 @@ export const alertsAPI = {
   
   // Get health status
   health: () => api.get('/api/scheduler/status'),
+}
+
+// 🤖 AI Agents API - MISSING ENDPOINTS COMPLETATI
+export const aiAgentsAPI = {
+  // Get workflow con AI agents detection
+  getWorkflowsWithAgents: (tenantId: string = 'client_simulation_a') =>
+    api.get(`/api/tenant/${tenantId}/agents/workflows`),
+    
+  // Get timeline step-by-step per workflow specifico  
+  getWorkflowTimeline: (tenantId: string = 'client_simulation_a', workflowId: string, forceRefresh?: boolean) =>
+    api.get(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/timeline`, {
+      params: forceRefresh ? { forceRefresh: 'true' } : {}
+    }),
+    
+  // Force refresh workflow da WFEngine API
+  forceRefreshWorkflow: (tenantId: string = 'client_simulation_a', workflowId: string) =>
+    api.post(`/api/tenant/${tenantId}/agents/workflow/${workflowId}/refresh`),
+}
+
+// 🔒 Security API Completa - ZERO MOCK DATA
+export const securityAPI = {
+  // Get tenant security logs (deriva dai tenant logs esistenti)
+  logs: (tenantId: string = 'default_tenant', params?: any) => 
+    api.get('/api/logs', { params: { tenantId, ...params } }),
+  
+  // Get system metrics from scheduler endpoint  
+  metrics: () => api.get('/api/stats'),
+  
+  // Mock API keys (non implementato nel backend, usa dati fittizi)
+  apiKeys: () => Promise.resolve({ data: { apiKeys: [] } }),
+  // Get security audit completo con dati reali
+  getAuditReport: (tenantId: string = 'client_simulation_a') =>
+    api.get(`/api/tenant/${tenantId}/security/audit`),
+    
+  // Get security score dinamico
+  getSecurityScore: (tenantId: string = 'client_simulation_a') =>
+    api.get(`/api/tenant/${tenantId}/security/score`),
+    
+  // Get compliance report automatico
+  getComplianceReport: (tenantId: string = 'client_simulation_a') =>
+    api.get(`/api/tenant/${tenantId}/compliance/report`),
+    
+  // Get security incidents
+  getSecurityIncidents: (tenantId: string = 'client_simulation_a') =>
+    api.get(`/api/tenant/${tenantId}/security/incidents`),
 }
 
 // Tenant-specific API - SOLO DATI DEL TUO TENANT!

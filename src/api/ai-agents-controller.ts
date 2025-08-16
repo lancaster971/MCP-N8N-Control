@@ -11,6 +11,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { DatabaseConnection } from '../database/connection.js';
 import { ExecutionImportService } from './execution-import-service.js';
+import { DatabaseSanitizer } from '../database/sanitization-helper.js';
+import { sanitizationUtils } from '../middleware/sanitization.js';
 
 // Auth middleware compatibile
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -243,11 +245,14 @@ router.get('/tenant/:tenantId/agents/workflows', authMiddleware, async (req: Req
       } : null
     }));
 
+    // 🔒 SANITIZZAZIONE CRITICA: Rimuove tutti i riferimenti n8n dal cliente
+    const sanitizedAgents = DatabaseSanitizer.sanitizeGeneric(agents);
+
     res.json({
       success: true,
       tenantId,
-      data: agents,
-      total: agents.length,
+      data: sanitizedAgents,
+      total: sanitizedAgents.length,
       timestamp: new Date().toISOString()
     });
     
@@ -627,17 +632,20 @@ router.get('/tenant/:tenantId/agents/workflow/:workflowId/timeline', authMiddlew
       timestamp: new Date().toISOString()
     };
     
+    // 🔒 SANITIZZAZIONE CRITICA: AI timeline deve essere pulito da riferimenti n8n
+    const sanitizedResponse = DatabaseSanitizer.sanitizeAgentData(responseData);
+
     // PERFORMANCE: Cache response for 30 seconds
     if (forceRefresh !== 'true') {
       const cacheKey = `timeline_${tenantId}_${workflowId}`;
       responseCache.set(cacheKey, {
-        data: responseData,
+        data: sanitizedResponse,
         timestamp: Date.now()
       });
       console.log(`💾 CACHED: Response cached for workflow ${workflowId} (TTL: ${CACHE_TTL / 1000}s)`);
     }
     
-    res.json(responseData);
+    res.json(sanitizedResponse);
     
   } catch (error) {
     console.error('Error getting workflow timeline:', error);

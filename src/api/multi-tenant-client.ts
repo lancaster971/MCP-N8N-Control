@@ -116,7 +116,10 @@ export class MultiTenantApiClient {
     await this.db.connect();
     
     const tenants = await this.db.getMany(`
-      SELECT id, name, n8n_api_url, n8n_version, api_capabilities 
+      SELECT id, name, 
+             n8n_api_url as wfengine_api_url, 
+             n8n_version as wfengine_version, 
+             api_capabilities 
       FROM tenants 
       WHERE sync_enabled = true
     `);
@@ -125,9 +128,9 @@ export class MultiTenantApiClient {
       // Per ora usiamo una API key di test - in produzione verrebbe da vault sicuro
       const config: TenantConfig = {
         tenantId: tenant.id,
-        apiUrl: tenant.n8n_api_url,
+        apiUrl: tenant.wfengine_api_url,
         apiKey: process.env.N8N_API_KEY || '', // TODO: Gestire chiavi per tenant
-        n8nVersion: tenant.n8n_version,
+        n8nVersion: tenant.wfengine_version,
         capabilities: tenant.api_capabilities || {}
       };
 

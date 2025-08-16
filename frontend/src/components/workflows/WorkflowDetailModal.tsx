@@ -305,7 +305,7 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
               onClick={async () => {
                 console.log('🔄 Force refresh requested for workflow', workflow.id)
                 try {
-                  // First: Force sync from n8n
+                  // First: Force sync from WFEngine
                   await schedulerAPI.refreshWorkflow(tenantId, workflow.id)
                   console.log('✅ Backend sync completed')
                   
@@ -318,7 +318,7 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
               }}
               disabled={isLoading}
               className="p-2 text-gray-400 hover:text-green-400 disabled:text-gray-600 transition-colors"
-              title={isLoading ? 'Refreshing...' : 'Force Refresh from n8n'}
+              title={isLoading ? 'Refreshing...' : 'Force Refresh from WFEngine'}
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>

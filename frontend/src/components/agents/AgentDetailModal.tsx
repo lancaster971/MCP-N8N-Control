@@ -75,7 +75,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
   // Utility per convertire dati JSON in descrizioni human-readable per EMAIL
   const humanizeStepData = (data: any, dataType: 'input' | 'output', nodeType?: string, nodeName?: string): string => {
-    // Sanitizza nodeType per rimuovere riferimenti a n8n
+    // Sanitizza nodeType per rimuovere riferimenti interni
     const sanitizedType = nodeType?.replace(/n8n/gi, 'WFEngine').replace(/\.nodes\./g, '.engine.').replace(/\.base\./g, '.core.');
     
     // LOGICA SPECIALE PER TRIGGER NODES
@@ -517,7 +517,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
         
         // Informazioni tecniche dello step
         report += `  INFORMAZIONI TECNICHE:\n`;
-        // Nascondi riferimenti a n8n sostituendoli con WFEngine
+        // Sanitizza nodeType per maggiore privacy cliente
         const sanitizedNodeType = (step.nodeType || 'Tipo non specificato')
           .replace(/n8n/gi, 'WFEngine')
           .replace(/\.nodes\./g, '.engine.')

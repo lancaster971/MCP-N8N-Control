@@ -1,272 +1,176 @@
 import React, { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Card } from '../ui/card'
+import { useToast } from '../../hooks/use-toast'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import BackToTopButton from './BackToTopButton'
 import { useAuthStore } from '../../store/authStore'
-import { cn } from '../../lib/utils'
-import toast from 'react-hot-toast'
 
-const loginSchema = z.object({
-  email: z.string().email('Email non valida'),
-  password: z.string().min(6, 'Password deve essere almeno 6 caratteri'),
-})
-
-type LoginFormData = z.infer<typeof loginSchema>
+// Costanti di testo
+const LOGIN_TITLE = "Bentornato"
+const LOGIN_DESCRIPTION = "Accedi per gestire i tuoi Ai Agent."
+const BRAND_TITLE = "I primi Ai business Agent in Italia"
+const BRAND_DESCRIPTION = "Trasformiamo il modo di lavorare delle aziende attraverso l'intelligenza artificiale. Benvenuto!"
 
 export const LoginPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const { login, isAuthenticated, isLoading, error } = useAuthStore()
-  
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: 'admin@pilotpro.com',
-      password: 'admin123',
-    },
+  const [formData, setFormData] = useState({
+    email: 'admin@pilotpro.local',
+    password: 'admin123',
   })
-  
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      await login(data.email, data.password)
-      toast.success('Login effettuato con successo!')
-    } catch (error: any) {
-      toast.error(error.message || 'Credenziali non valide')
-    }
+  const { toast } = useToast()
+  const { login, isAuthenticated } = useAuthStore()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    setTimeout(async () => {
+      setIsLoading(false)
+      try {
+        await login(formData.email, formData.password)
+        toast({
+          title: "Login effettuato con successo!",
+          description: "Benvenuto in PilotPro Control Center",
+        })
+      } catch (error: any) {
+        toast({
+          title: "Errore di login",
+          description: error.message || "Credenziali non valide",
+          variant: "destructive",
+        })
+      }
+    }, 1000)
   }
-  
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
   if (isAuthenticated) {
     return <Navigate to="/" replace />
   }
-  
+
   return (
-    <div className="min-h-screen flex relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-secondary-600 to-primary-700">
-        <div className="absolute inset-0 bg-black/20" />
-        {/* Animated orbs */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-primary-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float" />
-        <div className="absolute top-40 right-20 w-72 h-72 bg-secondary-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float animation-delay-200" />
-        <div className="absolute -bottom-20 left-40 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-float animation-delay-300" />
-      </div>
-      
-      {/* Login form */}
-      <div className="relative z-10 flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md animate-fade-in">
-          {/* Logo and title */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-lg mb-4">
-              <div className="animated-gradient w-14 h-14 rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-2xl">PP</span>
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              PilotPro Control Center
-            </h1>
-            <p className="text-white/70">
-              Sistema Premium Multi-Tenant
-            </p>
-          </div>
+    <div className="min-h-screen">
+      <div className="flex min-h-screen">
+        {/* Left Side - Integrations Gradient with Brand Texts */}
+        <div className="hidden lg:flex lg:w-1/2 relative bg-black overflow-hidden">
+          {/* Same gradient as integrations section */}
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/30 via-lime-400/25 to-green-400/30"></div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-green-400/20 via-transparent to-yellow-400/20"></div>
           
-          {/* Form card */}
-          <div className="glass-card rounded-2xl p-8 backdrop-blur-2xl bg-white/10 border border-white/20">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Email field */}
-              <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">
-                  Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/50" />
-                  <input
-                    {...register('email')}
-                    type="email"
-                    className={cn(
-                      'w-full pl-10 pr-4 py-3 bg-white/10 border rounded-lg',
-                      'text-white placeholder-white/50',
-                      'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-                      'backdrop-blur-lg',
-                      errors.email
-                        ? 'border-red-400'
-                        : 'border-white/20 hover:border-white/30'
-                    )}
-                    placeholder="admin@example.com"
-                  />
-                </div>
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    {errors.email.message}
-                  </p>
-                )}
+          <div className="relative z-10 flex flex-col justify-center items-center text-center px-12 w-full">
+            <div className="max-w-2xl">
+              {/* Logo PilotPro Testuale */}
+              <div className="mb-8">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight">
+                  <span className="text-white">Pilot</span>
+                  <span className="text-green-400">Pro</span>
+                </h2>
               </div>
               
-              {/* Password field */}
-              <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white/50" />
-                  <input
-                    {...register('password')}
-                    type={showPassword ? 'text' : 'password'}
-                    className={cn(
-                      'w-full pl-10 pr-12 py-3 bg-white/10 border rounded-lg',
-                      'text-white placeholder-white/50',
-                      'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-                      'backdrop-blur-lg',
-                      errors.password
-                        ? 'border-red-400'
-                        : 'border-white/20 hover:border-white/30'
-                    )}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/70"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-400 flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-              
-              {/* Remember me & Forgot password */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 bg-white/10 border-white/20 rounded focus:ring-2 focus:ring-primary-400"
-                  />
-                  <span className="text-sm text-white/70">Ricordami</span>
-                </label>
-                <button
-                  type="button"
-                  className="text-sm text-white/70 hover:text-white transition-colors"
-                >
-                  Password dimenticata?
-                </button>
-              </div>
-              
-              {/* Error message */}
-              {error && (
-                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                  <p className="text-sm text-red-400 flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4" />
-                    {error}
-                  </p>
-                </div>
-              )}
-              
-              {/* Submit button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={cn(
-                  'w-full py-3 px-4 rounded-lg font-medium transition-all duration-200',
-                  'bg-white text-primary-600 hover:bg-white/90',
-                  'focus:outline-none focus:ring-2 focus:ring-white/50',
-                  'disabled:opacity-50 disabled:cursor-not-allowed',
-                  'transform hover:scale-[1.02] active:scale-[0.98]'
-                )}
-              >
-                {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Accesso in corso...
-                  </span>
-                ) : (
-                  'Accedi'
-                )}
-              </button>
-            </form>
-            
-            {/* Demo credentials */}
-            <div className="mt-6 p-4 rounded-lg bg-white/5 border border-white/10">
-              <p className="text-xs text-white/60 mb-2">Credenziali Demo:</p>
-              <div className="space-y-1">
-                <p className="text-xs text-white/80">
-                  <span className="font-mono">admin@pilotpro.com</span>
-                </p>
-                <p className="text-xs text-white/80">
-                  <span className="font-mono">admin123</span>
-                </p>
-              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl text-white mb-6 tracking-tight leading-tight" style={{ fontWeight: '300' }}>
+                {BRAND_TITLE}
+              </h1>
+              <p className="text-lg md:text-xl text-gray-300 leading-relaxed" style={{ fontWeight: '200' }}>
+                {BRAND_DESCRIPTION}
+              </p>
             </div>
           </div>
-          
-          {/* Footer */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-white/50">
-              © 2025 PilotPro Control Center • v1.0.0
-            </p>
+        </div>
+
+        {/* Right Side - Black Background with Auth Form */}
+        <div className="w-full lg:w-1/2 bg-black flex flex-col">
+          <div className="flex-1 flex items-center justify-center px-8 py-12">
+            <div className="w-full max-w-md">
+              <Card className="bg-gray-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-700 p-6 text-left relative">
+                <div>
+                  <h3 className="text-lg md:text-xl text-white mb-4" style={{ fontWeight: '300' }}>
+                    {LOGIN_TITLE}
+                  </h3>
+                  <p className="text-base text-gray-300 leading-relaxed mb-6" style={{ fontWeight: '200' }}>
+                    {LOGIN_DESCRIPTION}
+                  </p>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm text-gray-300" style={{ fontWeight: '300' }}>
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="inserisci la tua email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-400 focus:ring-green-400"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-sm text-gray-300" style={{ fontWeight: '300' }}>
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="inserisci la tua password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          required
+                          className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-green-400 focus:ring-green-400 pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-gray-700"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Accesso in corso...
+                        </>
+                      ) : (
+                        "Accedi"
+                      )}
+                    </Button>
+                  </form>
+                  
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-      
-      {/* Right side - Feature showcase */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative">
-        <div className="max-w-lg">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Gestione Completa dei tuoi Workflow
-          </h2>
-          <div className="space-y-4">
-            {[
-              'Multi-tenant architecture con isolamento completo',
-              'Dashboard real-time con metriche avanzate',
-              'Scheduler automatico per sincronizzazione',
-              'Sistema di alert e monitoring integrato',
-              'Backup automatico e disaster recovery',
-              'API REST completa con documentazione Swagger',
-            ].map((feature, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 animate-slide-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="mt-1 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <div className="w-2 h-2 rounded-full bg-white" />
-                </div>
-                <p className="text-white/90">{feature}</p>
-              </div>
-            ))}
-          </div>
-          
-          {/* Stats */}
-          <div className="mt-12 grid grid-cols-3 gap-6">
-            {[
-              { value: '99.9%', label: 'Uptime' },
-              { value: '10ms', label: 'Response' },
-              { value: '24/7', label: 'Support' },
-            ].map((stat, index) => (
-              <div
-                key={index}
-                className="text-center animate-scale-in"
-                style={{ animationDelay: `${600 + index * 100}ms` }}
-              >
-                <p className="text-3xl font-bold text-white">{stat.value}</p>
-                <p className="text-sm text-white/60">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <BackToTopButton />
     </div>
   )
 }

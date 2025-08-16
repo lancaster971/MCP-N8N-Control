@@ -1,127 +1,60 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Search,
-  Download,
+import { 
+  GitBranch, 
+  Play, 
+  Pause, 
+  Settings, 
+  Search, 
+  RefreshCw,
   Plus,
-  Play,
-  Pause,
-  Archive,
-  Clock,
-  GitBranch,
-  Activity,
-  Calendar,
-  ChevronRight,
+  Filter,
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react'
-import { tenantAPI } from '../../services/api'
+import { workflowsAPI } from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
-import { formatDate, cn } from '../../lib/utils'
+import { cn } from '../../lib/utils'
 import { WorkflowDetailModal } from './WorkflowDetailModal'
-
-interface Workflow {
-  id: string
-  name: string
-  active: boolean
-  has_webhook: boolean
-  is_archived: boolean
-  created_at: string
-  updated_at: string
-  node_count: number
-  execution_count: number
-  last_execution?: string
-}
-
-const getStatusInfo = (workflow: Workflow) => {
-  if (workflow.is_archived) {
-    return {
-      status: 'Archiviato',
-      color: 'text-gray-500',
-      bgColor: 'bg-gray-500/10',
-      borderColor: 'border-gray-500/30',
-      dotColor: 'bg-gray-500'
-    }
-  }
-  if (workflow.active) {
-    return {
-      status: 'Attivo',
-      color: 'text-green-400',
-      bgColor: 'bg-green-500/10',
-      borderColor: 'border-green-500/30',
-      dotColor: 'bg-green-500'
-    }
-  }
-  return {
-    status: 'Inattivo',
-    color: 'text-yellow-400',
-    bgColor: 'bg-yellow-500/10',
-    borderColor: 'border-yellow-500/30',
-    dotColor: 'bg-yellow-500'
-  }
-}
 
 export const WorkflowsPage: React.FC = () => {
   const { user } = useAuthStore()
-  const tenantId = user?.tenantId || 'default_tenant'
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'archived'>('all')
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null)
-
-  // Fetch workflows del tenant
-  const { data: workflowsData, isLoading, error } = useQuery({
-    queryKey: ['tenant-workflows', tenantId],
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null)
+  
+  // Carica i workflow in modo sicuro
+  const { data: workflows, isLoading, error, refetch } = useQuery({
+    queryKey: ['workflows-list'],
     queryFn: async () => {
-      const response = await tenantAPI.workflows(tenantId)
-      return response.data
+      try {
+        const response = await workflowsAPI.list()
+        return response.data
+      } catch (err) {
+        console.error('Error loading workflows:', err)
+        return []
+      }
     },
-    refetchInterval: 30000,
+    refetchInterval: 60000,
+    retry: 1,
+    retryOnMount: false
   })
 
-  const workflows = workflowsData?.workflows || []
-
-  // Filtra workflows
-  const filteredWorkflows = workflows.filter((workflow: Workflow) => {
-    const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    if (!matchesSearch) return false
-
-    switch (statusFilter) {
-      case 'active':
-        return workflow.active && !workflow.is_archived
-      case 'inactive':
-        return !workflow.active && !workflow.is_archived
-      case 'archived':
-        return workflow.is_archived
-      default:
-        return true
-    }
+  const filteredWorkflows = (workflows || []).filter((workflow: any) => {
+    const matchesSearch = workflow.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         workflow.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && workflow.active) ||
+                         (statusFilter === 'inactive' && !workflow.active)
+    return matchesSearch && matchesStatus
   })
 
-  // Statistiche
-  const stats = {
-    total: workflows.length,
-    active: workflows.filter((w: Workflow) => w.active && !w.is_archived).length,
-    inactive: workflows.filter((w: Workflow) => !w.active && !w.is_archived).length,
-    archived: workflows.filter((w: Workflow) => w.is_archived).length,
-  }
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="control-card p-6 h-24 skeleton" />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="control-card p-6">
-        <p className="text-red-400">Errore nel caricamento dei workflows</p>
-      </div>
-    )
+  const getStatusColor = (active: boolean) => {
+    return active 
+      ? 'text-green-400 bg-green-500/10 border-green-500/30'
+      : 'text-gray-400 bg-gray-500/10 border-gray-500/30'
   }
 
   return (
@@ -130,17 +63,23 @@ export const WorkflowsPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gradient">
-            Workflows - {workflowsData?.tenantId}
+            🔄 Workflow Manager
           </h1>
           <p className="text-gray-500 mt-1">
-            Gestisci i tuoi workflow automation
+            Gestisci e monitora i tuoi workflow automatizzati
           </p>
         </div>
+        
         <div className="flex items-center gap-3">
-          <button className="btn-control">
-            <Download className="h-4 w-4" />
-            Esporta
+          <button 
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="btn-control disabled:opacity-50"
+          >
+            <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
+            Aggiorna
           </button>
+          
           <button className="btn-control-primary">
             <Plus className="h-4 w-4" />
             Nuovo Workflow
@@ -149,198 +88,329 @@ export const WorkflowsPage: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
-              <p className="text-sm text-gray-400">Totali</p>
+              <p className="text-sm text-gray-400">Total Workflows</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {isLoading ? '-' : (workflows?.length || 0)}
+              </p>
             </div>
-            <GitBranch className="h-8 w-8 text-gray-600" />
+            <GitBranch className="h-8 w-8 text-blue-500" />
           </div>
         </div>
-        
+
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-green-400">{stats.active}</p>
-              <p className="text-sm text-gray-400">Attivi</p>
+              <p className="text-sm text-gray-400">Workflows Attivi</p>
+              <p className="text-2xl font-bold text-green-400">
+                {isLoading ? '-' : (workflows?.filter((w: any) => w.active).length || 0)}
+              </p>
             </div>
-            <Activity className="h-8 w-8 text-green-500" />
+            <Play className="h-8 w-8 text-green-500" />
           </div>
         </div>
-        
+
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-yellow-400">{stats.inactive}</p>
-              <p className="text-sm text-gray-400">Inattivi</p>
+              <p className="text-sm text-gray-400">Workflows Inattivi</p>
+              <p className="text-2xl font-bold text-gray-400">
+                {isLoading ? '-' : (workflows?.filter((w: any) => !w.active).length || 0)}
+              </p>
             </div>
-            <Pause className="h-8 w-8 text-yellow-500" />
+            <Pause className="h-8 w-8 text-gray-500" />
           </div>
         </div>
-        
+
         <div className="control-card p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-gray-400">{stats.archived}</p>
-              <p className="text-sm text-gray-400">Archiviati</p>
+              <p className="text-sm text-gray-400">Tags Univoci</p>
+              <p className="text-2xl font-bold text-purple-400">
+                {isLoading ? '-' : 
+                  new Set(workflows?.flatMap((w: any) => w.tags || [])).size || 0
+                }
+              </p>
             </div>
-            <Archive className="h-8 w-8 text-gray-500" />
+            <Filter className="h-8 w-8 text-purple-500" />
           </div>
         </div>
       </div>
 
-      {/* Filters & Search */}
-      <div className="control-card p-6">
+      {/* Filters */}
+      <div className="control-card p-4">
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <input
               type="text"
-              placeholder="Cerca workflows..."
+              placeholder="Cerca workflows per nome o tag..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-800 rounded-md text-white focus:border-green-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white text-sm focus:border-green-500 focus:outline-none"
             />
           </div>
-          
-          {/* Status Filter */}
+
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-4 py-2 bg-gray-900 border border-gray-800 rounded-md text-white focus:border-green-500 focus:outline-none"
+            className="btn-control h-10"
           >
-            <option value="all">Tutti gli status</option>
+            <option value="all">Tutti i status</option>
             <option value="active">Solo Attivi</option>
             <option value="inactive">Solo Inattivi</option>
-            <option value="archived">Solo Archiviati</option>
           </select>
         </div>
       </div>
 
-      {/* Workflows Grid */}
-      <div>
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold text-white">
-            Workflows ({filteredWorkflows.length})
-          </h2>
-        </div>
-        
-        {filteredWorkflows.length === 0 ? (
-          <div className="control-card p-8 text-center text-gray-500">
-            <GitBranch className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-            <p>Nessun workflow trovato</p>
+      {/* Content */}
+      {error ? (
+        <div className="control-card p-6">
+          <div className="text-center text-red-400">
+            ⚠️ Errore nel caricamento dei workflow. Controlla la connessione al backend.
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredWorkflows.map((workflow: Workflow) => {
-              const statusInfo = getStatusInfo(workflow)
-              
-              return (
-                <div 
-                  key={workflow.id} 
-                  className="control-card p-6 hover:border-green-500/30 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-200 cursor-pointer"
-                  onClick={() => setSelectedWorkflow(workflow)}
-                >
-                  {/* Header con Status */}
-                  <div className="flex items-start justify-between mb-4">
-                    <span className={cn(
-                      'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border',
-                      statusInfo.bgColor,
-                      statusInfo.borderColor,
-                      statusInfo.color
-                    )}>
-                      <div className={cn('w-1.5 h-1.5 rounded-full', statusInfo.dotColor)} />
-                      {statusInfo.status}
-                    </span>
-                    {workflow.has_webhook && (
-                      <span className="badge-control">
-                        Webhook
-                      </span>
+        </div>
+      ) : isLoading ? (
+        <div className="control-card p-6">
+          <div className="text-center text-gray-500">
+            <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+            Caricamento workflows...
+          </div>
+        </div>
+      ) : filteredWorkflows.length === 0 ? (
+        <div className="control-card p-6">
+          <div className="text-center text-gray-500">
+            {workflows?.length === 0 ? 
+              '📝 Nessun workflow presente. Inizia creando il tuo primo workflow!' :
+              '🔍 Nessun workflow corrisponde ai filtri selezionati.'
+            }
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Workflow Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredWorkflows.map((workflow: any) => (
+              <div 
+                key={workflow.id} 
+                className="control-card p-6 hover:border-green-500/50 transition-all cursor-pointer"
+                onClick={() => setSelectedWorkflow(workflow)}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <GitBranch className="h-5 w-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold text-lg">{workflow.name || 'Untitled'}</h3>
+                      <p className="text-xs text-gray-500">ID: {workflow.id}</p>
+                    </div>
+                  </div>
+                  
+                  <span className={cn(
+                    'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border',
+                    getStatusColor(workflow.active)
+                  )}>
+                    {workflow.active ? (
+                      <>
+                        <CheckCircle className="h-3 w-3" />
+                        Attivo
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-3 w-3" />
+                        Inattivo
+                      </>
                     )}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-400">Nodi</p>
+                      <p className="text-lg font-bold text-white">{workflow.node_count || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Esecuzioni</p>
+                      <p className="text-lg font-bold text-green-400">{workflow.execution_count || 0}</p>
+                    </div>
                   </div>
 
-                  {/* Nome Workflow */}
-                  <h3 className="text-lg font-medium text-white mb-4 leading-tight truncate" title={workflow.name}>
-                    {workflow.name}
-                  </h3>
-                  
-                  {/* Stats */}
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400 flex items-center gap-1">
-                        <GitBranch className="h-3 w-3" />
-                        Nodi
-                      </span>
-                      <span className="text-white font-medium">{workflow.node_count}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400 flex items-center gap-1">
-                        <Play className="h-3 w-3" />
-                        Esecuzioni
-                      </span>
-                      <span className="text-white font-medium">{workflow.execution_count}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400 flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Creato
-                      </span>
-                      <span className="text-white font-medium">{formatDate(workflow.created_at).split(' ')[0]}</span>
-                    </div>
-                    
-                    {workflow.last_execution && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-400 flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Ultima
-                        </span>
-                        <span className="text-white font-medium">{formatDate(workflow.last_execution).split(' ')[0]}</span>
+                  {(workflow.tags && workflow.tags.length > 0) && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-2">Tags</p>
+                      <div className="flex flex-wrap gap-1">
+                        {workflow.tags.slice(0, 3).map((tag: string, index: number) => (
+                          <span 
+                            key={index}
+                            className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded text-xs border border-blue-500/30"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {workflow.tags.length > 3 && (
+                          <span className="text-gray-400 text-xs">+{workflow.tags.length - 3}</span>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 pt-4 border-t border-gray-800">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation() // Prevent card click
-                        // TODO: Add toggle active logic
-                      }}
-                      className={cn(
-                        'flex-1 btn-control text-xs py-2',
-                        workflow.is_archived && 'opacity-50 cursor-not-allowed'
-                      )}
-                      disabled={workflow.is_archived}
-                    >
-                      {workflow.active ? 'Pausa' : 'Avvia'}
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation() // Prevent card click
-                        setSelectedWorkflow(workflow)
-                      }}
-                      className="p-2 text-gray-400 hover:text-white transition-colors"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-800">
+                    <div className="flex items-center gap-1 text-gray-400 text-xs">
+                      <Clock className="h-3 w-3" />
+                      {workflow.updatedAt ? 
+                        new Date(workflow.updatedAt).toLocaleDateString('it-IT') : 
+                        'N/A'
+                      }
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <button 
+                        className="p-1 text-gray-400 hover:text-blue-400 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedWorkflow(workflow)
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button 
+                        className="p-1 text-gray-400 hover:text-yellow-400 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </button>
+                      <button 
+                        className="p-1 text-gray-400 hover:text-green-400 transition-colors"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {workflow.active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
-        )}
-      </div>
-      
+
+          {/* Table View Alternative (Toggle) */}
+          <div className="control-card overflow-hidden">
+            <div className="p-4 border-b border-gray-800">
+              <h3 className="text-white font-medium">Tabella Workflows</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="text-left p-4 text-sm font-medium text-gray-400">Nome Workflow</th>
+                    <th className="text-left p-4 text-sm font-medium text-gray-400">Status</th>
+                    <th className="text-left p-4 text-sm font-medium text-gray-400">Tags</th>
+                    <th className="text-left p-4 text-sm font-medium text-gray-400">Ultima Modifica</th>
+                    <th className="text-left p-4 text-sm font-medium text-gray-400">Azioni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredWorkflows.map((workflow: any) => (
+                    <tr 
+                      key={workflow.id} 
+                      className="border-b border-gray-800/50 hover:bg-gray-900/30 transition-colors cursor-pointer"
+                      onClick={() => setSelectedWorkflow(workflow)}
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <GitBranch className="h-4 w-4 text-blue-400" />
+                          <span className="text-white font-medium">{workflow.name || 'Untitled'}</span>
+                        </div>
+                      </td>
+                      
+                      <td className="p-4">
+                        <span className={cn(
+                          'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border',
+                          getStatusColor(workflow.active)
+                        )}>
+                          {workflow.active ? (
+                            <>
+                              <CheckCircle className="h-3 w-3" />
+                              Attivo
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-3 w-3" />
+                              Inattivo
+                            </>
+                          )}
+                        </span>
+                      </td>
+                      
+                      <td className="p-4">
+                        <div className="flex flex-wrap gap-1">
+                          {(workflow.tags || []).slice(0, 3).map((tag: string, index: number) => (
+                            <span 
+                              key={index}
+                              className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded text-xs border border-blue-500/30"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {(workflow.tags || []).length > 3 && (
+                            <span className="text-gray-400 text-xs">+{workflow.tags.length - 3}</span>
+                          )}
+                        </div>
+                      </td>
+                      
+                      <td className="p-4">
+                        <div className="flex items-center gap-1 text-gray-400 text-sm">
+                          <Clock className="h-3 w-3" />
+                          {workflow.updatedAt ? 
+                            new Date(workflow.updatedAt).toLocaleDateString('it-IT') : 
+                            'N/A'
+                          }
+                        </div>
+                      </td>
+                      
+                      <td className="p-4">
+                        <div className="flex items-center gap-1">
+                          <button 
+                            className="p-1 text-gray-400 hover:text-blue-400 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedWorkflow(workflow)
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button 
+                            className="p-1 text-gray-400 hover:text-yellow-400 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Settings className="h-4 w-4" />
+                          </button>
+                          <button 
+                            className="p-1 text-gray-400 hover:text-green-400 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {workflow.active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Workflow Detail Modal */}
       {selectedWorkflow && (
         <WorkflowDetailModal
           workflow={selectedWorkflow}
-          tenantId={tenantId}
+          tenantId={user?.tenantId || 'client_simulation_a'}
           onClose={() => setSelectedWorkflow(null)}
         />
       )}

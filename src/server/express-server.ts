@@ -23,6 +23,7 @@ import { setupSwagger } from '../api/swagger-config.js';
 import { EnvConfig } from '../config/environment.js';
 import { getAuthService } from '../auth/jwt-auth.js';
 import { logTenantMode } from '../config/tenant-config.js';
+import { sanitizationMiddleware } from '../middleware/sanitization.js';
 
 export interface ServerConfig {
   port: number;
@@ -103,6 +104,10 @@ export class ExpressServer {
     // Body parsing
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+    // 🔒 SANITIZZAZIONE GLOBALE - REGOLA FERREA: Nessun riferimento n8n al cliente
+    this.app.use(sanitizationMiddleware);
+    console.log('🔒 Sanitization middleware ATTIVATO - Cliente non vedrà mai "n8n"');
 
     // Request logging con auth info
     this.app.use((req, res, next) => {
@@ -302,7 +307,7 @@ export class ExpressServer {
         console.log(`  GET  ${this.config.host}:${this.config.port}/api/stats`);
         console.log('');
         console.log('🔑 DEFAULT ADMIN CREDENTIALS:');
-        console.log('   Email: admin@n8n-mcp.local');
+        console.log('   Email: admin@pilotpro.local');
         console.log('   Password: admin123');
         console.log('='.repeat(50));
       });

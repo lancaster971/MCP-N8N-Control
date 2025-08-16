@@ -6,15 +6,18 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { DatabaseConnection } from '../database/connection.js';
+import { DatabaseSanitizer } from '../database/sanitization-helper.js';
 
 // Semplice middleware auth per development
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   // Per ora passa sempre, in produzione verifica JWT
+  // USA IL DEFAULT TENANT ID dall'environment!
+  const defaultTenantId = process.env.DEFAULT_TENANT_ID || 'client_simulation_a';
   (req as any).user = {
     id: '1',
     email: 'admin@pilotpro.com',
     role: 'admin',
-    tenantId: 'default_tenant'
+    tenantId: defaultTenantId
   };
   next();
 };

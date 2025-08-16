@@ -2,7 +2,7 @@
  * Security Premium Page - Dashboard di Sicurezza Avanzato
  * 
  * Pagina Premium per gestione completa della sicurezza:
- * - Security Audit completi con n8n integration
+ * - Security Audit completi con WFEngine integration
  * - Risk scoring e trend analysis 
  * - Compliance reporting (GDPR, SOC2, ISO27001)
  * - Security incidents tracking

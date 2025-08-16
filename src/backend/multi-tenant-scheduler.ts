@@ -375,7 +375,7 @@ export class MultiTenantScheduler {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000);
           
-          const response = await fetch(tenant.n8n_api_url.replace('/api/v1', '/healthz'), {
+          const response = await fetch(tenant.wfengine_api_url.replace('/api/v1', '/healthz'), {
             signal: controller.signal
           });
           
@@ -465,7 +465,10 @@ export class MultiTenantScheduler {
    */
   private async getActiveTenants(): Promise<any[]> {
     return await this.db.getMany(`
-      SELECT id, name, n8n_api_url, n8n_version, sync_enabled, last_sync_at
+      SELECT id, name, 
+             n8n_api_url as wfengine_api_url, 
+             n8n_version as wfengine_version, 
+             sync_enabled, last_sync_at
       FROM tenants 
       WHERE sync_enabled = true
       ORDER BY last_sync_at ASC NULLS FIRST
@@ -663,7 +666,7 @@ export class MultiTenantScheduler {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
           
-          const response = await fetch(tenant.n8n_api_url.replace('/api/v1', '/healthz'), {
+          const response = await fetch(tenant.wfengine_api_url.replace('/api/v1', '/healthz'), {
             signal: controller.signal
           });
           
