@@ -231,15 +231,15 @@ export const tenantAPI = {
   },
 }
 
-// Users API
+// Users API - USA AUTH ENDPOINTS BACKEND
 export const usersAPI = {
-  list: () => api.get('/users'),
-  get: (id: string) => api.get(`/users/${id}`),
-  create: (data: any) => api.post('/users', data),
-  update: (id: string, data: any) => api.put(`/users/${id}`, data),
-  delete: (id: string) => api.delete(`/users/${id}`),
+  list: () => api.get('/auth/users'),
+  get: (id: string) => api.get(`/auth/users/${id}`), // Da implementare nel backend
+  create: (data: any) => api.post('/auth/register', data), // Usa register endpoint
+  update: (id: string, data: any) => api.put(`/auth/users/${id}`, data), // Da implementare nel backend
+  delete: (id: string) => api.delete(`/auth/users/${id}`),
   changePassword: (id: string, data: any) =>
-    api.post(`/users/${id}/change-password`, data),
+    api.post(`/auth/users/${id}/change-password`, data), // Da implementare nel backend
 }
 
 // Monitoring API
