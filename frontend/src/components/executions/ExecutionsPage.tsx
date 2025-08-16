@@ -24,8 +24,15 @@ export const ExecutionsPage: React.FC = () => {
     queryKey: ['executions-list'],
     queryFn: async () => {
       try {
-        const response = await executionsAPI.list()
-        return response.data || []
+        // Fix: usa endpoint tenant per dati reali
+        const response = await fetch('/api/tenant/client_simulation_a/executions', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        })
+        const data = await response.json()
+        return data.executions || []
       } catch (err) {
         console.error('Error loading executions:', err)
         return []

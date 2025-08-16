@@ -368,20 +368,20 @@ export const WorkflowDetailModal: React.FC<WorkflowDetailModalProps> = ({
               {activeTab === 'overview' && (
                 <div className="p-6 space-y-6">
                   {/* Workflow Description / Purpose */}
-                  {(nodeAnalysis.description || nodeAnalysis.stickyNotes.length > 0) && (
+                  {(nodeAnalysis?.description || (nodeAnalysis?.stickyNotes && nodeAnalysis.stickyNotes.length > 0)) && (
                     <div className="control-card p-6 border-blue-500/30">
                       <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                         <Info className="h-5 w-5 text-blue-400" />
                         Workflow Purpose & Description
                       </h3>
                       
-                      {nodeAnalysis.description && (
+                      {nodeAnalysis?.description && (
                         <div className="mb-4">
-                          <p className="text-white leading-relaxed">{nodeAnalysis.description}</p>
+                          <p className="text-white leading-relaxed">{nodeAnalysis?.description}</p>
                         </div>
                       )}
                       
-                      {nodeAnalysis.stickyNotes.length > 0 && (
+                      {nodeAnalysis?.stickyNotes && nodeAnalysis.stickyNotes.length > 0 && (
                         <div className="space-y-3">
                           <p className="text-sm text-gray-400 mb-2">Documentation Notes:</p>
                           {nodeAnalysis.stickyNotes.map((note: any, index: number) => (

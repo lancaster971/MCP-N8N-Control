@@ -11,9 +11,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  X, Clock, CheckCircle, XCircle, Bot, Mail, ExternalLink,
+  X, CheckCircle, XCircle, Bot, Mail,
   ChevronDown, ChevronRight, Code, Database, Activity,
-  AlertTriangle, Info, Settings, Zap, Send, RefreshCw, FileText, Download
+  AlertTriangle, Info, Settings, RefreshCw
 } from 'lucide-react';
 import { tenantAPI } from '../../services/api';
 
@@ -31,41 +31,26 @@ interface AgentStep {
   isVisible?: boolean; // Campo per filtro whitelist
 }
 
-interface AgentExecutionDetails {
-  executionId: string;
-  workflowId: string;
-  workflowName: string;
-  startedAt: string;
-  duration: number;
-  status: 'success' | 'error' | 'running';
-  steps: AgentStep[];
-  businessContext: {
-    senderEmail?: string;
-    orderId?: string;
-    subject?: string;
-    classification?: string;
-    confidence?: number;
-  };
-  quickActions: {
-    crmUrl?: string;
-    replyAction?: string;
-  };
-  rawData?: any;
-}
 
 interface AgentDetailModalProps {
-  workflowId: string;
-  tenantId: string;
-  isOpen: boolean;
+  workflow?: any;
+  workflowId?: string;
+  tenantId?: string;
+  isOpen?: boolean;
   onClose: () => void;
 }
 
 const AgentDetailModal: React.FC<AgentDetailModalProps> = ({ 
+  workflow,
   workflowId, 
   tenantId, 
   isOpen, 
   onClose 
 }) => {
+  // Compatibility per entrambi i formati
+  const actualWorkflowId = workflowId || workflow?.id;
+  const actualTenantId = tenantId || 'client_simulation_a';
+  const actualIsOpen = isOpen !== undefined ? isOpen : !!workflow;
   const [activeTab, setActiveTab] = useState<'timeline' | 'context' | 'raw'>('timeline');
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
   // Rimosso toggle - mostra sempre solo i nodi "show" per client view
@@ -75,12 +60,10 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
   // Utility per convertire dati JSON in descrizioni human-readable per EMAIL
   const humanizeStepData = (data: any, dataType: 'input' | 'output', nodeType?: string, nodeName?: string): string => {
-    // Sanitizza nodeType per rimuovere riferimenti interni
-    const sanitizedType = nodeType?.replace(/n8n/gi, 'WFEngine').replace(/\.nodes\./g, '.engine.').replace(/\.base\./g, '.core.');
     
     // LOGICA SPECIALE PER TRIGGER NODES
-    const isTriggerNode = sanitizedType?.includes('trigger') || 
-                         sanitizedType?.includes('Trigger') ||
+    const isTriggerNode = nodeType?.includes('trigger') || 
+                         nodeType?.includes('Trigger') ||
                          nodeName?.toLowerCase().includes('ricezione') ||
                          nodeName?.toLowerCase().includes('trigger');
     
@@ -101,195 +84,57 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
     const dataString = JSON.stringify(processData);
     const insights: string[] = [];
     
-    // Determina il tipo di nodo per personalizzare il parsing
-    const nodeNameLower = nodeName?.toLowerCase() || '';
-    const isEmailNode = nodeNameLower.includes('mail') || nodeNameLower.includes('ricezione');
-    const isAINode = nodeNameLower.includes('milena') || nodeNameLower.includes('assistente') || nodeNameLower.includes('ai');
-    const isOrderNode = nodeNameLower.includes('ordini') || nodeNameLower.includes('order');
-    const isVectorNode = nodeNameLower.includes('qdrant') || nodeNameLower.includes('vector');
-    const isParcelNode = nodeNameLower.includes('parcel');
-    const isReplyNode = nodeNameLower.includes('rispondi') || nodeNameLower.includes('reply');
-    const isExecuteNode = nodeNameLower.includes('execute') || nodeNameLower.includes('workflow');
+    // PRIORITÀ 1: CONTENUTO EMAIL (corpo del messaggio)
+    const emailBodyFields = [
+      processData.json?.messaggio_cliente,
+      processData.json?.messaggio,
+      processData.json?.body?.content,
+      processData.json?.body,
+      processData.json?.content,
+      processData.json?.text,
+      processData.json?.message,
+      processData.body?.content,
+      processData.content
+    ];
     
-    // PARSER SPECIFICI PER TIPO DI NODO
+    const emailBody = emailBodyFields.find(field => 
+      field && typeof field === 'string' && field.length > 20
+    );
     
-    // 1. NODO EMAIL (Ricezione Mail)
-    if (isEmailNode && dataType === 'output') {
-      insights.push('--- EMAIL RICEVUTA ---');
-      
-      // Oggetto
-      if (processData.json?.oggetto || processData.json?.subject) {
-        insights.push(`Oggetto: "${processData.json?.oggetto || processData.json?.subject}"`);
-      }
-      
-      // Mittente
-      const senderFields = [
-        processData.json?.mittente,
-        processData.json?.mittente_nome,
-        processData.json?.sender?.emailAddress?.address,
-        processData.sender?.emailAddress?.address
-      ];
-      const sender = senderFields.find(field => field);
-      if (sender) {
-        insights.push(`Da: ${sender}`);
-      }
-      
-      // Contenuto
-      const emailBodyFields = [
-        processData.json?.messaggio_cliente,
-        processData.json?.messaggio,
-        processData.json?.body?.content,
-        processData.json?.body,
-        processData.json?.content
-      ];
-      const emailBody = emailBodyFields.find(field => 
-        field && typeof field === 'string' && field.length > 20
-      );
-      if (emailBody) {
-        const cleanContent = emailBody
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/&[a-zA-Z0-9]+;/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        const preview = cleanContent.substring(0, 150);
-        insights.push(`Messaggio: "${preview}${preview.length >= 150 ? '...' : ''}"`);
-      }
-    }
-    
-    // 2. NODO AI ASSISTANT (Milena)
-    else if (isAINode && dataType === 'output') {
-      insights.push('--- RISPOSTA AI GENERATA ---');
-      
-      const aiResponseFields = [
-        processData.json?.output?.risposta_html,
-        processData.json?.risposta_html,
-        processData.json?.ai_response,
-        processData.json?.response,
-        processData.json?.output
-      ];
-      
-      const aiResponse = aiResponseFields.find(field => 
-        field && typeof field === 'string' && field.length > 20
-      );
-      
-      if (aiResponse) {
-        const cleanResponse = aiResponse
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/&[a-zA-Z0-9]+;/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        const preview = cleanResponse.substring(0, 200);
-        insights.push(`Risposta: "${preview}${preview.length >= 200 ? '...' : ''}"`);
-      }
-      
-      // Categoria se presente
-      if (processData.json?.categoria || processData.json?.classification) {
-        insights.push(`Categoria: ${processData.json?.categoria || processData.json?.classification}`);
-      }
-    }
-    
-    // 3. NODO VECTOR STORE (Qdrant)
-    else if (isVectorNode && dataType === 'output') {
-      insights.push('--- RICERCA VETTORIALE ---');
-      
-      if (processData.json?.matches || processData.json?.results) {
-        const matches = processData.json?.matches || processData.json?.results;
-        const count = Array.isArray(matches) ? matches.length : 1;
-        insights.push(`Documenti trovati: ${count}`);
-      }
-      
-      if (processData.json?.score || processData.json?.similarity) {
-        insights.push(`Similarità: ${processData.json?.score || processData.json?.similarity}`);
-      }
-      
-      if (processData.json?.content || processData.json?.text) {
-        const content = processData.json?.content || processData.json?.text;
-        const preview = content.substring(0, 100);
-        insights.push(`Contenuto: "${preview}${preview.length >= 100 ? '...' : ''}"`);
-      }
-    }
-    
-    // 4. NODO PARCEL APP
-    else if (isParcelNode && dataType === 'output') {
-      insights.push('--- TRACKING SPEDIZIONE ---');
-      
-      if (processData.json?.tracking_number) {
-        insights.push(`Numero tracking: ${processData.json.tracking_number}`);
-      }
-      if (processData.json?.status) {
-        insights.push(`Stato: ${processData.json.status}`);
-      }
-      if (processData.json?.location) {
-        insights.push(`Posizione: ${processData.json.location}`);
-      }
-      if (processData.json?.estimated_delivery) {
-        insights.push(`Consegna prevista: ${processData.json.estimated_delivery}`);
-      }
-    }
-    
-    // 5. NODO RISPOSTA EMAIL
-    else if (isReplyNode && dataType === 'output') {
-      insights.push('--- EMAIL INVIATA ---');
-      
-      if (processData.json?.to) {
-        insights.push(`Destinatario: ${processData.json.to}`);
-      }
-      if (processData.json?.subject) {
-        insights.push(`Oggetto: ${processData.json.subject}`);
-      }
-      if (processData.json?.sent || processData.json?.success) {
-        insights.push(`Stato: Email inviata con successo`);
-      }
-    }
-    
-    // 6. NODO EXECUTE WORKFLOW
-    else if (isExecuteNode && dataType === 'output') {
-      insights.push('--- WORKFLOW ESEGUITO ---');
-      
-      if (processData.json?.workflowId) {
-        insights.push(`Workflow ID: ${processData.json.workflowId}`);
-      }
-      if (processData.json?.executionId) {
-        insights.push(`Execution ID: ${processData.json.executionId}`);
-      }
-      if (processData.json?.status) {
-        insights.push(`Stato: ${processData.json.status}`);
-      }
-    }
-    
-    // Se non abbiamo insights specifici, prova i parser generici
-
-    // PRIORITÀ 4: DATI ORDINE (per nodi tipo INFO ORDINI)
-    if (processData.json?.order_reference || processData.json?.orderFound) {
-      insights.push('--- DATI ORDINE RECUPERATI ---');
-      
-      if (processData.json?.order_reference) {
-        insights.push(`Riferimento: ${processData.json.order_reference}`);
-      }
-      if (processData.json?.customer_full_name) {
-        insights.push(`Cliente: ${processData.json.customer_full_name}`);
-      }
-      if (processData.json?.order_status) {
-        insights.push(`Stato: ${processData.json.order_status}`);
-      }
-      if (processData.json?.order_total_paid) {
-        insights.push(`Totale: ${processData.json.order_total_paid}`);
-      }
-      if (processData.json?.delivery_city) {
-        insights.push(`Città consegna: ${processData.json.delivery_city}`);
-      }
-      if (processData.json?.order_shipping_number) {
-        insights.push(`Tracking: ${processData.json.order_shipping_number}`);
-      }
-      if (processData.json?.chatbotResponse) {
-        const cleanResponse = processData.json.chatbotResponse.replace(/[✅❌📦]/g, '').trim();
-        insights.push(`Risposta: ${cleanResponse}`);
-      }
+    if (emailBody) {
+      // Pulisci il contenuto HTML/formato e mostra preview
+      const cleanContent = emailBody
+        .replace(/<[^>]+>/g, ' ')  // Rimuovi HTML
+        .replace(/&[a-zA-Z0-9]+;/g, ' ')  // Rimuovi entità HTML
+        .replace(/\s+/g, ' ')  // Normalizza spazi
+        .trim();
+        
+      const preview = cleanContent.substring(0, 200);
+      insights.push(`Contenuto email: "${preview}${preview.length >= 200 ? '...' : ''}"`);
     }
 
-    // PRIORITÀ 5: RISPOSTA AI (se presente)
+    // PRIORITÀ 2: SUBJECT/OGGETTO
+    if (processData.json?.oggetto) {
+      insights.push(`Oggetto: "${processData.json.oggetto}"`);
+    } else if (processData.json?.subject) {
+      insights.push(`Subject: "${processData.json.subject}"`);
+    }
+
+    // PRIORITÀ 3: MITTENTE
+    const senderFields = [
+      processData.json?.mittente,
+      processData.json?.mittente_nome,
+      processData.json?.sender?.emailAddress?.address,
+      processData.sender?.emailAddress?.address
+    ];
+    
+    const sender = senderFields.find(field => field);
+    if (sender) {
+      insights.push(`Mittente: ${sender}`);
+    }
+
+    // PRIORITÀ 4: RISPOSTA AI (se presente)
     const aiResponseFields = [
-      processData.json?.output?.risposta_html, // Aggiunto per Milena node
       processData.json?.risposta_html,
       processData.json?.ai_response,
       processData.json?.response
@@ -310,16 +155,12 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
     }
 
     // PRIORITÀ 5: CLASSIFICAZIONE/CATEGORIA (se utile)
-    if (processData.json?.output?.categoria && processData.json?.output?.confidence) {
-      insights.push(`Classificazione: ${processData.json.output.categoria} (${processData.json.output.confidence} confidence)`);
-    } else if (processData.json?.categoria && processData.json?.confidence) {
+    if (processData.json?.categoria && processData.json?.confidence) {
       insights.push(`Classificazione: ${processData.json.categoria} (${processData.json.confidence}% confidence)`);
     }
 
     // PRIORITÀ 6: ORDER ID (se specifico)
-    if (processData.json?.output?.order_id && processData.json.output.order_id !== '000000') {
-      insights.push(`Ordine: ${processData.json.output.order_id}`);
-    } else if (processData.json?.order_id && processData.json.order_id !== '000000') {
+    if (processData.json?.order_id && processData.json.order_id !== '000000') {
       insights.push(`Ordine: ${processData.json.order_id}`);
     }
 
@@ -346,14 +187,14 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
 
   // SISTEMA CACHE ROBUSTO: Fetch workflow timeline con smart refresh
   const { data: timelineData, isLoading, error, refetch } = useQuery({
-    queryKey: ['agent-workflow-timeline', tenantId, workflowId],
+    queryKey: ['agent-workflow-timeline', actualTenantId, actualWorkflowId],
     queryFn: async () => {
-      const response = await tenantAPI.agents.timeline(tenantId, workflowId);
+      const response = await tenantAPI.agents.timeline(actualTenantId, actualWorkflowId);
       console.log('📡 API Response:', response);
       // response è già axios response, che ha response.data
       return response.data.data; // response.data è il body, response.data.data è il contenuto
     },
-    enabled: isOpen, // Solo quando modal è aperto
+    enabled: actualIsOpen && !!actualWorkflowId, // Solo quando modal è aperto
     refetchInterval: 300000, // 🚀 POLLING INTENSIVO: Auto-refresh ogni 5 minuti per esecuzioni recenti
     staleTime: 0, // 🔥 SEMPRE FRESH: Nessuna cache stale per massima reattività
     refetchOnMount: true, // Sempre refresh quando modal si apre
@@ -363,22 +204,22 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
   // FORCE REFRESH: Mutation per forzare sync da n8n API
   const refreshMutation = useMutation({
     mutationFn: async () => {
-      const response = await tenantAPI.agents.refresh(tenantId, workflowId);
+      const response = await tenantAPI.agents.refresh(actualTenantId, actualWorkflowId);
       return response.data;
     },
     onSuccess: async () => {
       // Invalida cache e ricarica dati fresh
-      queryClient.invalidateQueries({ queryKey: ['agent-workflow-timeline', tenantId, workflowId] });
+      queryClient.invalidateQueries({ queryKey: ['agent-workflow-timeline', actualTenantId, actualWorkflowId] });
       queryClient.invalidateQueries({ queryKey: ['workflow-cards'] }); // Invalida anche lista workflow
       queryClient.invalidateQueries({ queryKey: ['agents-workflows', tenantId] }); // 🔥 CRITICAL FIX: Invalida cache AgentsPage
       
       // 🚀 BRUTAL FORCE: Chiama timeline API direttamente con forceRefresh=true 
       try {
         console.log('🔥 FORCE REFRESH: Calling timeline API with forceRefresh=true');
-        const freshResponse = await tenantAPI.agents.timeline(tenantId, workflowId, true);
+        const freshResponse = await tenantAPI.agents.timeline(actualTenantId, actualWorkflowId, true);
         
         // Aggiorna la cache con i dati fresh
-        queryClient.setQueryData(['agent-workflow-timeline', tenantId, workflowId], freshResponse);
+        queryClient.setQueryData(['agent-workflow-timeline', actualTenantId, actualWorkflowId], freshResponse);
         console.log('✅ Fresh timeline data loaded and cached');
       } catch (error) {
         console.error('❌ Failed to fetch fresh timeline:', error);
@@ -394,7 +235,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
   });
 
   const handleForceRefresh = () => {
-    console.log(`🔄 Force refreshing workflow ${workflowId} for tenant ${tenantId}`);
+    console.log(`🔄 Force refreshing workflow ${actualWorkflowId} for tenant ${actualTenantId}`);
     console.log('🔧 Mutation status:', refreshMutation.status);
     refreshMutation.mutate();
   };
@@ -420,421 +261,27 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
     });
   };
 
-  // Genera un report DETTAGLIATO e VERBOSO dal raw data
-  const generateReadableReport = () => {
-    if (!timeline) return '';
-    
-    let report = `╔${'═'.repeat(78)}╗\n`;
-    report += `║${' '.repeat(20)}REPORT DETTAGLIATO ESECUZIONE WORKFLOW${' '.repeat(20)}║\n`;
-    report += `║${' '.repeat(25)}PilotPro Control Center v2.4.1${' '.repeat(24)}║\n`;
-    report += `╚${'═'.repeat(78)}╝\n\n`;
-    
-    // SEZIONE 1: INFORMAZIONI GENERALI
-    report += `┌─ INFORMAZIONI GENERALI ${'─'.repeat(54)}┐\n\n`;
-    
-    report += `  Nome Workflow:     ${timeline.workflowName || 'Non specificato'}\n`;
-    report += `  ID Workflow:       ${workflowId}\n`;
-    report += `  Stato Workflow:    ${timeline.status === 'active' ? 'ATTIVO' : 'INATTIVO'}\n`;
-    
-    if (timeline.lastExecution) {
-      report += `\n  ULTIMA ESECUZIONE:\n`;
-      report += `  ├─ ID Esecuzione:  ${timeline.lastExecution.id}\n`;
-      report += `  ├─ Data/Ora:       ${formatTimestamp(timeline.lastExecution.executedAt)}\n`;
-      report += `  ├─ Durata Totale:  ${formatDuration(timeline.lastExecution.duration)}\n`;
-      report += `  └─ Status:         ${timeline.lastExecution.status || 'Completato'}\n`;
-    }
-    
-    report += `\n└${'─'.repeat(78)}┘\n\n`;
-    
-    // SEZIONE 2: CONTESTO BUSINESS DETTAGLIATO
-    if (timeline.businessContext && Object.keys(timeline.businessContext).length > 0) {
-      report += `┌─ ANALISI CONTESTO BUSINESS ${'─'.repeat(49)}┐\n\n`;
-      
-      report += `  Questo workflow ha processato una comunicazione business con i seguenti\n`;
-      report += `  parametri identificati automaticamente dal sistema AI:\n\n`;
-      
-      if (timeline.businessContext.senderEmail) {
-        report += `  MITTENTE EMAIL:\n`;
-        report += `     Email: ${timeline.businessContext.senderEmail}\n`;
-        report += `     Tipo: ${timeline.businessContext.senderEmail.includes('@') ? 'Email valida' : 'Formato non standard'}\n\n`;
-      }
-      
-      if (timeline.businessContext.subject) {
-        report += `  OGGETTO COMUNICAZIONE:\n`;
-        report += `     "${timeline.businessContext.subject}"\n\n`;
-      }
-      
-      if (timeline.businessContext.orderId) {
-        report += `  RIFERIMENTO ORDINE:\n`;
-        report += `     ID Ordine: ${timeline.businessContext.orderId}\n`;
-        report += `     Formato: ${timeline.businessContext.orderId.length > 10 ? 'ID Esteso' : 'ID Standard'}\n\n`;
-      }
-      
-      if (timeline.businessContext.classification) {
-        report += `  CLASSIFICAZIONE AI:\n`;
-        report += `     Categoria Identificata: ${timeline.businessContext.classification}\n`;
-        if (timeline.businessContext.confidence) {
-          report += `     Livello di Confidenza: ${timeline.businessContext.confidence}%\n`;
-          const confidenceLevel = timeline.businessContext.confidence > 80 ? 'ALTA' : 
-                                  timeline.businessContext.confidence > 60 ? 'MEDIA' : 'BASSA';
-          report += `     Affidabilità: ${confidenceLevel}\n`;
-        }
-        report += `\n`;
-      }
-      
-      // Analisi aggiuntive dal business context
-      const contextKeys = Object.keys(timeline.businessContext);
-      const additionalKeys = contextKeys.filter(key => 
-        !['senderEmail', 'subject', 'orderId', 'classification', 'confidence'].includes(key)
-      );
-      
-      if (additionalKeys.length > 0) {
-        report += `  METRICHE AGGIUNTIVE:\n`;
-        additionalKeys.forEach(key => {
-          report += `     ${key}: ${timeline.businessContext[key]}\n`;
-        });
-        report += `\n`;
-      }
-      
-      report += `└${'─'.repeat(78)}┘\n\n`;
-    }
-    
-    // SEZIONE 3: TIMELINE DETTAGLIATA DELL'ESECUZIONE
-    if (timeline.timeline && timeline.timeline.length > 0) {
-      report += `┌─ TIMELINE DETTAGLIATA ESECUZIONE ${'─'.repeat(43)}┐\n\n`;
-      
-      report += `  Il workflow ha eseguito ${timeline.timeline.length} operazioni in sequenza.\n`;
-      report += `  Di seguito il dettaglio completo di ogni passaggio:\n\n`;
-      
-      timeline.timeline.forEach((step: any, index: number) => {
-        const stepNumber = index + 1;
-        const isLastStep = index === timeline.timeline.length - 1;
-        
-        // Header dello step con formatting avanzato
-        report += `  ${'═'.repeat(74)}\n`;
-        report += `  STEP ${stepNumber}/${timeline.timeline.length}: ${step.nodeName.toUpperCase()}\n`;
-        report += `  ${'═'.repeat(74)}\n\n`;
-        
-        // Informazioni tecniche dello step
-        report += `  INFORMAZIONI TECNICHE:\n`;
-        // Sanitizza nodeType per maggiore privacy cliente
-        const sanitizedNodeType = (step.nodeType || 'Tipo non specificato')
-          .replace(/n8n/gi, 'WFEngine')
-          .replace(/\.nodes\./g, '.engine.')
-          .replace(/\.base\./g, '.core.');
-        report += `  ├─ Tipo Nodo:        ${sanitizedNodeType}\n`;
-        report += `  ├─ Status:           ${step.status === 'success' ? 'SUCCESSO' : 
-                                             step.status === 'error' ? 'ERRORE' : 
-                                             step.status === 'not-executed' ? 'NON ESEGUITO' : 
-                                             (step.status || 'Sconosciuto').toUpperCase()}\n`;
-        
-        if (step.executionTime !== undefined) {
-          report += `  ├─ Tempo Esecuzione: ${formatDuration(step.executionTime)}\n`;
-          
-          // Analisi performance
-          if (step.executionTime > 5000) {
-            report += `  │  Nota: Questo step ha richiesto più di 5 secondi\n`;
-          } else if (step.executionTime < 100) {
-            report += `  │  Nota: Esecuzione ultra-rapida\n`;
-          }
-        }
-        
-        if (step.customOrder) {
-          report += `  ├─ Ordine Custom:    Show-${step.customOrder} (visibile nel client view)\n`;
-        }
-        
-        if (step.summary) {
-          report += `  └─ Sommario:         ${step.summary}\n`;
-        }
-        
-        // DATI IN INPUT - ULTRA DETTAGLIATI
-        report += `\n  DATI IN INPUT:\n`;
-        if (step.inputData) {
-          // Prima mostra il sommario human-readable
-          const inputSummary = humanizeStepData(step.inputData, 'input', step.nodeType, step.nodeName);
-          report += `  Sommario leggibile:\n`;
-          const inputLines = inputSummary.split('\n');
-          inputLines.forEach(line => {
-            if (line.trim()) {
-              report += `    ${line}\n`;
-            }
-          });
-          
-          // POI mostra i dati dettagliati in formato testuale leggibile
-          report += `\n  Dettaglio completo dati in input:\n`;
-          const inputDataObj = Array.isArray(step.inputData) ? step.inputData[0] : step.inputData;
-          
-          if (inputDataObj && typeof inputDataObj === 'object') {
-            if (inputDataObj.json && typeof inputDataObj.json === 'object') {
-              // Converti ogni campo JSON in testo leggibile
-              Object.entries(inputDataObj.json).forEach(([key, value]) => {
-                const humanKey = key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
-                  .toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-                
-                if (value !== null && value !== undefined) {
-                  if (typeof value === 'object') {
-                    report += `    ${humanKey}: [Dati strutturati]\n`;
-                    // Se è un oggetto, mostra i suoi campi principali
-                    if (!Array.isArray(value)) {
-                      Object.entries(value).slice(0, 3).forEach(([subKey, subValue]) => {
-                        const humanSubKey = subKey.replace(/_/g, ' ').toLowerCase();
-                        report += `      - ${humanSubKey}: ${String(subValue).substring(0, 100)}\n`;
-                      });
-                    }
-                  } else if (typeof value === 'string' && value.length > 200) {
-                    // Per testi lunghi, mostra solo un'anteprima
-                    report += `    ${humanKey}: "${value.substring(0, 150)}..."\n`;
-                  } else {
-                    // Per valori semplici, mostra tutto
-                    report += `    ${humanKey}: ${String(value)}\n`;
-                  }
-                }
-              });
-            } else {
-              // Se non c'è wrapper json, mostra i campi diretti
-              Object.entries(inputDataObj).slice(0, 10).forEach(([key, value]) => {
-                const humanKey = key.replace(/_/g, ' ').toLowerCase();
-                if (typeof value !== 'object') {
-                  report += `    ${humanKey}: ${String(value).substring(0, 100)}\n`;
-                }
-              });
-            }
-          } else if (typeof inputDataObj === 'string') {
-            report += `    ${inputDataObj}\n`;
-          }
-        } else {
-          report += `     Nessun dato in input per questo step\n`;
-        }
-        
-        // DATI IN OUTPUT - ULTRA DETTAGLIATI  
-        report += `\n  DATI IN OUTPUT:\n`;
-        if (step.outputData) {
-          // Prima mostra il sommario human-readable
-          const outputSummary = humanizeStepData(step.outputData, 'output', step.nodeType, step.nodeName);
-          report += `  Sommario leggibile:\n`;
-          const outputLines = outputSummary.split('\n');
-          outputLines.forEach(line => {
-            if (line.trim()) {
-              report += `    ${line}\n`;
-            }
-          });
-          
-          // POI mostra i dati dettagliati in formato testuale leggibile
-          report += `\n  Dettaglio completo dati in output:\n`;
-          const outputDataObj = Array.isArray(step.outputData) ? step.outputData[0] : step.outputData;
-          
-          if (outputDataObj && typeof outputDataObj === 'object') {
-            if (outputDataObj.json && typeof outputDataObj.json === 'object') {
-              // Converti ogni campo JSON in testo leggibile
-              const fieldsToShow = Object.entries(outputDataObj.json);
-              
-              // Prima mostra i campi più importanti
-              const priorityFields = ['oggetto', 'mittente', 'messaggio_cliente', 'order_reference', 
-                                    'customer_full_name', 'order_status', 'risposta_html', 'categoria',
-                                    'confidence', 'order_id', 'tracking_number', 'subject', 'sender',
-                                    'body', 'content', 'response', 'output'];
-              
-              // Campi prioritari
-              priorityFields.forEach(field => {
-                if (outputDataObj.json[field] !== undefined && outputDataObj.json[field] !== null) {
-                  const humanField = field.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
-                    .toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-                  const value = outputDataObj.json[field];
-                  
-                  if (typeof value === 'string') {
-                    // Rimuovi HTML tags e mostra testo pulito
-                    const cleanValue = value.replace(/<[^>]+>/g, ' ').replace(/&[a-zA-Z0-9]+;/g, ' ')
-                      .replace(/\s+/g, ' ').trim();
-                    if (cleanValue.length > 200) {
-                      report += `    ${humanField}:\n      "${cleanValue.substring(0, 200)}..."\n\n`;
-                    } else {
-                      report += `    ${humanField}: ${cleanValue}\n`;
-                    }
-                  } else if (typeof value === 'object') {
-                    report += `    ${humanField}: [Dati complessi - ${Object.keys(value).length} campi]\n`;
-                  } else {
-                    report += `    ${humanField}: ${String(value)}\n`;
-                  }
-                }
-              });
-              
-              // Altri campi non prioritari
-              fieldsToShow.forEach(([key, value]) => {
-                if (!priorityFields.includes(key) && value !== null && value !== undefined) {
-                  const humanKey = key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
-                    .toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-                  
-                  if (typeof value === 'string' && value.length < 100) {
-                    report += `    ${humanKey}: ${value}\n`;
-                  } else if (typeof value === 'number' || typeof value === 'boolean') {
-                    report += `    ${humanKey}: ${value}\n`;
-                  }
-                }
-              });
-            } else {
-              // Se non c'è wrapper json, mostra i campi diretti
-              Object.entries(outputDataObj).slice(0, 10).forEach(([key, value]) => {
-                const humanKey = key.replace(/_/g, ' ').toLowerCase();
-                if (typeof value !== 'object') {
-                  report += `    ${humanKey}: ${String(value).substring(0, 100)}\n`;
-                }
-              });
-            }
-          } else if (typeof outputDataObj === 'string') {
-            report += `    ${outputDataObj}\n`;
-          }
-        } else {
-          report += `     Nessun dato in output per questo step\n`;
-        }
-        
-        // Note aggiuntive per step specifici
-        if (step.nodeName.toLowerCase().includes('ai') || step.nodeName.toLowerCase().includes('milena')) {
-          report += `\n  NOTA: Questo è un nodo AI che ha processato la richiesta utilizzando\n`;
-          report += `        intelligenza artificiale per generare una risposta contestuale.\n`;
-        }
-        
-        if (step.nodeName.toLowerCase().includes('vector')) {
-          report += `\n  NOTA: Questo nodo ha eseguito una ricerca vettoriale nel database\n`;
-          report += `        per trovare informazioni rilevanti alla query.\n`;
-        }
-        
-        if (!isLastStep) {
-          report += `\n  --> Prosegue con lo step successivo...\n\n`;
-        } else {
-          report += `\n  [COMPLETATO] Fine dell'esecuzione\n\n`;
-        }
-      });
-      
-      report += `└${'─'.repeat(78)}┘\n\n`;
-    }
-    
-    // SEZIONE 4: ANALISI STATISTICA
-    if (timeline.timeline && timeline.timeline.length > 0) {
-      report += `┌─ ANALISI STATISTICA ESECUZIONE ${'─'.repeat(45)}┐\n\n`;
-      
-      const totalSteps = timeline.timeline.length;
-      const successSteps = timeline.timeline.filter((s: any) => s.status === 'success').length;
-      const errorSteps = timeline.timeline.filter((s: any) => s.status === 'error').length;
-      const skippedSteps = timeline.timeline.filter((s: any) => s.status === 'not-executed').length;
-      
-      report += `  RIEPILOGO STEPS:\n`;
-      report += `     Totale Steps:        ${totalSteps}\n`;
-      report += `     Steps Completati:    ${successSteps} (${((successSteps/totalSteps)*100).toFixed(1)}%)\n`;
-      report += `     Steps con Errori:    ${errorSteps} (${((errorSteps/totalSteps)*100).toFixed(1)}%)\n`;
-      report += `     Steps Non Eseguiti:  ${skippedSteps} (${((skippedSteps/totalSteps)*100).toFixed(1)}%)\n`;
-      
-      // Calcola tempo totale e medio
-      const timings = timeline.timeline
-        .filter((s: any) => s.executionTime !== undefined)
-        .map((s: any) => s.executionTime);
-      
-      if (timings.length > 0) {
-        const totalTime = timings.reduce((a: number, b: number) => a + b, 0);
-        const avgTime = totalTime / timings.length;
-        const maxTime = Math.max(...timings);
-        const minTime = Math.min(...timings);
-        
-        report += `\n  ANALISI TEMPI:\n`;
-        report += `     Tempo Totale:        ${formatDuration(totalTime)}\n`;
-        report += `     Tempo Medio/Step:    ${formatDuration(avgTime)}\n`;
-        report += `     Step più Veloce:     ${formatDuration(minTime)}\n`;
-        report += `     Step più Lento:      ${formatDuration(maxTime)}\n`;
-        
-        // Trova lo step più lento
-        const slowestStep = timeline.timeline.find((s: any) => s.executionTime === maxTime);
-        if (slowestStep) {
-          report += `     └─ "${slowestStep.nodeName}" ha richiesto ${formatDuration(maxTime)}\n`;
-        }
-      }
-      
-      report += `\n└${'─'.repeat(78)}┘\n\n`;
-    }
-    
-    // SEZIONE 5: RACCOMANDAZIONI E NOTE
-    report += `┌─ RACCOMANDAZIONI E NOTE ${'─'.repeat(52)}┐\n\n`;
-    
-    // Analizza e fornisce raccomandazioni
-    const hasErrors = timeline.timeline?.some((s: any) => s.status === 'error');
-    const hasSkipped = timeline.timeline?.some((s: any) => s.status === 'not-executed');
-    const avgTime = timeline.lastExecution ? timeline.lastExecution.duration / (timeline.timeline?.length || 1) : 0;
-    
-    if (hasErrors) {
-      report += `  ATTENZIONE: Sono stati rilevati errori durante l'esecuzione.\n`;
-      report += `     Si consiglia di verificare i log dettagliati per identificare\n`;
-      report += `     e risolvere i problemi.\n\n`;
-    }
-    
-    if (hasSkipped) {
-      report += `  NOTA: Alcuni step non sono stati eseguiti.\n`;
-      report += `     Questo potrebbe essere normale se il workflow include\n`;
-      report += `     logica condizionale.\n\n`;
-    }
-    
-    if (avgTime > 5000) {
-      report += `  PERFORMANCE: Il tempo medio per step è elevato (${formatDuration(avgTime)}).\n`;
-      report += `     Considerare l'ottimizzazione del workflow per migliorare\n`;
-      report += `     le prestazioni.\n\n`;
-    } else if (avgTime < 500) {
-      report += `  ECCELLENTE: Il workflow sta eseguendo molto rapidamente!\n`;
-      report += `     Tempo medio per step: ${formatDuration(avgTime)}\n\n`;
-    }
-    
-    report += `└${'─'.repeat(78)}┘\n\n`;
-    
-    // FOOTER PROFESSIONALE
-    report += `${'═'.repeat(80)}\n`;
-    report += `FINE DEL REPORT\n\n`;
-    report += `Report generato il: ${new Date().toLocaleString('it-IT', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })}\n`;
-    report += `Sistema: PilotPro Control Center v2.4.1\n`;
-    report += `Tenant: ${tenantId}\n`;
-    report += `${'═'.repeat(80)}\n`;
-    
-    return report;
-  };
-
-  // Scarica il report come file di testo
-  const downloadReport = () => {
-    const report = generateReadableReport();
-    const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `workflow-report-${workflowId}-${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const getStepIcon = (status: string) => {
-    switch (status) {
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-400" />;
+  const getStepIcon = (type: string) => {
+    switch (type) {
+      case 'input': return <Database className="w-4 h-4 text-blue-400" />;
+      case 'processing': return <Settings className="w-4 h-4 text-yellow-400 animate-spin" />;
+      case 'output': return <CheckCircle className="w-4 h-4 text-green-400" />;
       case 'error': return <XCircle className="w-4 h-4 text-red-400" />;
-      case 'running': return <Settings className="w-4 h-4 text-yellow-400 animate-spin" />;
-      case 'not-executed': return <Activity className="w-4 h-4 text-gray-500" />;
       default: return <Activity className="w-4 h-4 text-gray-400" />;
     }
   };
 
-  const getStepColor = (status: string) => {
-    switch (status) {
-      case 'success': return 'border-green-400/30 bg-green-400/5';
+  const getStepColor = (type: string) => {
+    switch (type) {
+      case 'input': return 'border-blue-400/30 bg-blue-400/5';
+      case 'processing': return 'border-yellow-400/30 bg-yellow-400/5';
+      case 'output': return 'border-green-400/30 bg-green-400/5';
       case 'error': return 'border-red-400/30 bg-red-400/5';
-      case 'running': return 'border-yellow-400/30 bg-yellow-400/5';
-      case 'not-executed': return 'border-gray-600/30 bg-gray-800/50';
       default: return 'border-gray-400/30 bg-gray-400/5';
     }
   };
 
-  if (!isOpen) return null;
+  if (!actualIsOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -867,7 +314,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                   ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
                   : 'bg-green-600 hover:bg-green-500 text-white shadow-lg hover:shadow-green-500/25'
               }`}
-              title="Force refresh latest executions from workflow engine"
+              title="Force refresh latest executions from n8n"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
               {refreshMutation.isPending ? 'Refreshing...' : 'Force Refresh'}
@@ -999,37 +446,25 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                     
                     return (
                       <div className="space-y-4">
-                        {stepsToShow.map((step, index) => {
-                          // Assicurati che step abbia tutti i campi necessari
-                          const stepStatus = step.status || 'unknown';
-                          const stepName = step.nodeName || 'Unknown Node';
-                          const stepSummary = step.summary || '';
-                          
-                          return (
+                        {stepsToShow.map((step: any) => (
                         <div 
-                          key={step.nodeId || index}
-                          className={`border rounded-lg p-4 ${getStepColor(stepStatus)}`}
+                          key={step.nodeId}
+                          className={`border rounded-lg p-4 ${getStepColor(step.type)}`}
                         >
                           <div 
                             className="flex items-center justify-between cursor-pointer"
                             onClick={() => setExpandedStep(expandedStep === step.nodeId ? null : step.nodeId)}
                           >
                             <div className="flex items-center">
-                              {getStepIcon(stepStatus)}
+                              {getStepIcon(step.type)}
                               <div className="ml-3">
-                                <div className="font-medium text-white">{stepName}</div>
-                                <div className="text-sm text-gray-400">
-                                  {stepStatus === 'not-executed' 
-                                    ? 'Node not executed in this run' 
-                                    : stepSummary}
-                                </div>
+                                <div className="font-medium text-white">{step.nodeName}</div>
+                                <div className="text-sm text-gray-400">{step.summary}</div>
                               </div>
                             </div>
                             <div className="flex items-center">
                               <span className="text-xs text-gray-400 mr-3">
-                                {stepStatus === 'not-executed' 
-                                  ? 'Skipped' 
-                                  : formatDuration(step.executionTime || 0)}
+                                {formatDuration(step.executionTime || 0)}
                               </span>
                               {expandedStep === step.nodeId ? (
                                 <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -1081,8 +516,7 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
                             </div>
                           )}
                         </div>
-                      );
-                      })}
+                      ))}
                       </div>
                     );
                   })()}
@@ -1156,63 +590,13 @@ const AgentDetailModal: React.FC<AgentDetailModalProps> = ({
               {/* Raw Data Tab */}
               {activeTab === 'raw' && (
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <Code className="w-5 h-5 text-gray-400 mr-2" />
-                      <h3 className="text-lg font-medium text-white">Raw Timeline Data</h3>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          const report = generateReadableReport();
-                          // Mostra il report nel pre tag invece del JSON
-                          const preElement = document.getElementById('raw-data-content');
-                          if (preElement) {
-                            preElement.textContent = report;
-                          }
-                        }}
-                        className="flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors"
-                      >
-                        <FileText className="w-4 h-4 mr-1.5" />
-                        Genera Report
-                      </button>
-                      <button
-                        onClick={downloadReport}
-                        className="flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm transition-colors"
-                      >
-                        <Download className="w-4 h-4 mr-1.5" />
-                        Scarica Report
-                      </button>
-                      <button
-                        onClick={() => {
-                          // Ripristina JSON originale
-                          const preElement = document.getElementById('raw-data-content');
-                          if (preElement) {
-                            // Sanitizza JSON rimuovendo riferimenti a n8n
-                            const sanitizedJson = JSON.stringify(timeline, null, 2)
-                              .replace(/n8n/gi, 'WFEngine')
-                              .replace(/\.nodes\./g, '.engine.')
-                              .replace(/\.base\./g, '.core.');
-                            preElement.textContent = sanitizedJson;
-                          }
-                        }}
-                        className="flex items-center px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition-colors"
-                      >
-                        <Code className="w-4 h-4 mr-1.5" />
-                        Mostra JSON
-                      </button>
-                    </div>
+                  <div className="flex items-center mb-4">
+                    <Code className="w-5 h-5 text-gray-400 mr-2" />
+                    <h3 className="text-lg font-medium text-white">Raw Timeline Data</h3>
                   </div>
                   
-                  <pre 
-                    id="raw-data-content"
-                    className="bg-black p-4 rounded-lg border border-gray-800 text-xs text-gray-300 overflow-auto max-h-96 font-mono whitespace-pre"
-                  >
-                    {JSON.stringify(timeline, null, 2)
-                      .replace(/n8n/gi, 'WFEngine')
-                      .replace(/\.nodes\./g, '.engine.')
-                      .replace(/\.base\./g, '.core.')
-                    }
+                  <pre className="bg-black p-4 rounded-lg border border-gray-800 text-xs text-gray-300 overflow-auto max-h-96">
+                    {JSON.stringify(timeline, null, 2)}
                   </pre>
                 </div>
               )}

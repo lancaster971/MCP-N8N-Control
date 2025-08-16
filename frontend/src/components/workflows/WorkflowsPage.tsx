@@ -31,7 +31,7 @@ export const WorkflowsPage: React.FC = () => {
     queryFn: async () => {
       try {
         const response = await workflowsAPI.list()
-        return response.data
+        return response.data.workflows || []
       } catch (err) {
         console.error('Error loading workflows:', err)
         return []
