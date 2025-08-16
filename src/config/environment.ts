@@ -75,24 +75,12 @@ export interface EnvConfig {
  * Load environment variables from .env file if present
  */
 export function loadEnvironmentVariables(): void {
-  const {
-    N8N_API_URL,
-    N8N_API_KEY,
-    N8N_WEBHOOK_USERNAME,
-    N8N_WEBHOOK_PASSWORD
-  } = process.env;
-
-  if (
-    !N8N_API_URL &&
-    !N8N_API_KEY &&
-    !N8N_WEBHOOK_USERNAME &&
-    !N8N_WEBHOOK_PASSWORD
-  ) {
-    const projectRoot = findConfig('package.json');
-    if (projectRoot) {
-      const envPath = path.resolve(path.dirname(projectRoot), '.env');
-      dotenv.config({ path: envPath });
-    }
+  // SEMPRE carica il file .env come fallback per le variabili mancanti
+  const projectRoot = findConfig('package.json');
+  if (projectRoot) {
+    const envPath = path.resolve(path.dirname(projectRoot), '.env');
+    dotenv.config({ path: envPath });
+    console.log(`🔧 Caricato file .env da: ${envPath}`);
   }
 }
 
@@ -103,6 +91,8 @@ export function loadEnvironmentVariables(): void {
  * @throws {McpError} If required environment variables are missing
  */
 export function getEnvConfig(): EnvConfig {
+  // 🔧 SEMPRE carica il file .env prima di verificare le variabili
+  loadEnvironmentVariables();
   // n8n API configuration
   const n8nApiUrl = process.env[ENV_VARS.N8N_API_URL];
   const n8nApiKey = process.env[ENV_VARS.N8N_API_KEY];

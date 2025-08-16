@@ -20,10 +20,13 @@ import executionEnrichmentRoutes from '../api/execution-enrichment-routes.js';
 import productionController from '../api/production-controller.js';
 import { DatabaseConnection } from '../database/connection.js';
 import { setupSwagger } from '../api/swagger-config.js';
-import { EnvConfig } from '../config/environment.js';
+import { EnvConfig, loadEnvironmentVariables } from '../config/environment.js';
 import { getAuthService } from '../auth/jwt-auth.js';
 import { logTenantMode } from '../config/tenant-config.js';
 import { sanitizationMiddleware } from '../middleware/sanitization.js';
+
+// 🔧 CARICA SEMPRE IL FILE .ENV ALL'AVVIO
+loadEnvironmentVariables();
 
 export interface ServerConfig {
   port: number;

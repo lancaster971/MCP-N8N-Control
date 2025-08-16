@@ -14,11 +14,14 @@ import { createApiService, N8nApiService } from '../../api/n8n-client.js';
  * Classe base astratta per gli handler degli analytics
  */
 export abstract class BaseAnalyticsHandler {
-  protected apiService: N8nApiService;
-
-  constructor() {
-    const envConfig = getEnvConfig();
-    this.apiService = createApiService(envConfig);
+  private _apiService: N8nApiService | null = null;
+  
+  protected get apiService(): N8nApiService {
+    if (!this._apiService) {
+      const envConfig = getEnvConfig();
+      this._apiService = createApiService(envConfig);
+    }
+    return this._apiService;
   }
 
   /**

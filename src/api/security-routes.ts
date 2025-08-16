@@ -14,12 +14,24 @@ import { N8nApiService } from './n8n-client.js';
 import { DatabaseConnection } from '../database/connection.js';
 import { EnvConfig, getEnvConfig } from '../config/environment.js';
 
-// Inizializza dipendenze
-const envConfig: EnvConfig = getEnvConfig();
+// Lazy initialization - inizializza solo quando necessario
+let envConfig: EnvConfig | null = null;
+let n8nService: N8nApiService | null = null;
 
-const n8nService = new N8nApiService(envConfig);
+function getServices() {
+  if (!envConfig) {
+    envConfig = getEnvConfig();
+    n8nService = new N8nApiService(envConfig);
+  }
+  return { envConfig, n8nService };
+}
 const dbConnection = DatabaseConnection.getInstance();
-const securityController = new SecurityController(n8nService, dbConnection);
+
+// Lazy initialization per SecurityController
+function getSecurityController(): SecurityController {
+  const { n8nService } = getServices();
+  return new SecurityController(n8nService!, dbConnection);
+}
 
 const router = Router();
 
@@ -146,7 +158,7 @@ const router = Router();
  *       500:
  *         description: Error during security audit
  */
-router.post('/tenant/:tenantId/security/audit', securityController.generateSecurityAudit.bind(securityController));
+router.post('/tenant/:tenantId/security/audit', (req, res) => getSecurityController().generateSecurityAudit(req, res));
 
 /**
  * @swagger
@@ -202,7 +214,7 @@ router.post('/tenant/:tenantId/security/audit', securityController.generateSecur
  *                     totalAudits:
  *                       type: integer
  */
-router.get('/tenant/:tenantId/security/score-history', securityController.getSecurityScoreHistory.bind(securityController));
+router.get('/tenant/:tenantId/security/score-history', (req, res) => getSecurityController().getSecurityScoreHistory(req, res));
 
 /**
  * @swagger
@@ -243,7 +255,7 @@ router.get('/tenant/:tenantId/security/score-history', securityController.getSec
  *       404:
  *         description: No security audit found - run audit first
  */
-router.get('/tenant/:tenantId/security/compliance', securityController.getComplianceReport.bind(securityController));
+router.get('/tenant/:tenantId/security/compliance', (req, res) => getSecurityController().getComplianceReport(req, res));
 
 /**
  * @swagger

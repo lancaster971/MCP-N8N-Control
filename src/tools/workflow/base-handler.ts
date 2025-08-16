@@ -6,14 +6,21 @@
 
 import { ToolCallResult } from '../../types/index.js';
 import { N8nApiError } from '../../errors/index.js';
-import { createApiService } from '../../api/n8n-client.js';
+import { createApiService, N8nApiService } from '../../api/n8n-client.js';
 import { getEnvConfig } from '../../config/environment.js';
 
 /**
  * Base class for workflow tool handlers
  */
 export abstract class BaseWorkflowToolHandler {
-  protected apiService = createApiService(getEnvConfig());
+  private _apiService: N8nApiService | null = null;
+  
+  protected get apiService(): N8nApiService {
+    if (!this._apiService) {
+      this._apiService = createApiService(getEnvConfig());
+    }
+    return this._apiService;
+  }
   
   /**
    * Validate and execute the tool
