@@ -28,9 +28,9 @@ import { cn } from '../../lib/utils'
 export const AgentsPageEnhanced: React.FC = () => {
   const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null)
   
-  // 🚀 Carica workflows con focus su AI
+  // 🚀 Carica workflows con focus su AI - EVITA DUPLICAZIONE
   const { data: workflows, isLoading, error, refetch } = useQuery({
-    queryKey: ['workflows-ai-list'],
+    queryKey: ['workflows-list'], // STESSO KEY di WorkflowsPage per condivisione cache
     queryFn: async () => {
       try {
         const response = await workflowsAPI.list()
@@ -44,18 +44,34 @@ export const AgentsPageEnhanced: React.FC = () => {
     retry: 1
   })
   
-  // 🤖 Filtra solo workflows con AI agents
+  // 🤖 FILTRO INTELLIGENTE: Identifica automaticamente workflow AI
   const aiWorkflows = React.useMemo(() => {
-    return (workflows || []).filter((workflow: any) => 
-      workflow.name?.toLowerCase().includes('ai') ||
-      workflow.name?.toLowerCase().includes('agent') ||
-      workflow.name?.toLowerCase().includes('chatbot') ||
-      workflow.description?.toLowerCase().includes('ai') ||
-      workflow.tags?.some((tag: string) => 
+    return (workflows || []).filter((workflow: any) => {
+      // Filtro 1: Nome contiene keywords AI
+      const hasAIInName = workflow.name?.toLowerCase().includes('ai') ||
+                         workflow.name?.toLowerCase().includes('agent') ||
+                         workflow.name?.toLowerCase().includes('chatbot') ||
+                         workflow.name?.toLowerCase().includes('llm') ||
+                         workflow.name?.toLowerCase().includes('gpt')
+      
+      // Filtro 2: Tags AI-related
+      const hasAITags = workflow.tags?.some((tag: string) => 
         tag.toLowerCase().includes('ai') || 
-        tag.toLowerCase().includes('agent')
+        tag.toLowerCase().includes('agent') ||
+        tag.toLowerCase().includes('ml') ||
+        tag.toLowerCase().includes('nlp')
       )
-    )
+      
+      // Filtro 3: Description AI-related
+      const hasAIDescription = workflow.description?.toLowerCase().includes('ai') ||
+                              workflow.description?.toLowerCase().includes('artificial') ||
+                              workflow.description?.toLowerCase().includes('machine learning')
+      
+      // Filtro 4: Node count alto (AI workflows tendono ad essere complessi)
+      const isComplexWorkflow = (workflow.node_count || 0) >= 5
+      
+      return hasAIInName || hasAITags || hasAIDescription || (isComplexWorkflow && hasAIInName)
+    })
   }, [workflows])
   
   // 🎯 Demo data per showcase
@@ -237,7 +253,7 @@ export const AgentsPageEnhanced: React.FC = () => {
             <Bot className="h-7 w-7 text-blue-400" />
             AI Workflows Live
             <span className="text-sm text-gray-400 font-normal">
-              ({aiWorkflows.length} workflows con AI)
+              ({aiWorkflows.length} workflow con AI trovati automaticamente)
             </span>
           </h2>
           
@@ -433,13 +449,15 @@ export const AgentsPageEnhanced: React.FC = () => {
         </div>
       )}
 
-      {/* Timeline Modal */}
+      {/* AI Agent Timeline Modal */}
       {selectedWorkflow && (
         <AgentDetailModal
+          workflow={selectedWorkflow}
           workflowId={selectedWorkflow.id}
           tenantId="client_simulation_a"
           isOpen={!!selectedWorkflow}
           onClose={() => setSelectedWorkflow(null)}
+          isWorkflowMode={false} // Modalità AI Agent
         />
       )}
     </div>

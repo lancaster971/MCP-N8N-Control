@@ -12,18 +12,20 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  Activity
 } from 'lucide-react'
 import { workflowsAPI } from '../../services/api'
 import { useAuthStore } from '../../store/authStore'
 import { cn } from '../../lib/utils'
-import { WorkflowDetailModal } from './WorkflowDetailModal'
+import AgentDetailModal from '../agents/AgentDetailModal'
 
 export const WorkflowsPage: React.FC = () => {
   const { user } = useAuthStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null)
+  const [timelineWorkflow, setTimelineWorkflow] = useState<any>(null)
   
   // Carica i workflow in modo sicuro
   const { data: workflows, isLoading, error, refetch } = useQuery({
@@ -58,32 +60,59 @@ export const WorkflowsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gradient">
-            🔄 Workflow Manager
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Gestisci e monitora i tuoi workflow automatizzati
-          </p>
+    <div className="space-y-8">
+      {/* Enhanced Header */}
+      <div className="bg-gradient-to-r from-blue-900/30 to-green-900/30 rounded-2xl p-8 border border-green-500/20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
+              <GitBranch className="h-8 w-8 text-green-400" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gradient">
+                🔄 Workflow Manager
+              </h1>
+              <p className="text-xl text-gray-300 mt-2">
+                Gestisci e monitora tutti i tuoi workflow automatizzati con 
+                <strong className="text-green-400 ml-1">trasparenza totale</strong>
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="btn-control disabled:opacity-50"
+            >
+              <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
+              Aggiorna
+            </button>
+            
+            <button className="btn-control-primary">
+              <Plus className="h-4 w-4" />
+              Nuovo Workflow
+            </button>
+          </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => refetch()}
-            disabled={isLoading}
-            className="btn-control disabled:opacity-50"
-          >
-            <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
-            Aggiorna
-          </button>
-          
-          <button className="btn-control-primary">
-            <Plus className="h-4 w-4" />
-            Nuovo Workflow
-          </button>
+        {/* Features Highlight */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+            <Eye className="h-6 w-6 text-green-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-white mb-1 text-center">Trasparenza Totale</h3>
+            <p className="text-sm text-gray-400 text-center">Vedi ogni step dei workflow in tempo reale</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+            <GitBranch className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-white mb-1 text-center">Gestione Completa</h3>
+            <p className="text-sm text-gray-400 text-center">Controlla tutti i workflow da un'unica dashboard</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+            <Activity className="h-6 w-6 text-purple-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-white mb-1 text-center">Monitoring Live</h3>
+            <p className="text-sm text-gray-400 text-center">Performance e stato in tempo reale</p>
+          </div>
         </div>
       </div>
 
@@ -191,104 +220,117 @@ export const WorkflowsPage: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Workflow Cards Grid */}
+          {/* Enhanced Workflow Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredWorkflows.map((workflow: any) => (
               <div 
                 key={workflow.id} 
-                className="control-card p-6 hover:border-green-500/50 transition-all cursor-pointer"
+                className="control-card p-6 cursor-pointer hover:border-green-500/50 transition-all hover:scale-105"
                 onClick={() => setSelectedWorkflow(workflow)}
               >
-                <div className="flex items-start justify-between mb-4">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                      <GitBranch className="h-5 w-5 text-blue-400" />
+                    <div className="p-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <GitBranch className="h-6 w-6 text-green-400" />
                     </div>
                     <div>
-                      <h3 className="text-white font-semibold text-lg">{workflow.name || 'Untitled'}</h3>
-                      <p className="text-xs text-gray-500">ID: {workflow.id}</p>
+                      <h3 className="font-semibold text-white">{workflow.name || 'Untitled'}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <CheckCircle className={cn('h-3 w-3', workflow.active ? 'text-green-400' : 'text-gray-400')} />
+                        <span className={cn('text-xs font-medium', workflow.active ? 'text-green-400' : 'text-gray-400')}>
+                          {workflow.active ? 'Attivo' : 'Inattivo'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   
-                  <span className={cn(
-                    'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border',
-                    getStatusColor(workflow.active)
-                  )}>
-                    {workflow.active ? (
-                      <>
-                        <CheckCircle className="h-3 w-3" />
-                        Attivo
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-3 w-3" />
-                        Inattivo
-                      </>
-                    )}
-                  </span>
+                  <Activity className="h-5 w-5 text-blue-400" />
                 </div>
 
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-400">Nodi</p>
-                      <p className="text-lg font-bold text-white">{workflow.node_count || 0}</p>
+                {/* Workflow Info */}
+                <div className="space-y-3 mb-4">
+                  <div className="bg-gray-800/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Settings className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-white">Workflow Stats</span>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-400">Esecuzioni</p>
-                      <p className="text-lg font-bold text-green-400">{workflow.execution_count || 0}</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-gray-400">Nodi:</span>
+                        <span className="text-white ml-1">{workflow.node_count || 0}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Esecuzioni:</span>
+                        <span className="text-green-400 ml-1">{workflow.execution_count || 0}</span>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Business Context */}
+                  <div className="bg-blue-900/20 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <GitBranch className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-white">Workflow Type</span>
+                    </div>
+                    <p className="text-xs text-blue-300">
+                      {workflow.has_webhook ? 'Webhook-triggered automation' : 'Manual/scheduled workflow'}
+                    </p>
+                  </div>
+
+                  {/* Tags Section */}
                   {(workflow.tags && workflow.tags.length > 0) && (
-                    <div>
-                      <p className="text-xs text-gray-400 mb-2">Tags</p>
+                    <div className="bg-purple-900/20 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Filter className="h-4 w-4 text-purple-400" />
+                        <span className="text-sm font-medium text-white">Tags</span>
+                      </div>
                       <div className="flex flex-wrap gap-1">
                         {workflow.tags.slice(0, 3).map((tag: string, index: number) => (
                           <span 
                             key={index}
-                            className="px-2 py-1 bg-blue-500/10 text-blue-400 rounded text-xs border border-blue-500/30"
+                            className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs"
                           >
                             {tag}
                           </span>
                         ))}
                         {workflow.tags.length > 3 && (
-                          <span className="text-gray-400 text-xs">+{workflow.tags.length - 3}</span>
+                          <span className="text-purple-400 text-xs">+{workflow.tags.length - 3}</span>
                         )}
                       </div>
                     </div>
                   )}
+                </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-800">
-                    <div className="flex items-center gap-1 text-gray-400 text-xs">
-                      <Clock className="h-3 w-3" />
-                      {workflow.updatedAt ? 
-                        new Date(workflow.updatedAt).toLocaleDateString('it-IT') : 
-                        'N/A'
-                      }
+                {/* Action Buttons */}
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-400">Killer Features</p>
+                      <p className="text-sm font-medium text-white">
+                        Full transparency & AI timeline
+                      </p>
                     </div>
-                    
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       <button 
-                        className="p-1 text-gray-400 hover:text-blue-400 transition-colors"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedWorkflow(workflow)
                         }}
                       >
-                        <Eye className="h-4 w-4" />
+                        <Settings className="h-3 w-3" />
+                        Dettagli
                       </button>
                       <button 
-                        className="p-1 text-gray-400 hover:text-yellow-400 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs flex items-center gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setTimelineWorkflow(workflow)
+                        }}
                       >
-                        <Settings className="h-4 w-4" />
-                      </button>
-                      <button 
-                        className="p-1 text-gray-400 hover:text-green-400 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {workflow.active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        <Activity className="h-3 w-3" />
+                        Timeline
                       </button>
                     </div>
                   </div>
@@ -408,10 +450,25 @@ export const WorkflowsPage: React.FC = () => {
 
       {/* Workflow Detail Modal */}
       {selectedWorkflow && (
-        <WorkflowDetailModal
+        <AgentDetailModal
           workflow={selectedWorkflow}
+          workflowId={selectedWorkflow.id}
           tenantId={user?.tenantId || 'client_simulation_a'}
+          isOpen={!!selectedWorkflow}
           onClose={() => setSelectedWorkflow(null)}
+          isWorkflowMode={true}
+        />
+      )}
+
+      {/* Timeline Modal - KILLER FEATURE */}
+      {timelineWorkflow && (
+        <AgentDetailModal
+          workflow={timelineWorkflow}
+          workflowId={timelineWorkflow.id}
+          tenantId={user?.tenantId || 'client_simulation_a'}
+          isOpen={!!timelineWorkflow}
+          onClose={() => setTimelineWorkflow(null)}
+          isWorkflowMode={false} // AI Mode per la timeline!
         />
       )}
     </div>
