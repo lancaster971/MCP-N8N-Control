@@ -107,7 +107,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gradient">
-            🎯 PilotPro Control Center
+            PilotPro Control Center
           </h1>
           <p className="text-gray-500 mt-1">
             Benvenuto, {user?.email} | Sistema operativo e monitoraggio
@@ -440,11 +440,11 @@ export const Dashboard: React.FC = () => {
           <div className="space-y-1">
             <div className="flex justify-between">
               <span className="text-gray-400 text-xs">Database</span>
-              <span className="text-green-400 text-xs">✓ Healthy</span>
+              <span className="text-green-400 text-xs">Healthy</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400 text-xs">API Status</span>
-              <span className="text-green-400 text-xs">✓ Online</span>
+              <span className="text-green-400 text-xs">Online</span>
             </div>
           </div>
         </motion.div>
@@ -461,7 +461,8 @@ export const Dashboard: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.8 }}
         >
           <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-            🍩 Complexity Distribution
+            <BarChart3 className="h-4 w-4 text-green-400" />
+            Complexity Distribution
           </h4>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
@@ -500,7 +501,8 @@ export const Dashboard: React.FC = () => {
           transition={{ duration: 0.5, delay: 1.0 }}
         >
           <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-            📊 Execution Volume
+            <Database className="h-4 w-4 text-green-400" />
+            Execution Volume
           </h4>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">
